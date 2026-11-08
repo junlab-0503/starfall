@@ -115,5 +115,8 @@ function comment(id){const it=ITEMS[id],s=it.s,who=SECT[s].who,m=S.mkt[id],sp=m.
 // 앱을 꺼 둔 동안: 시장을 빠르게 돌리고, 월세와 자동 드릴 몫을 계산
 function catchUp(sec){sec=Math.min(sec,16*3600);if(sec<30)return null;const steps=Math.floor(sec/5);for(let i=0;i<steps;i++){tickMarket(5,true);if(i%Math.max(1,Math.floor(steps/120))===0)recordHist()}
   sec=Math.min(sec,offlineH()*3600);const rent=Math.min(rentPerSec()*sec,rentPerSec()*offlineH()*3600-S.rentAcc);S.rentAcc+=Math.max(0,rent);
-  let ores={};if(S.auto>0&&S.autoOn){let n=Math.floor(playRate()*sec*OFF_RATIO);n=Math.max(0,Math.min(n,boxCap()-boxUsed()));for(let i=0;i<n;i++){const id=rollDrop(S.layer);ores[id]=(ores[id]||0)+1}for(const id in ores)boxAdd(id,ores[id])}
+  let ores={};if(S.auto>0&&S.autoOn){let n=Math.floor(playRate()*sec*OFF_RATIO);n=Math.max(0,Math.min(n,boxCap()-boxUsed()));
+    // 많으면 하나씩 굴리지 않고 확률대로 나눈다 (개발자 모드처럼 수백만 개일 때 멈추지 않게)
+    if(n>2000){const d=LAYERS[S.layer].drops.map(([id,w])=>[id,w<25?w*BON.rare:w]),tot=d.reduce((s,x)=>s+x[1],0);let left=n;d.forEach(([id,w],i)=>{const k=i===d.length-1?left:Math.min(left,Math.round(n*w/tot));if(k>0)ores[id]=k;left-=k})}
+    else for(let i=0;i<n;i++){const id=rollDrop(S.layer);ores[id]=(ores[id]||0)+1}for(const id in ores)boxAdd(id,ores[id])}
   return{sec,rent:Math.max(0,rent),ores,capped:sec>=offlineH()*3600}}

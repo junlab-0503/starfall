@@ -146,6 +146,7 @@ details.more summary{cursor:pointer;color:var(--text)}
 .matl .ok{color:var(--good)}.matl .no{color:var(--bad)}
 .sections{display:flex;flex-direction:column;gap:6px}
 .sect{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:7px;background:var(--panel2);border:2px solid var(--line);font-size:12px}
+.sect{cursor:pointer}.sect:active{filter:brightness(1.25)}
 .sect.done{border-color:#6a5a2a}
 .sect.cur{border-color:var(--lamp)}
 .sect.lock{background:transparent;border-style:dashed;color:var(--dim)}
@@ -187,6 +188,8 @@ details.more summary{cursor:pointer;color:var(--text)}
 .story{position:fixed;inset:0;z-index:20;background:rgba(6,4,10,.82);display:grid;place-items:center;padding:20px}
 .story-card{background:#241a12;border:3px solid #8a6a3a;box-shadow:0 0 0 3px #0a0705,0 8px 0 #000;padding:18px;max-width:400px;width:100%;text-align:center;animation:tin .25s steps(4)}
 .portrait{width:96px;height:96px;image-rendering:pixelated;border:2px solid var(--line);background:#1a120c;margin:0 auto 8px;display:block}
+.portrait.art{width:120px;height:120px;background:#3a2a20}
+.portrait[hidden]{display:none}
 .story-kick{font-size:12px;color:var(--dim)}
 .story h3{font-family:var(--fb);font-weight:400;font-size:20px;color:var(--star);margin:6px 0 10px}
 .story p{font-size:14px;line-height:1.7;margin:0 0 14px;text-align:left}
@@ -238,6 +241,7 @@ body{margin:0}
 .tut{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navH,64px) + 10px + env(safe-area-inset-bottom,0px));z-index:12;width:min(94vw,480px);display:flex;gap:10px;align-items:center;background:#2a1f15;border:3px solid var(--lamp);padding:10px;box-shadow:0 4px 0 #000;clip-path:polygon(0 3px,3px 3px,3px 0,calc(100% - 3px) 0,calc(100% - 3px) 3px,100% 3px,100% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,3px calc(100% - 3px),0 calc(100% - 3px))}
 .tut-por{width:48px;height:48px;image-rendering:pixelated;flex:none;border:2px solid var(--line);background:#1a120c}
 .tut-b{flex:1;min-width:0}.tut-who{font-size:11px;color:var(--lamp)}.tut-b p{margin:2px 0 0;font-size:13px;line-height:1.5}
+.tut-btns{display:flex;flex-direction:column;gap:6px;flex:none}
 .tut-glow{outline:3px solid var(--star)!important;outline-offset:-3px;animation:tg 1s steps(2) infinite}
 @keyframes tg{50%{outline-color:transparent}}
 .snd{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;margin:12px 0 4px;font-size:13px}

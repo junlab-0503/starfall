@@ -91,6 +91,9 @@ const ICON32={},ICON16={};
 function buildIcons(){
   let css='';
   ORDER.forEach(id=>{const c32=drawIcon(id,32).canvas(1),c16=drawIcon(id,16).canvas(1);ICON32[id]=c32;ICON16[id]=c16;css+=`.ic-${id}{background-image:url(${c32.toDataURL()})}`});
+  // 직접 그린 광물 그림이 있으면 그걸 아이콘으로 (채굴 화면에 날아가는 16px 아이콘도)
+  if(typeof ART!=='undefined')ORDER.forEach(id=>{if(!ART[id])return;css+=`.ic-${id}{background-image:url(${ART[id]})}`;
+    const im=new Image();im.onload=()=>{const c=ICON16[id],x=c.getContext('2d');x.clearRect(0,0,16,16);x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,16,16)};im.src=ART[id]});
   const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 }
 const ico=(id,sz='')=>`<i class="ico ${sz} ic-${id}" aria-hidden="true"></i>`;

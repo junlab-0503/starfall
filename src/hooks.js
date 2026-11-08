@@ -10,8 +10,8 @@
  w('unlockLayer',()=>sfx('unlock'));w('collectBox',()=>sfx('gain'));
  w('nextStory',()=>{if(!$('story').hidden)sfx($('portrait').hidden?'page':'tenant')});
  document.addEventListener('click',e=>{if(e.target.closest('button')&&!e.target.closest('#scene'))sfx('click')},true);}
-/* 설정: 음량, 안내 다시 보기 */
+/* 설정: 음량, 튜토리얼 다시 보기 */
 function renderSnd(){S.sound=S.sound||{sfx:.6,bgm:.3};$('volSfx').value=Math.round(S.sound.sfx*100);$('volBgm').value=Math.round(S.sound.bgm*100)}
 $('volSfx').addEventListener('input',e=>{S.sound.sfx=e.target.value/100;applyVol();sfx('coin')});
 $('volBgm').addEventListener('input',e=>{S.sound.bgm=e.target.value/100;applyVol()});
-$('tutAgain').onclick=()=>{S.tut=0;S.tutDone=false;setTab('mine');toast('처음 안내를 다시 시작해요.')};
+$('tutAgain').onclick=()=>{S.tut=0;S.tutDone=false;setTab('mine');toast('튜토리얼을 다시 시작해요.')};

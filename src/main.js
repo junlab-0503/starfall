@@ -4,7 +4,11 @@ const had=load();refreshBonus();
 if(!S.next||!LAYERS[S.layer].drops.some(d=>d[0]===S.next))S.next=rollDrop(S.layer);
 if(!(S.hp>0)||S.hp>layerHp(S.layer))S.hp=layerHp(S.layer);
 for(let i=0;i<180;i++){tickMarket(2,true);if(i%2)recordHist()}
-if(had){const r=catchUp((Date.now()-S.lastSeen)/1000);if(r)welcome(r)}
+// 다시 열 때: 서버 시각을 먼저 확인(최대 1.5초)하고, 시계를 되돌렸는지 본 뒤 자리 비운 시간을 계산
+let resuming=false;
+async function resume(){if(resuming)return;resuming=true;CLK.hold=true;clockRebase();await syncTime(1500);CLK.hold=false;const back=clockCheck();
+  const r=back?null:catchUp((gtime()-S.lastSeen)/1000);S.lastSeen=gtime();resuming=false;if(r)welcome(r);renderAll()}
+if(had)resume();else clockCheck();
 function welcome(r){const h=Math.floor(r.sec/3600),m=Math.floor(r.sec%3600/60),ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot=ores.reduce((s,o)=>s+o[1],0);
   const rows=[];if(r.rent>0)rows.push(`<span>${ico('goldbar','sm')} 입주자 월세</span><span>+${big(r.rent)}G</span>`);
   ores.slice(0,6).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(n)}</span>`));if(ores.length>6)rows.push(`<span>그 밖의 광석</span><span>×${big(ores.slice(6).reduce((s,o)=>s+o[1],0))}</span>`);
@@ -23,7 +27,7 @@ $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode
 let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
   try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();H={};refreshBonus();for(let i=0;i<180;i++){tickMarket(2,true);if(i%2)recordHist()}S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');story(PROLOGUE.map(c=>Object.assign({k:'프롤로그'},c)));S.prologue=true;save()};
 let lastT=0,secAcc=0,hist=0,saveAcc=0,hudAcc=0,invDirtyT=0;
-function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;
+function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden)clockWatch();
   if(S.tab==='mine'&&!IW)sceneResize();
   update(dt);if(S.tab==='mine'&&IW)draw(now/1000);
   if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();renderHeader();tutTick()}
@@ -33,4 +37,4 @@ function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;
   requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 addEventListener('beforeunload',save);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else{const r=catchUp((Date.now()-S.lastSeen)/1000);if(r)welcome(r);renderAll()}});
+document.addEventListener('visibilitychange',()=>{clockRebase();if(document.hidden)save();else resume()});

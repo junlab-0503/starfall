@@ -84,7 +84,7 @@
       <form class="dev" id="devForm"><label for="devCode">개발자 코드</label><input id="devCode" autocomplete="off" placeholder="코드 입력"><button class="px-btn" type="submit">적용</button></form>
       <p class="dim" id="devMsg"></p>
       <div class="snd"><label for="volSfx">효과음</label><input id="volSfx" type="range" min="0" max="100" step="5"><label for="volBgm">배경음악</label><input id="volBgm" type="range" min="0" max="100" step="5"></div>
-      <div class="row-btns"><button class="px-btn" id="tutAgain" type="button">처음 안내 다시 보기</button></div>
+      <div class="row-btns"><button class="px-btn" id="tutAgain" type="button">튜토리얼 다시 보기</button></div>
       <div class="row-btns"><span class="dim grow">진행 상황은 이 기기에 자동 저장돼요.</span><button class="px-btn" id="reset" type="button">처음부터 다시</button></div>
     </div>
     <div class="panel"><h2>광고 제거 패키지 <small id="pkgState"></small></h2>
@@ -104,7 +104,7 @@
   <button class="nb" data-tab="manage" type="button"><i class="ni ni-manage"></i><span>관리</span></button>
 </nav>
 <div class="toasts" id="toasts" aria-live="polite"></div>
-<div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="24" height="24"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div>
+<div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="24" height="24"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
 </div>
 
 <div class="story" id="adModal" hidden><div class="story-card"><div class="story-kick">광고</div><h3 id="adT"></h3><div class="ad-box" id="adBox">광고 자리<br><span class="dim small">프로토타입이라 실제 광고 대신 이 화면이 나와요</span><div class="ad-cnt" id="adCnt">5</div></div><div class="row-btns"><button class="px-btn" id="adCancel" type="button">그만두기</button><button class="px-btn lamp grow" id="adDone" type="button" disabled>보상 받기</button></div><p class="dim small" style="margin:10px 0 0">광고 제거 패키지가 있으면 바로 받아요</p></div></div>
@@ -116,7 +116,7 @@
   <div class="row-btns"><button class="px-btn" id="qtyCancel" type="button">취소</button><button class="px-btn lamp grow" id="qtyOk" type="button">판매하기</button></div></div></div>
 <div class="story" id="story" hidden>
   <div class="story-card">
-    <canvas class="portrait" id="portrait" width="24" height="24" hidden></canvas>
+    <canvas class="portrait" id="portrait" width="24" height="24" hidden></canvas><img class="portrait art" id="portraitArt" alt="" hidden>
     <div class="story-kick" id="storyKick"></div>
     <h3 id="storyT"></h3>
     <p id="storyB"></p>
