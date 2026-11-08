@@ -1,0 +1,8 @@
+.build/
+harness.html
+dbg*.html
+*.png
+node_modules/
+bal_it*.json
+bal8_it*.json
+calib*.log

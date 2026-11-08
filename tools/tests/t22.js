@@ -1,0 +1,16 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required']});const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});');fs.writeFileSync('dbg10.html',h);
+const ctx=await b.newContext({...devices['iPhone 13']});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message+' '+(e.stack||'').split('\n')[1]));p.on('console',m=>m.type()==='error'&&!/dbus/.test(m.text())&&errs.push(m.text()));
+await p.goto('file://'+process.cwd()+'/dbg10.html');await p.waitForTimeout(500);while(await p.isVisible('#storyNext'))await p.click('#storyNext');await p.waitForTimeout(400);
+const step=async(n)=>{await p.waitForTimeout(350);return (await p.isVisible('#tut'))?n+': '+(await p.textContent('#tutT')).slice(0,30)+' | glow='+await p.evaluate(()=>[...document.querySelectorAll('.tut-glow')].map(e=>e.id||e.className.split(' ')[0]).join(',')):n+': (숨김)'};
+console.log(await step(1));await p.screenshot({path:'x1.png'});
+const box=await (await p.$('#scene')).boundingBox();for(let i=0;i<60;i++){await p.mouse.click(box.x+60,box.y+60);await p.waitForTimeout(25);if(await p.isVisible("#storyNext"))await p.click("#storyNext")}console.log("mined",await p.evaluate(()=>__d().S.mined),"hp",await p.evaluate(()=>layerHp(0)));
+while(await p.isVisible('#storyNext'))await p.click('#storyNext');
+console.log(await step(2));await p.click('[data-tab="manage"]');await p.click('[data-sub="store"]');console.log(await step(3));
+await p.screenshot({path:'x2.png'});await p.click('#inv [data-sellq]');await p.click('#qtyOk');console.log(await step(4));
+await p.evaluate(()=>{__d().S.inv.stone=(__d().S.inv.stone||0)+4});await p.click('[data-tab="forge"]');console.log(await step(5));
+await p.click('[data-pk="stone"]');await p.click('[data-pk="stone"]');await p.click('#smelt');while(await p.isVisible('#storyNext'))await p.click('#storyNext');console.log(await step(6));
+await p.click('[data-tab="market"]');console.log(await step(7));await p.click('[data-tab="tower"]');console.log(await step(8));await p.screenshot({path:'x3.png'});
+await p.click('#tutNext');console.log(await step(9),'done',await p.evaluate(()=>__d().S.tutDone));
+await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.waitForTimeout(200);await p.screenshot({path:'x4.png'});
+console.log('audio',await p.evaluate(()=>AC?AC.state:'none'),'errors',errs);await b.close()})();

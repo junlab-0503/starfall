@@ -1,0 +1,8 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h;fs.writeFileSync('dbg5.html',h);
+for(const dev of ['iPhone 13','iPhone SE','Pixel 5','Galaxy S9+']){const ctx=await b.newContext({...devices[dev]});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file://'+process.cwd()+'/dbg5.html');await p.waitForTimeout(700);while(await p.isVisible('#storyNext'))await p.click('#storyNext');await p.waitForTimeout(300);
+const r=await p.evaluate(()=>{const s=document.getElementById('sceneWrap').getBoundingClientRect(),f=document.getElementById('mineFoot').getBoundingClientRect(),n=document.querySelector('.bnav').getBoundingClientRect();return{scene:[s.top|0,s.bottom|0],foot:[f.top|0,f.bottom|0],nav:[n.top|0,n.bottom|0],vh:innerHeight,cw:document.getElementById('scene').width}});
+console.log(dev,JSON.stringify(r),r.foot[1]<=r.nav[0]+1?'OK':'OVERLAP',errs);if(dev==='iPhone SE')await p.screenshot({path:'se.png'});
+await p.click('[data-tab="tower"]');await p.waitForTimeout(200);const t=await p.evaluate(()=>{const m=document.querySelector('main');m.scrollTop=1e6;const last=[...document.querySelectorAll('.sect')].pop().getBoundingClientRect(),n=document.querySelector('.bnav').getBoundingClientRect();return[last.bottom|0,n.top|0]});console.log('  tower last section bottom vs nav top',t,t[0]<=t[1]?'OK':'HIDDEN');await ctx.close()}
+await b.close()})();

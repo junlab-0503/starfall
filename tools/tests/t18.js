@@ -1,0 +1,6 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});');fs.writeFileSync('dbg9.html',h);
+const ctx=await b.newContext({...devices['iPhone 13']});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));await p.goto('file://'+process.cwd()+'/dbg9.html');await p.waitForTimeout(500);while(await p.isVisible('#storyNext'))await p.click('#storyNext');
+await p.evaluate(()=>{const S=__d().S;S.inv={stone:20,clay:15,copper:9};S.seen=['stone','clay','copper']});await p.click('[data-tab="manage"]');await p.click('[data-sub="store"]');await p.waitForTimeout(1200);
+for(const id of ['clay','copper']){await p.click(`[data-sellq="${id}"]`);await p.fill('#qtyIn','4');await p.dispatchEvent('#qtyIn','input');await p.click('#qtyOk');await p.waitForTimeout(300)}
+console.log(await p.evaluate(()=>__d().S.inv),errs);await b.close()})();
