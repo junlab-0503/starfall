@@ -6,8 +6,13 @@ function renderHeader(){
   fitText($('gold'),big(S.gold)+'G');$('depth').textContent=`−${fmt(LAYERS[S.layer].d)}m`;
   const u=used(),c=cap(),st=$('store');fitText(st,`${cbig(u)}/${cbig(c)}`);st.style.color=u>=c?'var(--bad)':u>=c*.85?'var(--lamp)':'';
   $('towerStat').textContent=big(S.floors)+'층';$('cal').textContent=calText();$('starIc').hidden=!S.ended;
-  $('towerDot').hidden=!(S.rentAcc>=rentPerSec()*1800&&rentPerSec()>0)&&!(!towerBlocked()&&canBuild(floorCost(S.floors+1)));
+  const B=badges();$('towerDot').hidden=!B.tower;$('manageDot').hidden=!B.manage;$('gearDot').hidden=!B.gear;$('shaftDot').hidden=!B.shaft;
 }
+// 빨간 점: 지금 할 수 있는 업그레이드·개척·탑 짓기·월세가 있으면 탭 → 하위 탭 → 그 버튼까지
+function upReady(){return{pick:S.gold>=pickCost(S.pick),auto:S.gold>=autoCost(S.auto),furn:S.furnace<5&&S.gold>=furnCost(S.furnace),wh:S.gold>=whCost(S.wh),intel:S.intel<3&&S.gold>=intelCost(S.intel)}}
+function badges(){const u=upReady(),gear=Object.values(u).some(Boolean),shaft=S.unlocked<LAYERS.length&&reqMet(LAYERS[S.unlocked]),
+  build=!towerBlocked()&&canBuild(floorCost(S.floors+1)),rent=S.rentAcc>=rentPerSec()*1800&&rentPerSec()>0,fin=towerBlocked()&&cnt('philo')>=1&&cnt('starshard')>=10;
+  return{u,gear,shaft,manage:gear||shaft,build,rent,tower:build||rent||fin}}
 function renderMineHud(){
   const L=LAYERS[S.layer],id=S.next||'stone',hp=layerHp(S.layer);
   $('scOre').innerHTML=`${ico(id)}<div style="min-width:0"><div class="nm"><b>${ITEMS[id].n}</b></div><div class="hpbar"><i style="width:${clamp(S.hp/hp,0,1)*100}%"></i></div></div>`;
@@ -33,16 +38,16 @@ function renderLayers(){
   $('layers').innerHTML=LAYERS.map((L,i)=>{const d=`<span class="d">B${i+1}<br>${fmt(L.d)}m</span>`;
     if(i<S.unlocked)return`<button class="layer${i===S.layer?' on':''}" data-go="${i}" type="button">${d}<span><span class="nm">${L.n}</span><br><span class="dim">${L.drops.map(x=>S.seen.includes(x[0])?ITEMS[x[0]].n:'???').join(' · ')}</span></span><span class="dim">${i===S.layer?'채굴 중':'가기'}</span></button>`;
     if(i===S.unlocked){const parts=[`<span class="${S.gold>=L.req.g?'ok':''}">${big(L.req.g)}G</span>`].concat(Object.entries(L.req.items).map(([id,n])=>`<span class="${cnt(id)>=n?'ok':''}">${S.seen.includes(id)?ITEMS[id].n:'???'} ${Math.min(cnt(id),n)}/${n}</span>`));
-      return`<div class="layer lock">${d}<span><span class="nm">${L.n}</span><br><span class="req dim">필요: ${parts.join(' · ')}</span></span><button class="px-btn lamp sm" data-unlock="${i}" type="button" ${reqMet(L)?'':'disabled'}>개척</button></div>`}
+      return`<div class="layer lock">${d}<span><span class="nm">${L.n}</span><br><span class="req dim">필요: ${parts.join(' · ')}</span></span><button class="px-btn lamp sm${reqMet(L)?' ndot':''}" data-unlock="${i}" type="button" ${reqMet(L)?'':'disabled'}>개척</button></div>`}
     return`<div class="layer lock">${d}<span><span class="nm">???</span><br><span class="dim">더 깊은 곳</span></span><span></span></div>`}).join('');
 }
 $('layers').addEventListener('click',e=>{const g2_=e.target.closest('[data-go]');if(g2_){setLayer(+g2_.dataset.go);setTab('mine');return}const u=e.target.closest('[data-unlock]');if(u)unlockLayer(+u.dataset.unlock)});
 /* 장비 */
 function renderUps(){const pc=pickCost(S.pick),ac=autoCost(S.auto),fc=furnCost(S.furnace),wc=whCost(S.wh),ic=intelCost(S.intel),T=PICK_TIERS[pickTier()],NT=PICK_TIERS[pickTier()+1];
-  const row=(icn,t,s,key,cost,max)=>`<div class="up">${ico(icn)}<span class="t">${t}</span><span class="s">${s}</span><button class="px-btn" data-up="${key}" type="button" ${max||S.gold<cost?'disabled':''}>${max?'최대':big(cost)+'G'}</button></div>`;
+  const U=upReady(),row=(icn,t,s,key,cost,max)=>`<div class="up${U[key]?' ready':''}">${ico(icn)}<span class="t">${t}</span><span class="s">${s}</span><button class="px-btn${U[key]?' ndot':''}" data-up="${key}" type="button" ${max||S.gold<cost?'disabled':''}>${max?'최대':big(cost)+'G'}</button></div>`;
   $('ups').innerHTML=
     row(['iron','iron','steel','resonant','lavaheart','stariron'][pickTier()],`${T[1]} Lv.${S.pick}`,`한 번 탭에 ${big(tapPower())} 피해${NT?` · Lv.${NT[0]}에 ${NT[1]}`:''}`,'pick',pc)+
-    row('drillbit',`자동 드릴 ×${S.auto}`,`초당 ${big(autoDps())} 피해 · 꺼 둔 동안 로봇 보관함에 모아요 (8시간 비우면 직접 플레이 1시간 30분치, 최대 ${offlineH()}시간)`,'auto',ac)+
+    row('drillbit',`자동 드릴 ×${S.auto}`,`초당 ${big(autoDps())} 피해 · 자리를 비운 동안엔 로봇 보관함에 모아요 (최대 ${offlineH()}시간)`,'auto',ac)+
     row('coke',`풀무 Lv.${Math.min(S.furnace,5)}`,`합성 성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`,'furn',fc,S.furnace>=5)+
     row('brick',`창고 Lv.${S.wh}`,`용량 ${big(cap())}칸 → ${big(capOf(S.wh+1))}칸`,'wh',wc)+
     row('lens',`장터 정보원 Lv.${Math.min(S.intel,3)}`,BON.perfectIntel?'점성술사 노을 덕분에 소문의 진위를 늘 알아요':['소문의 진위를 알 수 없어요','소문 신뢰도 표시 (적중 75%)','소문 신뢰도 표시 (적중 88%)','소문 신뢰도 표시 (적중 97%)'][Math.min(S.intel,3)],'intel',ic,S.intel>=3)}
@@ -90,7 +95,7 @@ function renderMarket(force){if(S.tab!=='market')return;const det=S.mkView==='de
   $('stalls').innerHTML=[...SKEYS].sort((a,b)=>ss.includes(b)-ss.includes(a)).map(k=>{if(!ss.includes(k))return`<div class="stall" style="opacity:.45"><span>???</span><span class="bz dim">아직 거래 없음</span></div>`;const b=busy(k),rl=repLv(k);
     return`<button class="stall${S.filter===k?' on':''}" data-st="${k}" type="button"><span>${SECT[k].guild}</span><span class="bz ${b==='바쁨'?'up':b==='한산'?'dn':'dim'}">${b}</span><span class="rp">${rl?'단골 '+'★'.repeat(rl):'처음 거래'}</span></button>`}).join('');
   const ids=[...new Set(S.seen)].filter(id=>!S.filter||ITEMS[id].s===S.filter).sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
-  $('mkList').innerHTML=ids.map(id=>{const r=pr(id),h=(H[id]||[]).slice(-40),cm=comment(id),col=r>1.02?'#8fd36a':r<.98?'#ff7a6a':'#b29c80';
+  $('mkList').innerHTML=ids.map(id=>{const r=pr(id),h=(H[id]||[]).slice(-40),cm=comment(id),col=r>1.02?'#8ff0a8':r<.98?'#ff5f86':'#8ea3cc';
     return`<button class="mrow" data-sel="${id}" type="button">${ico(id)}<span class="nmx"><b>${ITEMS[id].n}</b>${cnt(id)?`<span class="dim">×${big(cnt(id))}</span>`:''}</span><span class="px"><b>${pf(bid(id))}G</b> ${pctHtml(r)}</span><span class="cm">${cm.who}: ${cm.t}</span><span style="grid-column:3;grid-row:2">${sparkSvg(h,56,16,col)}</span></button>`}).join('')||'<p class="dim">광물을 캐면 여기에 시세가 나와요.</p>';
 }
 $('stalls').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(!b)return;S.filter=S.filter===b.dataset.st?null:b.dataset.st;renderMarket()});
@@ -145,7 +150,7 @@ function renderManage(){['store','gear','shaft','book','set'].forEach(k=>$('sub-
 function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='manage')renderManage()}
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */
-function navIcons(){const mk=f=>{const pb=new PB(16,16);f(pb);pb.outline('#0a0705');return pb.canvas(1).toDataURL()},C='#e8d8c0';
+function navIcons(){const mk=f=>{const pb=new PB(16,16);f(pb);pb.outline('#05070e');return pb.canvas(1).toDataURL()},C='#d8e6ff';
   const icons={mine:mk(p=>{p.line(3,13,11,5,'#8a6040',2);p.line(7,2,14,9,C,2)}),forge:mk(p=>{p.rect(3,6,10,8,C);p.rect(5,3,6,3,C);p.rect(6,9,4,3,'#ff7a3d')}),
     market:mk(p=>{p.rect(2,4,12,3,'#ff7a6a');p.rect(2,7,12,1,C);p.rect(3,8,2,6,C);p.rect(11,8,2,6,C);p.rect(6,9,4,3,'#ffd23f')}),
     tower:mk(p=>{p.rect(6,3,4,11,C);p.rect(5,6,6,2,C);p.rect(4,11,8,3,C);p.set(7,1,'#ffe9a8');p.set(8,1,'#ffe9a8')}),
@@ -155,12 +160,12 @@ function navIcons(){const mk=f=>{const pb=new PB(16,16);f(pb);pb.outline('#0a070
 /* 광고 두 가지 + 광고 제거 패키지 (프로토타입: 가짜 광고 화면, 결제 없음) */
 const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
 const hm=ms=>{const m=Math.max(1,Math.ceil(ms/60000));return m>=60?`${Math.floor(m/60)}시간 ${m%60}분`:`${m}분`};
-function renderAdBtns(){const now=gtime(),tag=S.noAds?'':'▶ 광고 보고 받기 · ';
-  const gb=$('giftBtn'),gl=giftLeft();if(gl>0){gb.className='px-btn ad-btn ready';gb.innerHTML=`숯의 선물 상자<span class="tag">${tag}오늘 ${gl}번 남음</span>`;gb.disabled=false}
+function renderAdBtns(){const now=gtime(),tag=S.noAds?'':'▶ 광고 · ';
+  const gb=$('giftBtn'),gl=giftLeft();if(gl>0){gb.className='px-btn ad-btn ready';gb.innerHTML=`숯의 선물 상자<span class="tag">${tag}오늘 ${gl}/${GIFT_MAX}</span>`;gb.disabled=false}
   else{gb.className='px-btn ad-btn';gb.disabled=true;gb.innerHTML='선물 상자<span class="tag">오늘은 다 받았어요 · 자정에 다시</span>'}
-  const bb=$('boostBtn'),bl=boostLeft();if(boostOn()){bb.className='px-btn ad-btn live';bb.disabled=true;bb.innerHTML=`2배 부스트 중<span class="tag">${mmss(S.ads.boostUntil-now)} 남음 · 오늘 ${bl}번 남음</span>`}
+  const bb=$('boostBtn'),bl=boostLeft();if(boostOn()){bb.className='px-btn ad-btn live';bb.disabled=true;bb.innerHTML=`2배 부스트 중<span class="tag">${mmss(S.ads.boostUntil-now)} 남음</span>`}
   else if(bl<=0){bb.className='px-btn ad-btn';bb.disabled=true;bb.innerHTML='2배 부스트<span class="tag">오늘은 다 썼어요 · 자정에 다시</span>'}
-  else{bb.className='px-btn ad-btn ready';bb.disabled=false;bb.innerHTML=`10분 동안 채굴 2배<span class="tag">${tag}오늘 ${bl}번 남음</span>`}}
+  else{bb.className='px-btn ad-btn ready';bb.disabled=false;bb.innerHTML=`10분 동안 채굴 2배<span class="tag">${tag}오늘 ${bl}/${BOOST_MAX}</span>`}}
 let AD_CB=null,AD_T=null;
 function showAd(title,cb){if(S.noAds){cb();return}AD_CB=cb;$('adT').textContent=title;let n=5;$('adCnt').textContent=n;$('adDone').disabled=true;$('adModal').hidden=false;clearInterval(AD_T);
   AD_T=setInterval(()=>{n--;$('adCnt').textContent=n>0?n:'끝!';if(n<=0){clearInterval(AD_T);$('adDone').disabled=false}},1000)}
@@ -169,10 +174,10 @@ $('adCancel').onclick=()=>{clearInterval(AD_T);$('adModal').hidden=true;AD_CB=nu
 function incomePerSec(){const L=S.layer,d=LAYERS[L].drops,tot=d.reduce((s,x)=>s+x[1],0),avg=d.reduce((s,x)=>s+bid(x[0])*x[1],0)/tot;return(pickPower(S.pick)*BON.tap*2.5+S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto*(S.autoOn?1:0))/layerHp(L)*avg}
 // 켜 두고 직접 캘 때(탭 + 자동 드릴) 초당 버는 골드
 function playIncome(){const L=S.layer,d=LAYERS[L].drops,tot=d.reduce((s,x)=>s+x[1],0),avg=d.reduce((s,x)=>s+bid(x[0])*x[1],0)/tot;return playRate()*avg}
-// 선물 상자: 켜 두고 15분 동안 캔 만큼의 골드 (하루 5번)
+// 선물 상자: 켜 두고 15분 동안 캔 만큼의 골드 (하루 5번). 화면엔 시간 환산을 쓰지 않는다
 function openGift(){if(!giftReady())return;showAd('숯의 선물 상자',()=>{if(!giftReady())return;adsDay().gift++;
   const gold=Math.max(50,Math.round(playIncome()*15*60));S.gold+=gold;
-  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다. 15분 동안 열심히 캔 만큼의 골드가 들어 있다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>`}]);renderAll()})}
+  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>`}]);renderAll()})}
 // 10분 동안 채굴 2배 (하루 10번, 켜져 있는 동안은 다시 못 씀)
 function startBoost(){if(boostOn()||boostLeft()<=0)return;showAd('10분 동안 채굴 2배',()=>{if(boostOn()||boostLeft()<=0)return;adsDay().boost++;S.ads.boostUntil=gtime()+10*60000;A.joy=1;toast(`10분 동안 곡괭이와 자동 드릴이 2배로 강해져요! (오늘 ${boostLeft()}번 남음)`);renderAll()})}
 $('giftBtn').onclick=openGift;$('boostBtn').onclick=startBoost;

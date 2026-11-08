@@ -30,62 +30,7 @@ class PB{ // 픽셀 버퍼
 }
 // 왼쪽 위에서 빛이 오는 음영 (0~4 단계)
 const lit=(R,cx,cy,rad,bias=0)=>(x,y)=>{const v=((cx-(x+.5))*.6+(cy-(y+.5))*.8)/rad+bias;return R[Math.max(0,Math.min(4,Math.round(2+v*1.8)))]};
-// 32 기준 좌표를 N 크기로
-function drawIcon(id,N){
-  const it=ITEMS[id],u=N/32,R=ramp(it.c),pb=new PB(N,N),rn=rng(strSeed(id)),P=a=>a.map(p=>[p[0]*u,p[1]*u]);
-  const OUT=shade(it.c,-.78);
-  const chunk=(col,pts,c0=[16,16])=>{const RR=ramp(col);pb.poly(P(pts),lit(RR,c0[0]*u,c0[1]*u,12*u));
-    for(let i=0;i<14*u*u;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);if(pb.get(x,y))pb.set(x,y,rn()<.5?RR[1]:RR[3])}};
-  const CH=[[5,13],[12,5],[23,6],[28,15],[25,26],[13,29],[4,22]];
-  const hi=(pts)=>pts.forEach(p=>pb.set(Math.floor(p[0]*u),Math.floor(p[1]*u),R[4]));
-  const glow=(col,a)=>{const q=new PB(N,N);q.d=pb.d.slice();for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(!q.get(x,y)&&(q.get(x-1,y)||q.get(x+1,y)||q.get(x,y-1)||q.get(x,y+1)||q.get(x-2,y)||q.get(x+2,y)||q.get(x,y-2)||q.get(x,y+2)))pb.set(x,y,col)};
-  switch(it.sh){
-  case'chunk':chunk(it.c,CH);break;
-  case'speck':{chunk(it.c,CH);const sc=id==='lapis'?['#ffd23f','#fff3a0']:['#3a3030','#f4e8e0'];for(let i=0;i<22*u*u;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);if(pb.get(x,y))pb.set(x,y,sc[rn()<.6?0:1])}break}
-  case'clay':pb.ell(16*u,18*u,13*u,9.5*u,lit(R,16*u,18*u,10*u));pb.line(9*u,16*u,15*u,15*u,R[1]);pb.line(14*u,21*u,22*u,20*u,R[1]);hi([[10,12],[11,12],[12,11]]);break;
-  case'ore':{chunk(it.h,CH);const RR=R;[[11,14,4],[20,19,3.3],[14,23,2.6],[21,10,2.6]].forEach(n=>{pb.ell(n[0]*u,n[1]*u,n[2]*u,n[2]*u*.9,(x,y,dx,dy)=>RR[Math.max(1,Math.min(4,Math.round(2-dx*1.3-dy*1.3)))]);pb.set(Math.floor((n[0]-n[2]*.4)*u),Math.floor((n[1]-n[2]*.4)*u),'#ffffff')});break}
-  case'coal':chunk(it.c,[[6,11],[14,4],[25,8],[28,18],[22,27],[11,28],[4,20]]);[[11,11],[19,9],[18,19],[10,20],[23,15]].forEach(p=>{pb.set(p[0]*u,p[1]*u,'#d8d4d0');if(u>.6){pb.set(p[0]*u+1,p[1]*u,'#8a8480');pb.set(p[0]*u,p[1]*u+1,'#8a8480')}});break;
-  case'shard':{const C=[16,16],pts=[[15,3],[25,11],[22,28],[8,26],[6,13]],idx=[4,2,1,2,3];for(let i=0;i<pts.length;i++)pb.poly(P([pts[i],pts[(i+1)%pts.length],C]),R[idx[i]]);pb.line(14*u,6*u,9*u,13*u,R[4]);break}
-  case'cube':pb.poly(P([[5,12],[16,6],[27,12],[16,18]]),R[3]);pb.poly(P([[5,12],[16,18],[16,29],[5,23]]),R[2]);pb.poly(P([[16,18],[27,12],[27,23],[16,29]]),R[1]);hi([[10,11],[11,10],[12,10],[13,9]]);pb.line(16*u,18*u,16*u,29*u,R[0]);break;
-  case'cluster':{chunk(it.h||'#444',[[4,26],[8,21],[16,20],[25,21],[29,26],[23,30],[9,30]],[16,25]);
-    const prism=(cx,by,w,h,lean)=>{const t=by-h,tip=t-w*.7;pb.poly(P([[cx-w/2,by],[cx-w/2+lean,t],[cx+lean,tip],[cx,by]]),R[3]);pb.poly(P([[cx,by],[cx+lean,tip],[cx+w/2+lean,t],[cx+w/2,by]]),R[1]);pb.line((cx-w/4+lean*.5)*u,(t+1)*u,(cx-w/4)*u,(by-2)*u,R[4])};
-    prism(9,25,6,8,-3);prism(23,25,6,7,3);prism(16,24,8,13,0);break}
-  case'lump':[[11,19,7],[21,20,6.5],[16,12,6]].forEach(c=>pb.ell(c[0]*u,c[1]*u,c[2]*u,c[2]*u,(x,y,dx,dy)=>R[Math.max(0,Math.min(4,Math.round(2-dx*1.4-dy*1.6)))]));hi([[14,9],[9,16]]);break;
-  case'void':chunk(it.c,CH);pb.ell(16*u,16*u,6*u,5*u,(x,y,dx,dy)=>{const d=Math.hypot(dx,dy);return d<.45?'#05060f':d<.8?'#141a3a':R[0]});pb.set(16*u,16*u,R[4]);break;
-  case'pearl':pb.ell(16*u,26*u,13*u,4*u,'#3a3550');pb.ell(16*u,15*u,9.5*u,9.5*u,(x,y,dx,dy)=>R[Math.max(1,Math.min(4,Math.round(2.6-dx*1.3-dy*1.5)))]);hi([[12,10],[13,10],[12,11]]);break;
-  case'fossil':{pb.ell(16*u,17*u,12*u,11*u,lit(R,16*u,17*u,10*u));let a=0,r=10;for(let i=0;i<60;i++){a+=.35;r*=.965;pb.set(Math.floor((16+Math.cos(a)*r)*u),Math.floor((17+Math.sin(a)*r*.9)*u),R[0])}for(let k=0;k<6;k++){const aa=k*1.05;pb.line(16*u,17*u,(16+Math.cos(aa)*11)*u,(17+Math.sin(aa)*10)*u,R[1])}break}
-  case'meteor':chunk(it.c,[[5,15],[10,6],[21,5],[28,12],[27,24],[17,29],[6,25]]);[[11,12,2.2],[20,10,1.6],[19,21,2.6],[10,22,1.5]].forEach(c=>pb.ell(c[0]*u,c[1]*u,c[2]*u,c[2]*u,R[0]));hi([[9,9],[10,8],[22,7]]);break;
-  case'opal':{pb.ell(16*u,16*u,12*u,9.5*u,lit(R,16*u,16*u,10*u));const cs=['#ff8ac0','#8affc8','#8ac8ff','#ffe08a','#c08aff'];for(let i=0;i<34*u*u;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);if(pb.get(x,y))pb.set(x,y,cs[Math.floor(rn()*cs.length)])}hi([[10,11],[11,10]]);break}
-  case'star':{const pts=[];for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,r=k%2?5.2:13;pts.push([16+Math.cos(a)*r,17+Math.sin(a)*r])}pb.poly(P(pts),lit(R,16*u,15*u,8*u,.3));glow('rgba(255,233,168,.45)');break}
-  case'dust':pb.poly(P([[3,27],[10,17],[16,13],[22,17],[29,27]]),lit(R,16*u,18*u,10*u));for(let i=0;i<10;i++){const x=(5+rn()*22)*u,y=(4+rn()*12)*u;pb.set(x,y,'#ffffff')}break;
-  case'ember':pb.poly(P([[16,3],[23,13],[25,21],[21,28],[11,28],[7,21],[10,12],[13,15]]),(x,y)=>{const d=Math.hypot(x/u-16,y/u-21);return d<4?'#fff6c8':d<7?'#ffd36a':d<10?R[2]:R[1]});glow('rgba(255,150,60,.4)');break;
-  case'slag':chunk(it.c,[[4,16],[9,8],[19,7],[27,12],[28,21],[19,27],[8,26]]);[[11,13,1.6],[19,12,1.3],[21,20,1.8],[12,21,1.3]].forEach(c=>pb.ell(c[0]*u,c[1]*u,c[2]*u,c[2]*u,'#211c18'));break;
-  case'block':pb.poly(P([[4,13],[16,7],[28,13],[16,19]]),R[3]);pb.poly(P([[4,13],[16,19],[16,28],[4,22]]),R[2]);pb.poly(P([[16,19],[28,13],[28,22],[16,28]]),R[1]);pb.line(4*u,17.5*u,16*u,23.5*u,R[0]);pb.line(16*u,23.5*u,28*u,17.5*u,R[0]);pb.line(10*u,16*u,10*u,25*u,R[0]);pb.line(22*u,16*u,22*u,25*u,R[0]);break;
-  case'wire':for(let i=0;i<5;i++){const y=10+i*3.6;pb.ell(16*u,y*u,9*u,3*u,(x,yy,dx,dy)=>Math.hypot(dx,dy)>.62?(dy>0?R[2]:R[0]):null)}for(let i=0;i<5;i++)pb.line(9*u,(12+i*3.6)*u,13*u,(12.8+i*3.6)*u,R[4]);pb.line(23*u,8*u,27*u,4*u,R[2],Math.max(1,u*1.6));break;
-  case'ingot':pb.poly(P([[3,24],[7,15],[25,15],[29,24]]),R[2]);pb.poly(P([[7,15],[10,9],[22,9],[25,15]]),R[3]);pb.rect(3*u,24*u,26*u,Math.max(1,1.5*u),R[1]);pb.rect(13*u,11*u,6*u,Math.max(1,2*u),R[2]);pb.line(10.5*u,9*u,21.5*u,9*u,R[4]);pb.line(6*u,22*u,9*u,17*u,R[3]);break;
-  case'vase':{pb.poly(P([[12,4],[20,4],[19,8],[24,13],[25,20],[21,27],[11,27],[7,20],[8,13],[13,8]]),(x,y)=>{const v=(x/u-16)/9;return R[Math.max(1,Math.min(4,Math.round(3-v*1.6)))]});
-    const ac=it.acc||shade(it.c,-.25);pb.line(9*u,15*u,23*u,15*u,ac);pb.line(10*u,21*u,22*u,21*u,ac);if(it.acc){pb.ell(16*u,18*u,2.4*u,2*u,ac)}pb.rect(12*u,4*u,8*u,Math.max(1,u),R[1]);break}
-  case'slab':pb.poly(P([[3,17],[17,11],[29,15],[15,21]]),R[3]);pb.poly(P([[3,17],[15,21],[15,26],[3,22]]),R[2]);pb.poly(P([[15,21],[29,15],[29,20],[15,26]]),R[1]);pb.line(7*u,16.5*u,17*u,12.5*u,R[4]);break;
-  case'gear':{const pts=[];for(let k=0;k<36;k++){const a=k/36*Math.PI*2,r=(k%4<2)?13.5:10.5;pts.push([16+Math.cos(a)*r,16+Math.sin(a)*r])}pb.poly(P(pts),lit(R,16*u,16*u,11*u));pb.ell(16*u,16*u,6.5*u,6.5*u,(x,y,dx,dy)=>Math.hypot(dx,dy)>.75?R[1]:null);pb.ell(16*u,16*u,3*u,3*u,'#1b1410');break}
-  case'pillar':pb.rect(10*u,7*u,12*u,20*u,(x)=>R[Math.max(1,Math.min(4,Math.round(3-(x/u-16)/4)))]);for(let k=0;k<3;k++)pb.line((12.5+k*3.5)*u,9*u,(12.5+k*3.5)*u,25*u,R[1]);pb.rect(7*u,4*u,18*u,3.5*u,R[3]);pb.rect(7*u,26*u,18*u,3.5*u,R[2]);break;
-  case'jar':pb.rect(11*u,4*u,10*u,3*u,'#8a5a3a');pb.poly(P([[10,7],[22,7],[25,12],[25,26],[22,29],[10,29],[7,26],[7,12]]),'#cfe6ec');pb.poly(P([[8,15],[24,15],[24,26],[21,28],[11,28],[8,26]]),lit(R,16*u,20*u,7*u));pb.line(10*u,10*u,10*u,25*u,'#ffffff');break;
-  case'lens':pb.ell(16*u,16*u,12*u,12*u,(x,y,dx,dy)=>Math.hypot(dx,dy)>.82?R[0]:R[Math.max(1,Math.min(4,Math.round(2.4-dx*1.5-dy*1.5)))]);pb.line(9*u,13*u,13*u,8*u,'#ffffff',Math.max(1,u*1.5));break;
-  case'cut':{const o=[],ii=[];for(let k=0;k<8;k++){const a=k/8*Math.PI*2-Math.PI/2,b=a+Math.PI/8;o.push([16+Math.cos(a)*13,16+Math.sin(a)*13]);ii.push([16+Math.cos(b)*7,16+Math.sin(b)*7])}
-    for(let k=0;k<8;k++){const n=(k+1)%8,lv=(k>=5||k===0)?1:0;pb.poly(P([o[k],o[n],ii[k]]),R[k%2?1+lv:2+lv]);pb.poly(P([ii[(k+7)%8],o[k],ii[k]]),R[k%2?2+lv:1+lv])}
-    pb.poly(P(ii),R[4]);pb.poly(P([ii[5],ii[6],ii[7],[16,16]]),'#ffffff');if(id==='cutopal'||id==='opal'){}break}
-  case'powder':pb.poly(P([[3,27],[8,20],[12,13],[16,8],[20,13],[24,20],[29,27]]),lit(R,16*u,18*u,10*u,.2));for(let i=0;i<9;i++){const x=(6+rn()*20)*u,y=(16+rn()*10)*u;pb.set(x,y,rn()<.5?R[4]:R[0])}break;
-  case'glass':pb.poly(P([[8,5],[26,3],[25,27],[6,29]]),(x,y)=>R[Math.max(1,Math.min(4,Math.round(3-((x+y)/u-32)/16)))]);pb.line(11*u,13*u,17*u,6*u,'#ffffff');pb.line(10*u,20*u,22*u,7*u,'#ffffff');pb.line(14*u,26*u,24*u,15*u,R[4]);break;
-  case'drillbit':pb.poly(P([[10,4],[22,4],[22,10],[16,29],[10,10]]),lit(R,16*u,10*u,8*u));for(let k=0;k<4;k++)pb.line(10*u,(10+k*4)*u,22*u,(8+k*4)*u,R[1]);pb.rect(12*u,1*u,8*u,3*u,'#7a7f8a');break;
-  case'charge':[8,13.5,19].forEach(x=>pb.rect(x*u,10*u,5*u,18*u,(xx)=>xx===Math.floor(x*u)?R[3]:R[2]));pb.rect(7*u,18*u,18*u,3*u,'#3b332a');pb.line(16*u,10*u,22*u,4*u,'#8a7a5a');pb.set(23*u,3*u,'#ffd34d');pb.set(22*u,2*u,'#fff6c8');break;
-  case'engine':{const g=(cx,cy,r,col)=>{const RR=ramp(col),pts=[];for(let k=0;k<28;k++){const a=k/28*Math.PI*2,rr=(k%4<2)?r:r*.78;pts.push([cx+Math.cos(a)*rr,cy+Math.sin(a)*rr])}pb.poly(P(pts),lit(RR,cx*u,cy*u,r*u*.8));pb.ell(cx*u,cy*u,r*.25*u,r*.25*u,'#1b1410')};g(13,18,11,it.c);g(24,9,7,'#a2e2e8');break}
-  case'lantern':pb.rect(10*u,3*u,12*u,3*u,'#3a3028');pb.rect(9*u,25*u,14*u,4*u,'#3a3028');pb.ell(16*u,16*u,6*u,8*u,(x,y,dx,dy)=>Math.hypot(dx,dy)<.5?'#ffffff':R[Math.round(3-Math.hypot(dx,dy))]);pb.line(9*u,6*u,9*u,25*u,'#3a3028');pb.line(22*u,6*u,22*u,25*u,'#3a3028');glow('rgba(160,216,255,.35)');break;
-  case'orb':pb.ell(16*u,16*u,9.5*u,9.5*u,(x,y,dx,dy)=>{const d=Math.hypot(dx+.35,dy+.35);return d<.35?'#ffffff':d<.7?R[4]:d<1.05?R[3]:R[2]});pb.ell(16*u,16*u,14*u,4*u,(x,y,dx,dy)=>Math.hypot(dx,dy)>.82&&(dy>0||Math.abs(dx)>.85)?R[4]:null);glow(`rgba(${parseInt(it.c.slice(1,3),16)},${parseInt(it.c.slice(3,5),16)},${parseInt(it.c.slice(5,7),16)},.4)`);break;
-  case'crown':pb.poly(P([[4,25],[6,10],[11,17],[16,6],[21,17],[26,10],[28,25]]),lit(R,16*u,14*u,9*u));pb.rect(4*u,23*u,24*u,4*u,R[1]);pb.ell(16*u,19*u,2.6*u,2.6*u,'#e42a4a');pb.ell(10*u,21*u,1.7*u,1.7*u,'#2f66e0');pb.ell(22*u,21*u,1.7*u,1.7*u,'#2f66e0');break;
-  default:chunk(it.c,CH);
-  }
-  pb.outline(OUT);
-  return pb;
-}
+// 광물 아이콘(drawIcon)은 icons.js
 // 아이콘을 만들어 CSS 클래스와 캔버스로
 const ICON32={},ICON16={};
 function buildIcons(){
@@ -100,43 +45,50 @@ const ico=(id,sz='')=>`<i class="ico ${sz} ic-${id}" aria-hidden="true"></i>`;
 
 /* 캐릭터 (옆모습, 왼쪽을 봄). 발 중앙이 기준점 (16, 31) */
 const CHAR_PAL={out:'#2a1610',skin:'#f4c8a0',skinS:'#d9a078',hair:'#4a2e1c',helm:'#e8b13a',helmS:'#b07a1e',lamp:'#fff6c8',shirt:'#5f86b8',shirtS:'#46668f',over:'#7a5a3a',overS:'#5a3f27',boot:'#3a2a20',cheek:'#e8907a',handle:'#7a5030',handleS:'#55361f'};
-function drawChar(o){ // o: {ang, bob, sit, step, tier, blink, face} — 2등신, 왼쪽을 봄
-  const C=CHAR_PAL,pb=new PB(40,40),ox=18,oy=37+(o.bob||0),sit=o.sit;
-  const fy=sit?oy-1:oy; // 발바닥
-  // 다리와 신발
-  if(sit){pb.rect(ox-7,fy-3,9,3,C.over);pb.rect(ox-9,fy-3,3,3,C.boot);pb.rect(ox-8,fy-1,3,1,C.boot)}
-  else{const s=o.step||0;pb.rect(ox-4+s,fy-4,3,2,C.over);pb.rect(ox+1-s,fy-4,3,2,C.overS);pb.rect(ox-5+s,fy-2,4,2,C.boot);pb.rect(ox-s,fy-2,4,2,C.boot)}
-  // 몸통 (작고 통통하게)
-  const by=sit?fy-3:fy-4;
-  pb.rect(ox-4,by-7,9,7,C.over);pb.rect(ox+3,by-7,2,7,C.overS);pb.rect(ox-4,by-7,9,2,C.shirt);pb.rect(ox+3,by-7,2,2,C.shirtS);
-  pb.set(ox-3,by-5,C.overS);pb.set(ox+1,by-5,C.overS);pb.rect(ox-2,by-3,3,1,C.overS);
-  // 큰 머리
-  const hx=ox-1,hy=by-13;
-  pb.ell(hx,hy,7,6.5,(x,y)=>x>hx+2?C.skinS:C.skin);
-  pb.ell(hx+3.5,hy+.5,3.6,5,(x,y)=>y>hy-2?C.hair:null);pb.rect(hx+4,hy-1,3,5,C.hair);
-  // 얼굴 (왼쪽)
+function drawChar(o){ // o: {ang, bob, sit, step, tier, blink, face} — 2.5등신, 왼쪽을 봄. 머리·몸통·팔·다리가 다 보이게
+  const C=CHAR_PAL,pb=new PB(40,40),ox=19,oy=37+(o.bob||0),sit=o.sit,fy=oy;
+  // 다리와 장화
+  if(sit){pb.rect(ox-9,fy-3,10,3,C.over);pb.rect(ox-9,fy-1,10,1,C.overS);pb.rect(ox-12,fy-4,3,4,C.boot);pb.rect(ox-12,fy-1,4,1,C.out)}
+  else{const s=o.step||0;
+    pb.rect(ox+1-s,fy-6,3,5,C.overS);pb.rect(ox-s,fy-2,4,2,C.boot);pb.set(ox-s,fy-1,C.out);           // 뒷다리
+    pb.rect(ox-4+s,fy-6,3,5,C.over);pb.rect(ox-4+s,fy-6,1,5,shade(C.over,.15));pb.rect(ox-6+s,fy-2,5,2,C.boot);pb.rect(ox-6+s,fy-2,2,1,shade(C.boot,.25))} // 앞다리
+  // 몸통: 셔츠 + 멜빵 작업복
+  const by=sit?fy-3:fy-6; // 허리
+  pb.rect(ox-5,by-9,10,9,C.shirt);pb.rect(ox+2,by-9,3,9,C.shirtS);           // 셔츠
+  pb.rect(ox-5,by-4,10,4,C.over);pb.rect(ox+2,by-4,3,4,C.overS);              // 바지 윗부분
+  pb.rect(ox-4,by-7,6,4,C.over);pb.rect(ox-3,by-6,3,2,C.overS);                // 앞치마 판과 주머니
+  pb.rect(ox-4,by-9,1,3,C.overS);pb.rect(ox+1,by-9,1,3,C.overS);               // 멜빵
+  pb.set(ox-4,by-7,'#d8c070');pb.set(ox+1,by-7,'#d8c070');                       // 단추
+  pb.rect(ox-5,by-1,10,1,'#4a3020');pb.set(ox-2,by-1,'#c8a050');               // 허리띠
+  // 목과 머리 (몸보다 조금 큰 정도)
+  const hx=ox-1,hy=by-15;
+  pb.rect(hx-1,by-10,3,1,C.skinS);
+  pb.ell(hx,hy,6,5.6,(x,y)=>x>hx+2?C.skinS:C.skin);
+  pb.ell(hx+3,hy+.5,3.4,4.6,(x,y)=>y>hy-2?C.hair:null);pb.rect(hx+3,hy-1,3,5,C.hair);pb.set(hx+5,hy+4,C.hair);pb.set(hx+2,hy+1,shade(C.hair,.2));
+  pb.set(hx+1,hy+1,C.skinS);pb.set(hx+1,hy+2,C.skin); // 귀
   const fc=o.face||'';
-  if(fc==='joy'){pb.set(hx-6,hy+1,C.out);pb.set(hx-5,hy,C.out);pb.set(hx-4,hy+1,C.out);pb.rect(hx-5,hy+4,2,1,'#8a3a2a')}
-  else if(fc==='tired'){pb.rect(hx-6,hy+1,2,1,C.out);pb.set(hx-4,hy+4,C.skinS);pb.set(hx-1,hy-3,'#9fd8ff');pb.set(hx-1,hy-2,'#9fd8ff')}
-  else if(fc==='yawn'){pb.rect(hx-6,hy,2,1,C.out);pb.rect(hx-5,hy+3,2,2,'#5a2a1a')}
-  else{pb.rect(hx-5,hy,1,2,o.blink?C.skinS:C.out);if(!o.blink)pb.set(hx-5,hy,'#ffffff')}
-  pb.rect(hx-6,hy+3,2,1,C.cheek);pb.set(hx-7,hy+2,C.skin);
-  // 헬멧
-  pb.ell(hx,hy-2.5,7.6,5.2,(x,y)=>y<hy-1?(x>hx+3?C.helmS:C.helm):null);
-  pb.rect(hx-9,hy-2,5,1,C.helmS);pb.rect(hx-3,hy-7,4,1,shade(C.helm,.35));
-  pb.rect(hx-7,hy-5,2,2,C.lamp);pb.set(hx-8,hy-4,C.lamp);pb.set(hx-2,hy-6,'#fff3c0');pb.set(hx-1,hy-6,'#fff3c0');pb.set(hx-3,hy-5,'#fff3c0');
-  // 팔과 곡괭이
-  const sx=ox-1,sy=by-5,a=o.ang*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a);
+  if(fc==='joy'){pb.set(hx-5,hy+1,C.out);pb.set(hx-4,hy,C.out);pb.set(hx-3,hy+1,C.out);pb.rect(hx-5,hy+3,2,1,'#8a3a2a')}
+  else if(fc==='tired'){pb.rect(hx-5,hy+1,2,1,C.out);pb.set(hx-4,hy+4,C.skinS);pb.set(hx,hy-3,'#9fd8ff');pb.set(hx,hy-2,'#9fd8ff')}
+  else if(fc==='yawn'){pb.rect(hx-5,hy,2,1,C.out);pb.rect(hx-5,hy+3,2,2,'#5a2a1a')}
+  else{pb.rect(hx-4,hy,1,2,o.blink?C.skinS:C.out);if(!o.blink)pb.set(hx-4,hy,'#ffffff');pb.set(hx-5,hy+3,'#a85a4a')}
+  pb.rect(hx-5,hy+2,2,1,C.cheek);pb.set(hx-6,hy+1,C.skin);
+  // 헬멧과 등불
+  pb.ell(hx,hy-2.2,6.8,4.6,(x,y)=>y<hy-1?(x>hx+3?C.helmS:C.helm):null);
+  pb.rect(hx-8,hy-2,5,1,C.helmS);pb.rect(hx-3,hy-6,4,1,shade(C.helm,.35));
+  pb.rect(hx-6,hy-5,2,2,C.lamp);pb.set(hx-7,hy-4,C.lamp);pb.set(hx-2,hy-5,'#fff3c0');
+  // 뒷팔(몸 뒤)
+  pb.rect(ox+3,by-8,2,5,C.shirtS);pb.rect(ox+3,by-3,2,2,C.skinS);
+  // 앞팔과 곡괭이: 어깨에서 손잡이를 쥔다
+  const sx=ox-1,sy=by-8,a=o.ang*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a);
   const hx2=sx+dx*5,hy2=sy+dy*5;
   const T=PICK_TIERS[o.tier||0],HR=ramp(T[2]);
   const ex=hx2+dx*10,ey=hy2+dy*10,px=-dy,py=dx;
   pb.line(hx2-dx*2,hy2-dy*2,ex,ey,C.handle,1);
-  // 곡괭이 머리: 손잡이에 수직, 양 끝이 손 쪽으로 살짝 휨
   const tip=(k)=>[ex+px*k*5.5-dx*1.8,ey+py*k*5.5-dy*1.8];
   const t1=tip(1),t2=tip(-1);
   pb.line(t1[0],t1[1],ex+px*2,ey+py*2,HR[2],2);pb.line(ex-px*2,ey-py*2,t2[0],t2[1],HR[2],2);pb.line(ex-px*2,ey-py*2,ex+px*2,ey+py*2,HR[1],2);
   pb.line(t1[0],t1[1],ex+px*2,ey+py*2,HR[4],1);pb.set(Math.round(t2[0]),Math.round(t2[1]),HR[3]);
-  pb.line(sx,sy,hx2,hy2,C.shirtS,2);pb.rect(Math.round(hx2-1),Math.round(hy2-1),2,2,C.skin);
+  pb.line(sx,sy,hx2,hy2,C.shirt,2);pb.rect(Math.round(hx2-1),Math.round(hy2-1),2,2,C.skin);
   pb.outline(C.out);
   return pb;
 }
@@ -149,13 +101,12 @@ function drawCat(f){const pb=new PB(20,14),B='#1d1a22',B2='#2e2a36',E=f==='sleep
     const t=f==='tail'?-1:0;pb.line(15,10,18,6+t,B,1);pb.line(18,6+t,19,4+t,B,1);pb.rect(7,12,2,2,B);pb.rect(13,12,2,2,B)}
   pb.outline('#08070a');return pb.canvas(1)}
 /* 드릴 로봇 */
-function drawBot(state,ph){const pb=new PB(22,18),R=ramp('#d6aa52');
-  pb.rect(6,5,12,8,(x,y)=>y<7?R[3]:x>15?R[1]:R[2]);pb.rect(8,7,6,3,'#1b2a2a');
-  if(state==='on'){pb.set(9,8,'#7cffc8');pb.set(12,8,'#7cffc8')}else if(state==='full'){pb.set(9,8,'#ff6a5a');pb.set(12,8,'#ff6a5a')}else{pb.line(9,8,12,8,'#5a7a7a')}
-  pb.rect(5,13,14,3,'#3a3028');for(let i=0;i<4;i++)pb.set(6+i*3+(ph%2),14,'#7a6a58');
-  // 드릴(왼쪽)
-  const DR=ramp('#c8d2da');pb.poly([[6,6],[6,12],[0,9]],(x,y)=>((x+y+ph)%3===0)?DR[1]:DR[3]);
-  pb.rect(11,2,2,3,'#7a6a58');pb.set(12,1,state==='on'?'#7cffc8':'#5a7a7a');
+function drawBot(state,ph){const pb=new PB(20,13),R=ramp('#d6aa52');
+  pb.rect(6,2,10,7,(x,y)=>y<4?R[3]:x>13?R[1]:R[2]);pb.rect(8,4,5,2,'#1b2a2a');
+  if(state==='on'){pb.set(9,5,'#7cffc8');pb.set(11,5,'#7cffc8')}else if(state==='full'){pb.set(9,5,'#ff6a5a');pb.set(11,5,'#ff6a5a')}else{pb.line(9,5,11,5,'#5a7a7a')}
+  pb.rect(5,9,12,3,'#3a3028');for(let i=0;i<4;i++)pb.set(6+i*3+(ph%2),10,'#7a6a58');
+  const DR=ramp('#c8d2da');pb.poly([[6,3],[6,9],[0,6]],(x,y)=>((x+y+ph)%3===0)?DR[1]:DR[3]);
+  pb.rect(12,0,1,2,'#7a6a58');pb.set(12,0,state==='on'?'#7cffc8':'#5a7a7a');
   pb.outline('#120c08');return pb.canvas(1)}
 const BOT_CACHE={};const botSprite=(s,ph)=>BOT_CACHE[s+ph]||(BOT_CACHE[s+ph]=drawBot(s,ph));
 const CAT_CACHE={};const catSprite=f=>CAT_CACHE[f]||(CAT_CACHE[f]=drawCat(f));

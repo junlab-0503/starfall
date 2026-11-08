@@ -110,21 +110,21 @@ function draw(t){
   const cs=catSprite(catF);g.drawImage(cs,cx-2,cy-cs.height+1);
   if(giftReady()){const bx=cx+16,by=cy-7,bb=Math.floor(t*3)%2;g.fillStyle='#c0402a';g.fillRect(bx,by-bb,8,6);g.fillStyle='#ffd23f';g.fillRect(bx+3,by-bb,2,6);g.fillRect(bx,by+2-bb,8,1);g.fillStyle='#ffe9a8';g.fillRect(bx+2,by-2-bb,1,2);g.fillRect(bx+5,by-2-bb,1,2);g.fillStyle='#2a1610';g.fillRect(bx,by+6-bb,8,1)}
   if(boostOn()&&Math.random()<.5)PARTS.push({x:w.x-4+Math.random()*24,y:w.y-30+Math.random()*24,vx:0,vy:-20,life:.6,c:'#ffe9a8',sz:1,star:Math.random()<.3});
+  // 드릴 로봇: 주인공보다 먼저(뒤에), 바닥에 붙여 작게
+  if(S.auto>0){const st=!S.autoOn?'off':full()?'full':'on',bs=botSprite(st,Math.floor(A.botPh)%3);const bx=Math.round(w.x-STX/2-2-camX),by=Math.round(w.y-camY-bs.height+2);g.drawImage(bs,bx,by);
+    if(st==='off'&&Math.sin(t*2)>0){g.fillStyle='#a8c8c8';g.fillRect(bx+15,by-4,3,1);g.fillRect(bx+17,by-5,1,1)}
+    if(st==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
   // 주인공
   const sit=full()&&A.sw<0,ang=sit?100:swingAngle()+(A.head>0?Math.sin(A.head*30)*6:0),face=sit?'tired':A.joy>0?'joy':A.yawn>0?'yawn':'';
   const spr=charSprite({ang,bob:A.joy>0?-(Math.floor(A.joy*8)%2):(!sit&&A.sw<0&&Math.sin(A.bobT*3)>0)?1:0,sit,step:A.stepT>0?(Math.floor(A.stepT*20)%2):0,tier:pickTier(),blink:A.blink>0,face});
-  g.drawImage(spr,Math.round(w.x+6-camX)-18,Math.round(w.y-camY)-37);
+  g.drawImage(spr,Math.round(w.x+6-camX)-19,Math.round(w.y-camY)-37);
   if(sit&&Math.sin(t*3)>.3){g.fillStyle='#9fd8ff';g.fillRect(Math.round(w.x+10-camX),Math.round(w.y-camY)-26,1,2)}
-  // 드릴 로봇
-  if(S.auto>0){const st=!S.autoOn?'off':full()?'full':'on',bs=botSprite(st,Math.floor(A.botPh)%3);const bx=Math.round(w.x-STX/2+1-camX),by=Math.round(w.y-camY-bs.height+1);g.drawImage(bs,bx,by);
-    if(st==='off'&&Math.sin(t*2)>0){g.fillStyle='#a8c8c8';g.fillRect(bx+15,by-4,3,1);g.fillRect(bx+17,by-5,1,1)}
-    if(st==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
   // 휘두름 잔상
-  if(A.sw>.38&&A.sw<.7){const T=PICK_TIERS[pickTier()],RR=ramp(T[2]),cx0=Math.round(w.x+6-camX)-18+17,cy0=Math.round(w.y-camY)-37+28,a1=-80*Math.PI/180,a2=swingAngle()*Math.PI/180;g.globalAlpha=.55*(1-(A.sw-.38)/.32);g.fillStyle=pickTier()>=3?RR[4]:'#fff6dc';for(let a=a1;a<a2;a+=.09){const r=15+Math.round(Math.sin(a*3));g.fillRect(Math.round(cx0+Math.cos(a)*r),Math.round(cy0+Math.sin(a)*r),1,1)}g.globalAlpha=1}
+  if(A.sw>.38&&A.sw<.7){const T=PICK_TIERS[pickTier()],RR=ramp(T[2]),cx0=Math.round(w.x+6-camX)-19+18,cy0=Math.round(w.y-camY)-37+23,a1=-80*Math.PI/180,a2=swingAngle()*Math.PI/180;g.globalAlpha=.55*(1-(A.sw-.38)/.32);g.fillStyle=pickTier()>=3?RR[4]:'#fff6dc';for(let a=a1;a<a2;a+=.09){const r=15+Math.round(Math.sin(a*3));g.fillRect(Math.round(cx0+Math.cos(a)*r),Math.round(cy0+Math.sin(a)*r),1,1)}g.globalAlpha=1}
   // 입자
   PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리
-  const lx=Math.round(w.x-2-camX),ly=Math.round(w.y-24-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
+  const lx=Math.round(w.x-2-camX),ly=Math.round(w.y-28-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
   // 떠다니는 먼지
   DUST.forEach(d=>{const x=Math.round(((d.x+t*d.v*6)%IW+IW)%IW),y=Math.round(((d.y-t*d.v*3)%IH+IH)%IH);const dd=Math.hypot(x-lx,y-ly);if(dd<IW*.35){g.globalAlpha=(1-dd/(IW*.35))*.7;g.fillStyle='#fff3d0';g.fillRect(x,y,1,1)}});g.globalAlpha=1;
   // 날아가는 광석 → 창고

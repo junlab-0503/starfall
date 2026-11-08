@@ -1,6 +1,6 @@
 <div class="app">
 <header class="hud">
-  <div class="hud-top"><h1><span class="star-ic" id="starIc" hidden>★</span>별의 파편</h1><span class="cal" id="cal"></span></div>
+  <div class="hud-top"><h1><span class="star-ic" id="starIc" hidden>★</span>별빛광맥</h1><span class="cal" id="cal"></span></div>
   <div class="stats">
     <div class="stat"><span class="k">골드</span><span class="v gold" id="gold">0</span></div>
     <div class="stat"><span class="k">깊이</span><span class="v" id="depth">-</span></div>
@@ -65,7 +65,7 @@
 
 <section id="tab-manage" class="view" hidden>
   <div class="seg" id="seg">
-    <button data-sub="store" type="button">창고</button><button data-sub="gear" type="button">장비</button><button data-sub="shaft" type="button">갱도</button><button data-sub="book" type="button">도감</button><button data-sub="set" type="button">설정</button>
+    <button data-sub="store" type="button">창고</button><button data-sub="gear" type="button">장비<i class="dot" id="gearDot" hidden></i></button><button data-sub="shaft" type="button">갱도<i class="dot" id="shaftDot" hidden></i></button><button data-sub="book" type="button">도감</button><button data-sub="set" type="button">설정</button>
   </div>
   <div id="sub-store" class="view">
     <div class="panel"><h2>창고 <small id="invCap"></small></h2><div class="inv" id="inv"></div>
@@ -101,10 +101,10 @@
   <button class="nb" data-tab="forge" type="button"><i class="ni ni-forge"></i><span>합성</span></button>
   <button class="nb" data-tab="market" type="button"><i class="ni ni-market"></i><span>장터</span><i class="dot" id="newsDot" hidden></i></button>
   <button class="nb" data-tab="tower" type="button"><i class="ni ni-tower"></i><span>탑</span><i class="dot" id="towerDot" hidden></i></button>
-  <button class="nb" data-tab="manage" type="button"><i class="ni ni-manage"></i><span>관리</span></button>
+  <button class="nb" data-tab="manage" type="button"><i class="ni ni-manage"></i><span>관리</span><i class="dot" id="manageDot" hidden></i></button>
 </nav>
 <div class="toasts" id="toasts" aria-live="polite"></div>
-<div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="24" height="24"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
+<div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="48" height="48"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
 </div>
 
 <div class="story" id="adModal" hidden><div class="story-card"><div class="story-kick">광고</div><h3 id="adT"></h3><div class="ad-box" id="adBox">광고 자리<br><span class="dim small">프로토타입이라 실제 광고 대신 이 화면이 나와요</span><div class="ad-cnt" id="adCnt">5</div></div><div class="row-btns"><button class="px-btn" id="adCancel" type="button">그만두기</button><button class="px-btn lamp grow" id="adDone" type="button" disabled>보상 받기</button></div><p class="dim small" style="margin:10px 0 0">광고 제거 패키지가 있으면 바로 받아요</p></div></div>
@@ -116,7 +116,7 @@
   <div class="row-btns"><button class="px-btn" id="qtyCancel" type="button">취소</button><button class="px-btn lamp grow" id="qtyOk" type="button">판매하기</button></div></div></div>
 <div class="story" id="story" hidden>
   <div class="story-card">
-    <canvas class="portrait" id="portrait" width="24" height="24" hidden></canvas><img class="portrait art" id="portraitArt" alt="" hidden>
+    <canvas class="portrait" id="portrait" width="48" height="48" hidden></canvas><img class="portrait art" id="portraitArt" alt="" hidden>
     <div class="story-kick" id="storyKick"></div>
     <h3 id="storyT"></h3>
     <p id="storyB"></p>
