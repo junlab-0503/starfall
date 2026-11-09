@@ -27,7 +27,7 @@
 </section>
 
 <section id="tab-forge" class="view" hidden>
-  <div class="panel" id="rqPanel"><h2>자동 재련 <small id="rqInfo"></small></h2><p class="dim small" style="margin:0 0 8px">미르가 시간을 들여 알아서 재련해 줘요. 자리를 비운 동안에도 계속돼요.</p><div id="rq"></div></div>
+  <div class="panel"><h2>자동 재련 <small id="rqInfo"></small></h2><p class="dim small" style="margin:0 0 8px">미르가 시간을 들여 알아서 재련해 줘요. 자리를 비운 동안에도 계속돼요.</p><div id="rq"></div></div>
   <div class="panel" id="forgePanel">
     <h2>용광로 <small id="bookCount2"></small></h2>
     <div class="forge">
@@ -112,9 +112,9 @@
 <div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="48" height="48"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
 </div>
 
-<div class="story" id="adModal" hidden><div class="story-card"><div class="story-kick">광고</div><h3 id="adT"></h3><div class="ad-box" id="adBox">광고 자리<br><span class="dim small">프로토타입이라 실제 광고 대신 이 화면이 나와요</span><div class="ad-cnt" id="adCnt">5</div></div><div class="row-btns"><button class="px-btn" id="adCancel" type="button">그만두기</button><button class="px-btn lamp grow" id="adDone" type="button" disabled>보상 받기</button></div><p class="dim small" style="margin:10px 0 0">광고 제거 패키지가 있으면 바로 받아요</p></div></div>
+<div class="story" id="adModal" hidden><div class="story-card"><div class="story-kick">광고</div><h3 id="adT"></h3><div class="ad-box">광고 자리<br><span class="dim small">프로토타입이라 실제 광고 대신 이 화면이 나와요</span><div class="ad-cnt" id="adCnt">5</div></div><div class="row-btns"><button class="px-btn" id="adCancel" type="button">그만두기</button><button class="px-btn lamp grow" id="adDone" type="button" disabled>보상 받기</button></div><p class="dim small" style="margin:10px 0 0">광고 제거 패키지가 있으면 바로 받아요</p></div></div>
 <div class="story" id="shopModal" hidden><div class="story-card"><div class="story-kick">상점</div><h3>광고 제거 패키지</h3><p>프로토타입이라 실제 결제는 되지 않아요. 구매한 것으로 처리할까요? 나중에 앱으로 출시하면 이 자리에 스토어 결제가 연결돼요.</p><div class="row-btns"><button class="px-btn" id="shopCancel" type="button">취소</button><button class="px-btn lamp grow" id="shopOk" type="button">5,900원 구매한 것으로 처리</button></div></div></div>
-<div class="story" id="qtyModal" hidden><div class="story-card"><div class="story-kick" id="qtyKick">판매</div><h3 id="qtyT"></h3>
+<div class="story" id="qtyModal" hidden><div class="story-card"><div class="story-kick">판매</div><h3 id="qtyT"></h3>
   <div class="qty"><button class="px-btn" data-q="-10" type="button">−10</button><button class="px-btn" data-q="-1" type="button">−1</button><input id="qtyIn" type="number" inputmode="numeric" min="1" value="1" aria-label="수량"><button class="px-btn" data-q="1" type="button">+1</button><button class="px-btn" data-q="10" type="button">+10</button></div>
   <div class="row-btns" style="justify-content:center"><button class="px-btn sm" data-q="half" type="button">절반</button><button class="px-btn sm" data-q="all" type="button">전부</button></div>
   <p class="qty-sum" id="qtySum"></p>

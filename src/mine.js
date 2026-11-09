@@ -88,7 +88,6 @@ function update(dt){
   FLY.forEach(f=>f.t+=dt);FLY=FLY.filter(f=>f.t<.6);
   stepFloats(dt);
 }
-function swingAngle(){const rest=115;if(A.sw<0)return rest;const t=A.sw;if(t<.4)return rest+(-80-rest)*(t/.4);if(t<.6)return -80+(170+80)*((t-.4)/.2);return 170+(rest-170)*((t-.6)/.4)}
 function draw(t){
   const L=S.layer,lk=LOOK[L],d=digOf(L);g.setTransform(1,0,0,1,0,0);
   const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;g.translate(sh,0);
@@ -125,14 +124,11 @@ function draw(t){
   if(S.auto>0){const st=!S.autoOn?'off':full()?'full':'on',bs=botSprite(st,Math.floor(A.botPh)%3);const bx=Math.round(w.x-STX/2-2-camX),by=Math.round(w.y-camY-bs.height+2);g.drawImage(bs,bx,by);
     if(st==='off'&&Math.sin(t*2)>0){g.fillStyle='#a8c8c8';g.fillRect(bx+15,by-4,3,1);g.fillRect(bx+17,by-5,1,1)}
     if(st==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
-  // 주인공: 직접 그린 스프라이트(art/hero) — 아직 안 불러왔으면 예전 도트 그림
+  // 주인공: 직접 그린 스프라이트(art/hero)
   const sit=full()&&A.sw<0,fxw=Math.round(w.x+6-camX),fyw=Math.round(w.y-camY);
   if(HERO.img){const k=heroFrameKey(sit,t),[sx,sy,sw,sh,fx]=HERO_META[k],bob=k==='rest'&&Math.sin(A.bobT*2.2)>.6?1:0;
     g.drawImage(HERO.img,sx,sy,sw,sh,fxw-fx,fyw-sh+1+bob,sw,sh);
     if(sit){const z=(t*.8)%1;g.fillStyle=`rgba(232,224,255,${(1-z).toFixed(2)})`;const zx=fxw+8+z*4,zy=fyw-18-z*10;g.fillRect(zx,zy,3,1);g.fillRect(zx+1,zy+1,1,1);g.fillRect(zx,zy+2,3,1)}}
-  else{const ang=sit?100:swingAngle()+(A.head>0?Math.sin(A.head*30)*6:0),face=sit?'tired':A.joy>0?'joy':A.yawn>0?'yawn':'';
-    const spr=charSprite({ang,bob:A.joy>0?-(Math.floor(A.joy*8)%2):(!sit&&A.sw<0&&Math.sin(A.bobT*3)>0)?1:0,sit,step:A.stepT>0?(Math.floor(A.stepT*20)%2):0,tier:pickTier(),blink:A.blink>0,face});
-    g.drawImage(spr,fxw-20,fyw-37)}
   // 입자
   PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리

@@ -36,12 +36,6 @@ function mLathe(prof,segs=12,rot=0){const v=[],f=[],ref=[],n=prof.length;
   if(prof[0][0]>0){f.push([...Array(segs).keys()]);v.push([0,prof[0][1]+1,0]);ref.push(v.length-1)}
   return{v,f,ref}}
 const sphereProf=(r=1,k=7)=>[...Array(k+1).keys()].map(i=>{const a=-Math.PI/2+i/k*Math.PI;return[Math.max(0,Math.cos(a)*r)+(i===0||i===k?0:0),Math.sin(a)*r]});
-// 납작한 판을 위로 밀어 올린 모양 (톱니바퀴 등)
-function mExtrude(pts,h){const v=[],f=[],ref=[],n=pts.length;let A=0;for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];A+=a[0]*b[1]-b[0]*a[1]}const sg=A>0?1:-1;
-  pts.forEach(([x,z])=>v.push([x,0,z]));pts.forEach(([x,z])=>v.push([x,h,z]));
-  for(let i=0;i<n;i++){const q=(i+1)%n,a=pts[i],b=pts[q],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;f.push([i,q,n+q,n+i]);v.push([(a[0]+b[0])/2-sg*.2*dz/l,h/2,(a[1]+b[1])/2+sg*.2*dx/l]);ref.push(v.length-1)}
-  f.push([...Array(n).keys()].map(k=>n+k));v.push([0,h-1,0]);ref.push(v.length-1);f.push([...Array(n).keys()]);v.push([0,1,0]);ref.push(v.length-1);
-  return{v,f,ref}}
 // 보석 컷: 브릴리언트(테두리 16점) / 계단 컷(테두리 n점)
 function mBrill(out,{table=.56,crown=.32,pav=.85}={}){const v=out.map(([x,z])=>[x,0,z]),f=[];for(let k=0;k<8;k++){const[x,z]=out[2*k];v.push([x*table,crown,z*table])}v.push([0,-pav,0]);
   const C=v.length-1,G=i=>((i%16)+16)%16,Tt=k=>16+((k%8)+8)%8;f.push([...Array(8).keys()].map(Tt));

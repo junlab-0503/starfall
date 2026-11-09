@@ -15,7 +15,7 @@ await p.click('.mrow');await p.waitForTimeout(300);await p.screenshot({path:'q4.
 await p.click('[data-tab="tower"]');await p.waitForTimeout(300);await p.screenshot({path:'q5.png',fullPage:true});
 await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.fill('#devCode','jun');await p.click('#devForm button');await p.waitForTimeout(200);
 await p.evaluate(()=>{const d=__d();d.S.gold=1e12;});
-await p.click('[data-sub="gear"]');await p.waitForTimeout(200);await p.screenshot({path:'q6.png'});
+await p.click('[data-tab="equip"]');await p.waitForTimeout(200);await p.screenshot({path:'q6.png'});
 await p.click('[data-tab="mine"]');
 for(const L of [3,7,10,12]){await p.click(`[data-chip="${L}"]`);await p.waitForTimeout(300);for(let i=0;i<6;i++){await p.mouse.click(box.x+box.width/2,box.y+box.height/2);await p.waitForTimeout(90)}await p.screenshot({path:`qL${L}.png`})}
 console.log('errors',errs);await b.close()})();

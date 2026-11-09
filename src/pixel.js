@@ -36,64 +36,11 @@ function buildIcons(){
   const KEY='starfall-icons',src=(document.currentScript&&document.currentScript.textContent)||'',h=strSeed(src)+':'+src.length;let css=null;
   try{const c=JSON.parse(localStorage.getItem(KEY)||'null');if(c&&c.h===h)css=c.css}catch(e){}
   if(!css){css='';ORDER.forEach(id=>{css+=`.ic-${id}{background-image:url(${drawIcon(id,32).canvas(1).toDataURL()})}`});try{localStorage.setItem(KEY,JSON.stringify({h,css}))}catch(e){}}
-  // 직접 그린 광물 그림(art/items)이 있으면 그걸 아이콘으로
-  if(typeof ART!=='undefined')ORDER.forEach(id=>{if(!ART[id])return;css+=`.ic-${id}{background-image:url(${ART[id]})}`;
-    const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=16;const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,16,16);ICON16[id]=c};im.src=ART[id]});
   const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 }
 const ico=(id,sz='')=>`<i class="ico ${sz} ic-${id}" aria-hidden="true"></i>`;
 
 /* 캐릭터 (옆모습, 왼쪽을 봄). 발 중앙이 기준점 (16, 31) */
-const CHAR_PAL={out:'#2a1610',skin:'#f4c8a0',skinS:'#d9a078',hair:'#4a2e1c',helm:'#e8b13a',helmS:'#b07a1e',lamp:'#fff6c8',shirt:'#5f86b8',shirtS:'#46668f',over:'#7a5a3a',overS:'#5a3f27',boot:'#3a2a20',cheek:'#e8907a',handle:'#7a5030',handleS:'#55361f'};
-function drawChar(o){ // o: {ang, bob, sit, step, tier, blink, face} — 2등신, 큰 눈, 왼쪽을 봄 (몸과 머리가 이어지게)
-  const C=CHAR_PAL,pb=new PB(40,40),ox=20,fy=37+(o.bob||0),sit=o.sit;
-  const sk=C.skin,skS=C.skinS,hair=C.hair,hairL=shade(C.hair,.22),ov=C.over,ovS=C.overS,ovL=shade(C.over,.18),sh=C.shirt,shS=C.shirtS,shL=shade(C.shirt,.2),bt=C.boot,btL=shade(C.boot,.28);
-  // 다리 · 장화
-  if(sit){pb.rect(ox-10,fy-3,11,3,ov);pb.rect(ox-10,fy-1,11,1,ovS);pb.rect(ox-13,fy-5,3,5,bt);pb.rect(ox-13,fy-5,3,1,btL);pb.rect(ox-14,fy-1,4,1,'#1e140e')}
-  else{const s=o.step||0;
-    pb.rect(ox+1-s,fy-5,3,3,ovS);pb.rect(ox-s,fy-3,5,3,bt);pb.rect(ox-s,fy-3,5,1,btL);pb.rect(ox-s,fy-1,5,1,'#1e140e');            // 뒷다리
-    pb.rect(ox-5+s,fy-5,3,3,ov);pb.set(ox-5+s,fy-5,ovL);pb.rect(ox-7+s,fy-3,5,3,bt);pb.rect(ox-7+s,fy-3,5,1,btL);pb.set(ox-7+s,fy-2,btL);pb.rect(ox-7+s,fy-1,5,1,'#1e140e')} // 앞다리
-  // 몸통: 셔츠 + 멜빵 작업복 (둥근 어깨)
-  const by=sit?fy-3:fy-5,ty=by-9;
-  pb.rect(ox-5,ty+1,10,9,sh);pb.rect(ox-4,ty,8,1,sh);pb.rect(ox+2,ty+1,3,9,shS);pb.set(ox-4,ty+1,shL);pb.set(ox-5,ty+2,shL);
-  pb.rect(ox-5,by-3,10,3,ov);pb.rect(ox+2,by-3,3,3,ovS);                    // 바지 허리
-  pb.rect(ox-4,ty+3,6,5,ov);pb.rect(ox-4,ty+3,6,1,ovL);pb.rect(ox-3,ty+5,3,2,ovS);pb.set(ox-2,ty+5,ovL);   // 앞판 · 주머니
-  pb.rect(ox-4,ty+1,1,3,ovS);pb.rect(ox+1,ty+1,1,3,ovS);pb.set(ox-4,ty+3,'#f0d070');pb.set(ox+1,ty+3,'#f0d070'); // 멜빵 · 단추
-  pb.rect(ox-5,by-1,10,1,'#4a3020');pb.set(ox-1,by-1,'#e0b050');            // 허리띠
-  pb.rect(ox-4,ty,7,1,'#d84a3a');pb.set(ox+3,ty+1,'#b83a2c');pb.set(ox+3,ty+2,'#b83a2c'); // 빨간 목수건
-  // 뒷팔
-  pb.rect(ox+4,ty+2,2,5,shS);pb.rect(ox+4,ty+7,2,2,skS);
-  // 머리: 몸만큼 크게, 큰 눈
-  const hx=ox-1,hy=ty-7;
-  pb.ell(hx,hy,7.6,7.2,(x,y,dx,dy)=>dx>.5?skS:sk);
-  pb.ell(hx+4,hy+1,4.2,6,(x,y)=>y>hy-3?hair:null);pb.rect(hx+3,hy-2,4,7,hair);pb.set(hx+7,hy+4,hair);pb.set(hx+6,hy+5,hair);pb.set(hx+4,hy,hairL);pb.set(hx+5,hy+2,hairL);
-  pb.rect(hx+2,hy+1,2,3,skS);pb.set(hx+2,hy+2,sk);                           // 귀
-  pb.rect(hx-7,hy-3,9,2,hair);pb.set(hx-7,hy-1,hair);pb.set(hx-4,hy-1,hair);pb.set(hx-1,hy-1,hair);pb.set(hx-5,hy-3,hairL); // 앞머리
-  const fc=o.face||'',E='#2a1a14',ex1=hx-6,ex2=hx-2,ey=hy;
-  if(fc==='joy'){[ex1,ex2].forEach(x=>{pb.set(x,ey+1,E);pb.set(x+1,ey,E);pb.set(x+2,ey+1,E)});pb.rect(hx-5,hy+4,3,1,'#a83a2a');pb.set(hx-4,hy+5,'#e86a5a')}
-  else if(fc==='tired'){[ex1,ex2].forEach(x=>{pb.rect(x,ey+1,2,1,E)});pb.set(hx-4,hy+4,skS);pb.set(hx+1,hy-4,'#9fd8ff');pb.set(hx+1,hy-3,'#9fd8ff')}
-  else if(fc==='yawn'){[ex1,ex2].forEach(x=>{pb.rect(x,ey+1,2,1,E)});pb.rect(hx-5,hy+3,2,3,'#6a2418');pb.set(hx-5,hy+5,'#e86a5a')}
-  else if(o.blink){[ex1,ex2].forEach(x=>pb.rect(x,ey+1,2,1,E))}
-  else{[ex1,ex2].forEach((x,k)=>{pb.rect(x,ey-1,2,4,E);pb.set(x,ey-1,'#ffffff');pb.set(x+1,ey+2,'#6a4a3a');if(!k)pb.set(x-1,ey-1,E)});pb.set(hx-4,hy+4,'#a85a4a');pb.set(hx-3,hy+4,'#a85a4a')}
-  pb.rect(hx-7,hy+2,2,1,C.cheek);pb.rect(hx-1,hy+2,2,1,C.cheek);pb.set(hx-8,hy+1,sk);
-  // 헬멧 · 등불
-  const Y=C.helm,YS=C.helmS,YL=shade(C.helm,.35);
-  pb.ell(hx+.5,hy-3.5,8.2,5.4,(x,y)=>y<hy-2?(x>hx+4?YS:Y):null);pb.rect(hx-10,hy-3,9,2,YS);pb.rect(hx-10,hy-3,9,1,Y);pb.rect(hx-2,hy-8,4,1,YL);pb.set(hx-4,hy-7,YL);
-  pb.rect(hx-6,hy-7,3,3,'#5a4a3a');pb.rect(hx-6,hy-7,2,2,C.lamp);pb.set(hx-6,hy-7,'#ffffff');
-  // 앞팔과 곡괭이
-  const sx=ox-2,sy=ty+2,a=o.ang*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a);
-  const hx2=sx+dx*5,hy2=sy+dy*5,T=PICK_TIERS[o.tier||0],HR=ramp(T[2]);
-  const ex=hx2+dx*10,ey2=hy2+dy*10,px=-dy,py=dx;
-  pb.line(hx2-dx*2,hy2-dy*2,ex,ey2,C.handle,1);
-  const tip=k=>[ex+px*k*5.5-dx*1.8,ey2+py*k*5.5-dy*1.8],t1=tip(1),t2=tip(-1);
-  pb.line(t1[0],t1[1],ex+px*2,ey2+py*2,HR[2],2);pb.line(ex-px*2,ey2-py*2,t2[0],t2[1],HR[2],2);pb.line(ex-px*2,ey2-py*2,ex+px*2,ey2+py*2,HR[1],2);
-  pb.line(t1[0],t1[1],ex+px*2,ey2+py*2,HR[4],1);pb.set(Math.round(t2[0]),Math.round(t2[1]),HR[3]);
-  pb.line(sx,sy,hx2,hy2,sh,2);pb.rect(Math.round(hx2-1),Math.round(hy2-1),3,2,sk);pb.set(Math.round(hx2-1),Math.round(hy2),skS);
-  pb.outline(C.out);
-  return pb;
-}
-const CHAR_CACHE={};
-function charSprite(o){const k=[Math.round(o.ang/8)*8,o.bob|0,o.sit?1:0,o.step|0,o.tier|0,o.blink?1:0,o.face||''].join(',');if(!CHAR_CACHE[k])CHAR_CACHE[k]=drawChar(Object.assign({},o,{ang:Math.round(o.ang/8)*8})).canvas(1);return CHAR_CACHE[k]}
 /* 고양이 숯 */
 function drawCat(f){const pb=new PB(20,14),B='#1d1a22',B2='#2e2a36',E=f==='sleep'?'#1d1a22':'#ffd23f';
   if(f==='sleep'){pb.ell(10,10,7,3.5,B);pb.ell(5,9,3,2.5,B2);pb.set(3,7,B);pb.set(6,7,B);pb.line(15,11,18,8,B,1)}
