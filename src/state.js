@@ -12,8 +12,8 @@ const J=(w,p)=>w+(p==='이가'?(jong(w)?'이':'가'):p==='을를'?(jong(w)?'을'
 const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function freshMarket(){const m={};ORDER.forEach(id=>m[id]={q:ITEMS[id].T,fat:0});const s={};SKEYS.forEach((k,i)=>s[k]={ph:Math.random()*6.28,x:0,inv:1,rep:0,per:360+i*70});return{m,s}}
-function fresh(){MSC=1;const mk=freshMarket();return{v:1,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
-  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],events:[],prologue:false,
+function fresh(){MSC=1;const mk=freshMarket();return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
+  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],prologue:false,
   mkt:mk.m,sec:mk.s,clock:0,day:0,ev:[],nextEv:60,caravan:null,nextCar:1.2,collector:null,nextCol:420,
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,msc:1,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store',sel:null,mkView:'list',filter:null}}
 /* 시계 조작 방지
@@ -35,8 +35,32 @@ async function syncTime(ms){try{if(!/^https?:$/.test(location.protocol)||/^(loca
   const d=Date.parse(r.headers.get('date')||'');if(!isFinite(d))return false;const age=(+r.headers.get('age')||0)*1000,t1=Date.now();
   const off=d+age+500-(t0+t1)/2;CLK.srv=off;if(Math.abs(off-CLK.off)>60000){CLK.off=off;clockRebase()}return true}catch(e){return false}}
 let S,H={},BON;
-function load(){try{const raw=localStorage.getItem(SAVE_KEY);if(raw){const d=JSON.parse(raw);S=Object.assign(fresh(),d);MSC=S.msc||1;ORDER.forEach(id=>{if(!S.mkt[id])S.mkt[id]={q:ITEMS[id].T,fat:0}});return true}}catch(e){}S=fresh();return false}
+// 저장 정리: 예전 시제품 저장 지우기, 지금 안 쓰는 필드 · 없어진 광물 · 잘못된 숫자 정리, 옛 이름이 남은 일지·소문 비우기
+const SAVE_VER=2,KEEP_EXTRA=['lastCaravan','lost','moreOpen'];
+function cleanSave(d){const f=fresh(),S2={};
+  for(const k in f)S2[k]=k in d?d[k]:f[k];KEEP_EXTRA.forEach(k=>{if(k in d)S2[k]=d[k]});
+  const num=v=>typeof v==='number'&&isFinite(v);for(const k in f)if(typeof f[k]==='number'&&!num(S2[k]))S2[k]=f[k];
+  const items=o=>{const r={};for(const id in o||{})if(ITEMS[id]&&num(o[id])&&o[id]>0)r[id]=Math.floor(o[id]);return r};
+  S2.inv=items(S2.inv);S2.box=items(S2.box);
+  S2.seen=[...new Set((S2.seen||[]).filter(id=>ITEMS[id]))];S2.found=[...new Set((S2.found||[]).filter(i=>RECIPES[i]))];S2.journal=[...new Set((S2.journal||[]).filter(i=>LAYERS[i]))];
+  S2.slots=[0,1].map(i=>{const id=(S2.slots||[])[i];return ITEMS[id]?id:null});
+  const a=S2.ads||{};S2.ads={boostUntil:num(a.boostUntil)?a.boostUntil:0,day:num(a.day)?a.day:0,gift:num(a.gift)?a.gift:0,boost:num(a.boost)?a.boost:0};
+  const m={};ORDER.forEach(id=>{const q=S2.mkt&&S2.mkt[id];m[id]=q&&num(q.q)?q:{q:ITEMS[id].T,fat:0}});S2.mkt=m;
+  S2.unlocked=clamp(S2.unlocked|0,1,LAYERS.length);S2.layer=clamp(S2.layer|0,0,S2.unlocked-1);
+  if(!ITEMS[S2.sel])S2.sel=null;if(S2.filter&&!SECT[S2.filter])S2.filter=null;
+  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;S2.log=(S2.log||[]).slice(0,60);
+  return S2}
+function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
+  const raw=localStorage.getItem(SAVE_KEY);if(raw){S=cleanSave(JSON.parse(raw));MSC=S.msc||1;return true}}catch(e){}S=fresh();return false}
 function save(){if(!CLK.hold){S.lastSeen=gtime();S.maxClock=Math.max(S.maxClock||0,S.lastSeen)}try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
+// 화면 갱신: 같은 내용이면 건드리지 않고, 긴 목록은 바뀐 줄만 바꾼다 (매초 다시 그려도 끊기지 않게)
+const HC=new WeakMap();
+function setHTML(el,h){if(!el||HC.get(el)===h)return;HC.set(el,h);el.innerHTML=h}
+// 같은 줄 목록이면 바뀐 칸만 고친다. slot[j] = j번째 칸이 줄의 몇 번째 자식인지
+function patchList(el,keys,parts,row,empty,slot){if(!el)return;const key=keys.join(','),prev=HC.get(el);
+  if(!keys.length){if(prev!=='')el.innerHTML=empty||'';HC.set(el,'');return}
+  if(prev&&prev.key===key&&el.children.length===keys.length)parts.forEach((P,i)=>{const r=el.children[i];P.forEach((h,j)=>{if(prev.parts[i][j]!==h)r.children[slot[j]].innerHTML=h})});
+  else el.innerHTML=keys.map((k,i)=>row(k,parts[i])).join('');HC.set(el,{key,parts})}
 const cnt=id=>S.inv[id]||0;
 function add(id,n){S.inv[id]=cnt(id)+n;if(S.inv[id]<=0)delete S.inv[id];if(n>0&&!S.seen.includes(id)){S.seen.push(id);if(S.seen.length>1)log(`새 광물 발견: ${ITEMS[id].n}`,true)}}
 function log(msg,toastIt){S.log.unshift(msg);S.log=S.log.slice(0,60);if(toastIt)toast(msg);if(typeof renderLog==='function')renderLog()}
@@ -74,7 +98,6 @@ const boxUsed=()=>Object.values(S.box||{}).reduce((a,b)=>a+b,0);
 // 로봇 보관함: 꺼 둔 동안 캔 광석만 담는다 (한도는 오프라인 시간으로 정해짐)
 // 오프라인: 비운 8시간 = 직접 플레이 1시간 30분치 (언제나 같은 비율). 패키지는 16시간까지
 const OFF_RATIO=1.5/8;
-const OFF_EFF=OFF_RATIO;
 const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto)/layerHp(S.layer);
 const boxCap=()=>Math.floor(playRate()*offlineH()*3600*OFF_RATIO);
 function boxAdd(id,n){S.box=S.box||{};if(n>0)S.box[id]=(S.box[id]||0)+n;return n}

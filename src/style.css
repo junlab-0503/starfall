@@ -252,3 +252,6 @@ body{margin:0}
 .snd{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;margin:12px 0 4px;font-size:13px}
 .snd input{width:100%;accent-color:var(--lamp)}
 @media (prefers-reduced-motion:reduce){.tut-glow{animation:none}}
+
+/* 긴 목록: 화면 밖 줄은 그리지 않는다 */
+.mrow{content-visibility:auto;contain-intrinsic-size:auto 66px}.irow{content-visibility:auto;contain-intrinsic-size:auto 40px}.sect{content-visibility:auto;contain-intrinsic-size:auto 62px}

@@ -77,8 +77,6 @@ function update(dt){
   stepFloats(dt);
 }
 function swingAngle(){const rest=115;if(A.sw<0)return rest;const t=A.sw;if(t<.4)return rest+(-80-rest)*(t/.4);if(t<.6)return -80+(170+80)*((t-.4)/.2);return 170+(rest-170)*((t-.6)/.4)}
-function drawTunnelCell(i,L){const x=-i*STX-camX,y=i*STY-camY,top=y-34;
-  g.fillStyle=pat(L,'back');g.save();g.translate(-camX%32,-camY%32);g.fillRect(x-STX/2+camX%32,top+camY%32,STX+1,35);g.restore()}
 function draw(t){
   const L=S.layer,lk=LOOK[L],d=digOf(L);g.setTransform(1,0,0,1,0,0);
   const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;g.translate(sh,0);
@@ -128,7 +126,7 @@ function draw(t){
   // 떠다니는 먼지
   DUST.forEach(d=>{const x=Math.round(((d.x+t*d.v*6)%IW+IW)%IW),y=Math.round(((d.y-t*d.v*3)%IH+IH)%IH);const dd=Math.hypot(x-lx,y-ly);if(dd<IW*.35){g.globalAlpha=(1-dd/(IW*.35))*.7;g.fillStyle='#fff3d0';g.fillRect(x,y,1,1)}});g.globalAlpha=1;
   // 날아가는 광석 → 창고
-  FLY.forEach(f=>{const k=f.t/.6,e=k*k,x=f.x0-camX+((IW-14)-(f.x0-camX))*e,y=f.y0-camY+(10-(f.y0-camY))*e-Math.sin(k*Math.PI)*20;g.drawImage(ICON16[f.id],Math.round(x-8),Math.round(y-8))});
+  FLY.forEach(f=>{const k=f.t/.6,e=k*k,x=f.x0-camX+((IW-14)-(f.x0-camX))*e,y=f.y0-camY+(10-(f.y0-camY))*e-Math.sin(k*Math.PI)*20;g.drawImage(icon16(f.id),Math.round(x-8),Math.round(y-8))});
   g.setTransform(1,0,0,1,0,0);
 }
 function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);

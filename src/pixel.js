@@ -28,17 +28,17 @@ class PB{ // 픽셀 버퍼
       const lit=(r||d)&&!(l||u);let col=c;if(typeof nb==='string'&&nb[0]==='#'&&!this.mono){col=hshift(nb,lit?-.6:-.8)}add.push([x,y,col])}add.forEach(p=>this.set(p[0],p[1],p[2]))}
   canvas(sc=1){const cv=document.createElement('canvas');cv.width=this.w*sc;cv.height=this.h*sc;const g=cv.getContext('2d');for(let i=0;i<this.d.length;i++){const c=this.d[i];if(!c)continue;g.fillStyle=c;g.fillRect((i%this.w)*sc,Math.floor(i/this.w)*sc,sc,sc)}return cv}
 }
-// 왼쪽 위에서 빛이 오는 음영 (0~4 단계)
-const lit=(R,cx,cy,rad,bias=0)=>(x,y)=>{const v=((cx-(x+.5))*.6+(cy-(y+.5))*.8)/rad+bias;return R[Math.max(0,Math.min(4,Math.round(2+v*1.8)))]};
 // 광물 아이콘(drawIcon)은 icons.js
 // 아이콘을 만들어 CSS 클래스와 캔버스로
-const ICON32={},ICON16={};
+// 아이콘: 32px는 CSS 배경으로 한 번만 만들고 브라우저에 보관(코드가 바뀌면 새로), 16px(채굴 화면용)은 쓸 때 만든다
+const ICON16={},icon16=id=>ICON16[id]||(ICON16[id]=drawIcon(id,16).canvas(1));
 function buildIcons(){
-  let css='';
-  ORDER.forEach(id=>{const c32=drawIcon(id,32).canvas(1),c16=drawIcon(id,16).canvas(1);ICON32[id]=c32;ICON16[id]=c16;css+=`.ic-${id}{background-image:url(${c32.toDataURL()})}`});
-  // 직접 그린 광물 그림이 있으면 그걸 아이콘으로 (채굴 화면에 날아가는 16px 아이콘도)
+  const KEY='starfall-icons',src=(document.currentScript&&document.currentScript.textContent)||'',h=strSeed(src)+':'+src.length;let css=null;
+  try{const c=JSON.parse(localStorage.getItem(KEY)||'null');if(c&&c.h===h)css=c.css}catch(e){}
+  if(!css){css='';ORDER.forEach(id=>{css+=`.ic-${id}{background-image:url(${drawIcon(id,32).canvas(1).toDataURL()})}`});try{localStorage.setItem(KEY,JSON.stringify({h,css}))}catch(e){}}
+  // 직접 그린 광물 그림(art/items)이 있으면 그걸 아이콘으로
   if(typeof ART!=='undefined')ORDER.forEach(id=>{if(!ART[id])return;css+=`.ic-${id}{background-image:url(${ART[id]})}`;
-    const im=new Image();im.onload=()=>{const c=ICON16[id],x=c.getContext('2d');x.clearRect(0,0,16,16);x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,16,16)};im.src=ART[id]});
+    const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=16;const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,16,16);ICON16[id]=c};im.src=ART[id]});
   const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 }
 const ico=(id,sz='')=>`<i class="ico ${sz} ic-${id}" aria-hidden="true"></i>`;

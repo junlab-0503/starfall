@@ -68,10 +68,10 @@ function drawTower(){const key=S.floors+'|'+S.ended+'|'+BON.done;if(key===towerK
 const TH={card:'',sh:''};
 function renderTower(){
   drawTower();const f=S.floors,i=secOf(f+1),sec=i>=0?SECTIONS[i]:null,rps=rentPerSec();
-  $('towerSum').innerHTML=`<span class="big">${big(f)}층</span><span class="dim">${sec?`${sec.n} (${sec.from}~${sec.to}층)`:f>=99?'하늘 너머':''}</span>
+  setHTML($('towerSum'),`<span class="big">${big(f)}층</span><span class="dim">${sec?`${sec.n} (${sec.from}~${sec.to}층)`:f>=99?'하늘 너머':''}</span>
     <span>판매가 보너스 <b class="good">+${Math.min(f,99)}%</b></span>
     <span>입주자 ${BON.done}/13 · 월세 시간당 ${big(rps*3600)}G</span>
-    <div class="row-btns" style="margin-top:2px"><button class="px-btn ${S.rentAcc>=1?'lamp':''}${badges().rent?' ndot':''}" id="rentBtn" type="button" ${S.rentAcc<1?'disabled':''}>월세 받기 ${S.rentAcc>=1?big(S.rentAcc)+'G':''}</button></div>`;
+    <div class="row-btns" style="margin-top:2px"><button class="px-btn ${S.rentAcc>=1?'lamp':''}${badges().rent?' ndot':''}" id="rentBtn" type="button" ${S.rentAcc<1?'disabled':''}>월세 받기 ${S.rentAcc>=1?big(S.rentAcc)+'G':''}</button></div>`);
   let card='';
   if(towerBlocked()){const ok=cnt('philo')>=1&&cnt('starshard')>=10;
     card=`<h2>천공의 용광로</h2><p class="dim">하늘에 가장 가까운 용광로. 마지막 합성으로 별을 하늘로 돌려보낼 수 있어요.</p>

@@ -77,7 +77,7 @@ function draw3(pb,list,{cx,cy,sc,tilt}){const F=[],N=pb.w,own=new Int16Array(N*N
     const sp=m.sp?Math.pow(Math.max(0,V3.dot(o.n,HV)),m.ex||12)*m.sp:0,R=m.R;let col=R[i];if(sp>.72)col=m.hi||'#ffffff';else if(sp>.38)col=R[Math.min(4,i+1)];
     const pts=o.P.map(p=>[cx+p[0]*sc,cy-p[1]*sc]),mx=pts.reduce((s,p)=>s+p[0],0)/pts.length,my=pts.reduce((s,p)=>s+p[1],0)/pts.length;
     const ex=pts.map(([x,y])=>{const dx=x-mx,dy=y-my,l=Math.hypot(dx,dy)||1;return[x+dx/l*.3,y+dy/l*.3]});
-    const tc=[cx,cy];pb.poly(ex,(x,y)=>{own[(y|0)*N+(x|0)]=o.mi;let cc=m.tex?m.tex(x,y,i,col,R):col;
+    pb.poly(ex,(x,y)=>{own[(y|0)*N+(x|0)]=o.mi;let cc=m.tex?m.tex(x,y,i,col,R):col;
       if(o.tab){const dx=x+.5-mx,dy=y+.5-my,v=(dx+dy)/(sc*.5),a=Math.atan2(dy,dx),w=((a+Math.PI)/(Math.PI/4)|0)%2;cc=v<-.55?R[4]:v<-.25?R[3]:v>.45?R[1]:w?R[2]:R[3]}
       return cc})});
   // 앞에 놓인 물체와 맞닿은 뒤쪽 물체 가장자리를 어둡게 (겹친 결정·진주·벽돌이 한 덩어리로 보이지 않게)
@@ -111,19 +111,6 @@ const ICON_SH={
     c.add(T3(mLathe([[.98,0],[.75,.22],[.4,.42],[0,.52]],14),{y:bowl?-.17:-.5,s:bowl?.95:1.1}),MAT.rock(col,{dk:.2,lt:.18}))},
   glow(c,col,r=2){c.fx.push(pb=>fxGlow(pb,col,r))}
 };
-const gearPts=(n,r0,r1)=>{const pts=[];for(let k=0;k<n;k++){const a=k/n*6.2832,p=6.2832/n;[[-.3,r0],[-.16,r1],[.16,r1],[.3,r0]].forEach(([f,r])=>{const b=a+f*p;pts.push([Math.cos(b)*r,Math.sin(b)*r])})}return pts};
-const lift=(M,dy)=>({...M,v:M.v.map(p=>[p[0],p[1]+dy,p[2]])});
-const scr=(c,p)=>{const q=V3.rx(p,.42);return[16*c.u+q[0]*11*c.u,17.4*c.u-q[1]*11*c.u]};
-function gearIcon(c,{r=1,col,x=0,y=0,z=0,a=.78,n=10,holes=4,ry=.2}){const tf={rx:a,ry,x,y,z,s:r},H=.34,R0=.76;
-  const RR=[hshift(col,-.8),hshift(col,-.55),hshift(col,-.25),col,hshift(col,.55)],sn0=Math.abs(Math.sin(a+.42));
-  c.add(T3(mExtrude(gearPts(n,R0,1),H),tf),{R:RR,sp:1,ex:30,b:-.85,tex:(px,py,i,cc)=>{if(i<3)return cc;const[gx,gy]=scr(c,T3({v:[[0,H,0]],f:[]},tf).v[0]),dx=(px+.5-gx)/(r*11*c.u),dy=(py+.5-gy)/(r*11*c.u*sn0),d=Math.hypot(dx,dy);
-    return d>.6&&d<.69?RR[1]:d>.69&&d<.76?RR[4]:d<.36&&d>.3?RR[2]:cc}});
-  c.add(T3(lift(mPrism(16,.3,.1),H),tf),{R:RR,sp:1,ex:30,b:-1.3,zb:.02});
-  const sn=Math.abs(Math.sin(a+.42)),hole=(px,pz,hr,deep)=>{const[sx,sy]=scr(c,T3({v:[[px,H,pz]],f:[]},tf).v[0]),rx=hr*r*11*c.u,rr=rx*sn;
-    return pb=>{for(let yy=-Math.ceil(rr);yy<=Math.ceil(rr);yy++)for(let xx=-Math.ceil(rx);xx<=Math.ceil(rx);xx++){const e=(xx*xx)/(rx*rx)+(yy*yy)/(rr*rr);if(e>1)continue;
-      const lip=e>.45&&(xx+yy)>0;pb.set(sx+xx,sy+yy,lip?shade(col,-.25):deep)}}};
-  for(let k=0;k<holes;k++){const b=k/holes*6.2832+.8;c.fx0.push(hole(Math.cos(b)*.49,Math.sin(b)*.49,.17,hshift(col,-.85)))}
-  c.fx0.push(hole(0,0,.11,'#0c0806'))}
 // 톱니바퀴는 도트로 직접: 이빨 모양(사다리꼴) · 아래로 깔린 두께 · 테두리 홈 · 바람구멍 · 가운데 축
 function gear2D(pb,u,{cx,cy,R,n=9,col,T=3,spokes=4,sq=.88,rot=.12}){const RR=[hshift(col,-.82),hshift(col,-.58),hshift(col,-.28),col,hshift(col,.5)],cxp=cx*u,cyp=cy*u,Rp=R*u,R0p=R*.72*u,N=pb.w;
   const prof=a=>{let t=((a/(6.2832/n))%1+1)%1;t=Math.abs(t-.5)*2;return t<.4?1:t>.66?0:1-(t-.4)/.26};
