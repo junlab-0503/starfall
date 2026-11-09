@@ -6,9 +6,10 @@ function botRun(bal,snap,stop,maxSec,seed){
   window.revealJournal=i=>{if(!S.journal.includes(i))S.journal.push(i)};
   let t=0,endT=null,lost=0,gIncome=0,unlockT={},sectT={},tf=0,RS={};const TAPS=2.5,log=[];
   if(snap){S=JSON.parse(snap.S);MSC=S.msc||1;DF=snap.DF;t=snap.t;tf=snap.tf||0;RS=snap.RS||{};unlockT=snap.unlockT;sectT=snap.sectT;lost=snap.lost;endT=snap.endT;refreshBonus()}
-  else{S=fresh();S.prologue=true;S.ads.giftAt=1e15;H={};refreshBonus();DF={};S.hp=layerHp(0);for(let i=0;i<120;i++)tickMarket(2,true)}
+  else{S=fresh();S.prologue=true;H={};refreshBonus();DF={};S.hp=layerHp(0);for(let i=0;i<120;i++)tickMarket(2,true)}
   const recipeOf={};RECIPES.forEach((r,i)=>recipeOf[r.out]=i);
-  function mine(d){S.hp-=d;const L=S.layer,hp=layerHp(L);let n=0;while(S.hp<=0&&n<5000){S.hp+=hp;n++;const id=rollDrop(L);S.mined++;if(space()>0)add(id,1);else lost++}}
+  // 캔 광석: 창고에, 넘치면 드릴 몫은 판매(로봇 보관함 → 넘침 판매를 한 번에), 탭 몫은 버려짐. 쇠맥 찾기 · 보석 눈썰미 포함
+  function mine(d,auto){S.hp-=d;const L=S.layer,hp=layerHp(L);let n=0;while(S.hp<=0&&n<5000){S.hp+=hp;n++;const id=rollDrop(L),k=1+(Math.random()<extraP(ITEMS[id].s)?1:0);S.mined+=k;const ok=Math.min(k,space());if(ok)add(id,ok);if(k>ok){if(auto)sellOverflow(id,k-ok);else lost+=k-ok}}}
   function needs(){const N={},a=(id,q)=>N[id]=(N[id]||0)+q;const L=LAYERS[S.unlocked];if(L&&L.req)for(const[id,n]of Object.entries(L.req.items))a(id,n);
     if(!towerBlocked())for(let k=1;k<=1;k++)floorCost(S.floors+k).mats.forEach(([id,q])=>a(id,q));
     if(S.unlocked>=13){a('philo',1);a('starshard',10)}
@@ -39,6 +40,7 @@ function botRun(bal,snap,stop,maxSec,seed){
       else if(autoCost(S.auto)<av*.2){S.gold-=autoCost(S.auto);S.auto++;did=true}
       else if(S.furnace<5&&furnCost(S.furnace)<av*.1){S.gold-=furnCost(S.furnace);S.furnace++;did=true}
       else if(cap()/Math.max(.01,(tapPower()*TAPS+autoDps())/layerHp(S.layer))<1200&&whCost(S.wh)<av*.4){S.gold-=whCost(S.wh);S.wh++;did=true}
+      if(!did)for(const k of ['crit','haggle','metal','gem','bulk','refiner','great','autosell'])if(!upMax(k)&&upCost(k)<av*.12){buyUp(k);did=true;break}
       if(!did)break}
     // 탑
     let b=0;
@@ -50,8 +52,8 @@ function botRun(bal,snap,stop,maxSec,seed){
   const hitF=()=>stop.type==='L'?unlockT[stop.k]!=null:stop.type==='S'?sectT[stop.k]!=null:endT!=null;
   let hit=hitF();
   while(t<maxSec&&!hit){
-    {const rate=(tapPower()*TAPS+autoDps())/layerHp(S.layer),k=S.layer+1,o=RS[k]||(RS[k]={n:0,r:0,f:0});o.n++;o.r+=rate;o.f+=cap()/Math.max(rate,1e-6)/60}
-    if(space()>0){mine(tapPower()*TAPS);if(S.auto>0)mine(autoDps())}
+    {const rate=(tapPower()*TAPS*(1+2*critP())+autoDps())/layerHp(S.layer),k=S.layer+1,o=RS[k]||(RS[k]={n:0,r:0,f:0});o.n++;o.r+=rate;o.f+=cap()/Math.max(rate,1e-6)/60}
+    if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true)
     tickMarket(1,true);S.rentAcc+=rentPerSec();
     t++;if(t%10===0){decide();hit=hitF()}
     if(t%3600===0)log.push({h:t/3600,gold:Math.round(S.gold),L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh});

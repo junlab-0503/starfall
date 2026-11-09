@@ -171,7 +171,7 @@ const ICON_DEF={
   stardust:c=>{c.add(T3(mLathe([[.5,-.95],[.62,-.8],[.64,.2],[.4,.4],[.32,.55]],12),{y:-.02}),{...MAT.glass('#e8f0ff',{ex:18}),tex:(x,y,i,col,R)=>{if(y/c.u<15.5)return col;const h=H32(x,y,3);return h<.18?'#ffffff':h<.45?'#ffd86a':h<.7?'#ffc040':'#e8a030'}});
     c.add(T3(mLathe([[.34,.5],[.36,.85]],10),{y:-.02}),MAT.rock('#a87a4a',{}));ICON_SH.glow(c,'rgba(255,236,170,A)',2);SPARK_IN(c,[[8,9,2],[25,12,1],[23,4,1],[6,21,1]])},
   starember:c=>{c.add(T3(mRock(c.seed,{rings:4,segs:7,j:.22,flat:.5}),{sx:1.02,sy:.8,sz:.9}),{R:['#1a0c0a','#2e1612','#4a2018','#6a3020','#8a4428'],tex:(x,y,i,col)=>{const v=Math.abs(Math.sin(x*.62/c.u+Math.sin(y*.4/c.u)*2)+Math.cos(y*.7/c.u-x*.15/c.u));return v<.16?'#fff2b0':v<.34?'#ffb84a':v<.5?'#e2581e':col}});ICON_SH.glow(c,'rgba(255,140,60,A)',2)},
-  /* ── 합성: 돌·건축 ── */
+  /* ── 재련: 돌·건축 ── */
   brick:c=>{c.add(T3(mBox(1.5,.95,1.05),{ry:-.55,y:-.62}),MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>H32(x,y,2)<.1?R[Math.max(0,i-1)]:(H32(x>>1,y,4)<.05?R[Math.min(4,i+1)]:col)}))},
   tile:c=>{const m=MAT.rock(c.it.c,{dk:.12,lt:.05});[[-.48,-.72,0],[.5,-.72,.05],[0,-.18,.02]].forEach(([x,y,z])=>c.add(T3(mBox(.92,.5,.62),{ry:-.5,x,y,z}),m))},
   basalttile:c=>{const m=MAT.rock(c.it.c,{b:.3,dk:.06});[[0,-.72,.2],[.05,-.48,-.15],[-.05,-.24,.45]].forEach(([x,y,r])=>c.add(T3(mPrism(6,.92,.2,{rot:r}),{x,y,sx:1,sz:.95}),m))},
@@ -179,7 +179,7 @@ const ICON_DEF={
   pillar:c=>{const m=MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>{const h=H32(x,y,5);return h<.08?'#3a3034':h<.14?'#f4e8e0':col}});c.add(T3(mPrism(8,.72,.26,{rot:.2}),{y:-1.02}),m);c.add(T3(mPrism(8,.46,1.45,{rot:.2}),{y:-.78}),m);c.add(T3(mPrism(8,.72,.26,{rot:.2}),{y:.66}),m)},
   porcelain:c=>c.add(T3(mLathe([[.32,-.95],[.62,-.78],[.86,-.4],[.9,0],[.78,.4],[.5,.62],[.34,.68],[.36,.84]],14),{y:.05}),{R:['#6a7088','#a4aabc','#d6d8dc','#f4f1e8','#ffffff'],sp:.9,ex:14}),
   bluechina:c=>{c.add(T3(mLathe([[.3,-.95],[.42,-.8],[.72,-.45],[.8,-.05],[.62,.32],[.3,.55],[.26,.75],[.36,.9]],14),{y:.02}),MAT.glass(c.it.c,{sp:.8,ex:10,tex:(x,y,i,col)=>{const yy=y/c.u;return(yy>13&&yy<15)||(yy>23.5&&yy<25)?'#2f57c8':(yy>16&&yy<22&&H32(x>>1,y>>1,7)<.3)?'#4a74d8':col}}))},
-  /* ── 합성: 금속 ── */
+  /* ── 재련: 금속 ── */
   bronze:c=>ICON_SH.ingot(c),
   steel:c=>ICON_SH.ingot(c),
   silverbar:c=>ICON_SH.ingot(c),
@@ -199,7 +199,7 @@ const ICON_DEF={
   drillbit:c=>{c.add(T3(mLathe([[0,-1.2],[.2,-.92],[.38,-.35],[.44,.15],[.44,.32],[.2,.38],[.2,.95]],12),{rz:-.75,x:.1,y:.05}),MAT.metal(c.it.c,{tex:(x,y,i,col,R)=>(((x*.9-y)/c.u|0)%4===0)&&i>0?R[i-1]:col}));SPARK_IN(c,[[25,25,2]])},
   charge:c=>{const m=MAT.rock(c.it.c,{sp:.4,ex:6,dk:.04,lt:.02});[[-.45,.1],[.45,.1],[0,-.25]].forEach(([x,z])=>c.add(T3(mPrism(10,.36,1.45),{x,z,y:-.85,rx:.05}),m));
     c.add(T3(mPrism(14,1.05,.22,{}),{y:-.2,sx:1,sz:.72}),MAT.rock('#3b332a',{zb:-.01}));c.fx.push(pb=>{for(let i=0;i<8;i++)pb.set((16+i*.8)*c.u,(5-i*.4+Math.sin(i)*.8)*c.u,'#8a7a5a');fxSpark(pb,23*c.u,2*c.u,1,'#fff6c8','#ffd34d')})},
-  /* ── 합성: 가루·통·병 ── */
+  /* ── 재련: 가루·통·병 ── */
   coke:c=>{const m=MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>H32(x>>1,y>>1,3)<.22?'#24201c':col});c.add(T3(mRock(c.seed,{rings:3,segs:6,j:.3,flat:.5}),{sx:.85,sy:.7,sz:.8,x:-.25}),m);c.add(T3(mRock(c.seed+4,{rings:3,segs:6,j:.3,flat:.5}),{s:.55,x:.55,y:-.32,z:.3}),m)},
   lime:c=>{const m=MAT.rock(c.it.c,{dk:.1,lt:.02,b:-.2});[[-.4,-.25,.0,.5],[.42,-.3,.1,.44],[0,.05,-.35,.48],[.05,-.55,.45,.32]].forEach(([x,y,z,s],k)=>c.add(T3(mRock(c.seed+k*3,{rings:3,segs:6,j:.22,flat:.6}),{s,x,y,z}),m))},
   polish:c=>ICON_SH.powder(c,c.it.c,'#c8c0d8'),
@@ -208,14 +208,14 @@ const ICON_DEF={
   mortar:c=>{c.add(T3(mLathe([[.66,-.95],[.92,.45]],14),{y:-.05}),MAT.rock('#8a5a34',{tex:(x,y,i,col,R)=>{const yy=y/c.u;return(yy>12&&yy<14)||(yy>23&&yy<25)?'#6a6a74':col}}));c.add(T3(mLathe([[.88,0],[.6,.14],[0,.2]],14),{y:.38}),MAT.rock(c.it.c,{dk:.08}))},
   ultramarine:c=>{c.add(T3(mLathe([[.7,-.9],[.78,-.75],[.78,.2],[.6,.4],[.58,.52]],12),{}),MAT.glass(c.it.c,{ex:16,b:-.2,tex:(x,y,i,col,R)=>H32(x,y,2)<.12?R[Math.max(0,i-1)]:col}));c.add(T3(mLathe([[.6,.5],[.64,.85]],12),{}),MAT.rock('#a87a4a',{}))},
   astralink:c=>{c.add(T3(mLathe([[.85,-.9],[.92,-.55],[.88,-.1],[.4,.2],[.28,.45],[.32,.62]],12),{}),{...MAT.glass(c.it.c,{ex:16}),tex:(x,y,i,col)=>H32(x,y,4)<.06?'#ffffff':col});c.add(T3(mLathe([[.22,.6],[.24,.92]],8),{}),MAT.rock('#4a3a6a',{}));ICON_SH.glow(c,'rgba(201,184,255,A)',2);SPARK_IN(c,[[12,20,1],[19,24,1]])},
-  /* ── 합성: 렌즈·유리 ── */
+  /* ── 재련: 렌즈·유리 ── */
   lens:c=>{c.add(T3(mBox(.22,1.05,.22),{rz:.75,x:.62,y:-.95,z:.2}),MAT.rock('#8a5a34',{}));c.add(T3(mPrism(18,.8,.14),{rx:-1.15,ry:.2,x:-.2,y:.18}),MAT.metal('#d6aa52',{ex:12}));
     c.add(T3(mPrism(18,.62,.16),{rx:-1.15,ry:.2,x:-.2,y:.2,z:.02}),{...MAT.glass('#a8dcf0',{ex:14,b:.2}),zb:.05,noEdge:true});c.fx.push(pb=>{pb.line(8*c.u,11*c.u,11*c.u,7*c.u,'#ffffff');pb.line(10*c.u,14*c.u,15*c.u,8*c.u,'rgba(255,255,255,.7)')})},
   shadowlens:c=>{c.add(T3(mPrism(18,.92,.16),{rx:-1.15,ry:.2,y:-.05}),MAT.metal('#b8c0d0',{ex:12}));c.add(T3(mPrism(18,.74,.18),{rx:-1.15,ry:.2,y:-.03,z:.02}),{...MAT.glass(c.it.c,{ex:14}),zb:.05});ICON_SH.glow(c,'rgba(140,90,210,A)',2)},
   glass:c=>{c.add(T3(mBox(1.5,1.6,.14),{ry:-.6,rz:.08,y:-.85}),MAT.glass(c.it.c,{b:.2,tex:(x,y,i,col)=>{const v=(x+y)/c.u;return(v>26&&v<27.5)||(v>30&&v<31)?'#ffffff':col}}))},
   lavaglass:c=>{c.add(T3(mRock(c.seed,{rings:3,segs:6,j:.25,flat:.5}),{sx:1.05,sy:.85,sz:.85}),{...MAT.glass(c.it.c,{ex:12,b:.3}),tex:(x,y,i,col)=>H32(x,y,3)<.05?'#fff0c8':col});ICON_SH.glow(c,'rgba(255,122,61,A)',1)},
   starglass:c=>{c.add(T3(mBox(1.5,1.6,.14),{ry:-.6,rz:.08,y:-.85}),MAT.glass(c.it.c,{b:.3,tex:(x,y,i,col)=>{const h=H32(x,y,5);return h<.06?'#ffffff':h<.1?'#ffd86a':col}}));ICON_SH.glow(c,'rgba(255,236,170,A)',2);SPARK_IN(c,[[13,13,2]])},
-  /* ── 합성: 보석 ── */
+  /* ── 재련: 보석 ── */
   pquartz:c=>{const m=MAT.gem(c.it.c,{b:.5,R:['#6a7488','#a0acc0','#d4dce8','#f2f6fc','#ffffff']});c.add(T3(mPrism(6,.36,.85,{tip:.5}),{rz:.15,x:-.2,y:-1}),m);c.add(T3(mPrism(6,.26,.55,{tip:.38}),{rz:-.45,x:.48,y:-.95,z:.2}),m);SPARK_IN(c,[[12,7,2]])},
   resonant:c=>{c.add(T3(mPrism(6,.38,.95,{tip:.5}),{rz:.18,x:-.25,y:-.95}),MAT.gem(c.it.c,{}));c.fx.push(pb=>{[[4,0],[7,.7]].forEach(([r,o])=>{for(let a=-.9;a<=.9;a+=.12){pb.set((21+o+Math.cos(a)*r)*c.u,(16+Math.sin(a)*r)*c.u,'rgba(220,190,255,.85)')}})})},
   cutame:c=>ICON_SH.gem(c,'pear'),

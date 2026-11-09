@@ -1,4 +1,4 @@
-/* ═════════ 소리 (파일 없이 합성하는 8비트 소리 + 칩튠 배경음악) ═════════ */
+/* ═════════ 소리 (파일 없이 재련하는 8비트 소리 + 칩튠 배경음악) ═════════ */
 let AC=null,SFXG=null,BGMG=null,NOISE=null;const lastPlay={};
 function audioInit(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();SFXG=AC.createGain();BGMG=AC.createGain();SFXG.connect(AC.destination);BGMG.connect(AC.destination);applyVol();
   const len=AC.sampleRate*.5,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;NOISE=buf;bgmStart()}catch(e){AC=null}}

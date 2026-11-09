@@ -4,7 +4,7 @@
 import base64,subprocess,os
 R=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC=os.path.join(R,'src');FONT=os.path.join(R,'fonts');OUT=os.path.join(R,'dist','starfall.html');TMP=os.path.join(R,'.build');os.makedirs(TMP,exist_ok=True)
-FILES=['data.js','pixel.js','icons.js','state.js','market.js','mine.js','forge.js','tower.js','ui.js','sfx.js','tut.js','hooks.js','main.js']
+FILES=['data.js','pixel.js','icons.js','state.js','market.js','mine.js','forge.js','tower.js','ui.js','equip.js','sfx.js','tut.js','hooks.js','main.js']
 js=''.join(open(os.path.join(SRC,f),encoding='utf-8').read()+'\n' for f in FILES)
 # 직접 그린 그림: art/portraits/<입주자>.png, art/items/<광물 id>.png → ART.<이름> (data URL)
 art={}

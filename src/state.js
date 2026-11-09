@@ -13,7 +13,7 @@ const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function freshMarket(){const m={};ORDER.forEach(id=>m[id]={q:ITEMS[id].T,fat:0});const s={};SKEYS.forEach((k,i)=>s[k]={ph:Math.random()*6.28,x:0,inv:1,rep:0,per:360+i*70});return{m,s}}
 function fresh(){MSC=1;const mk=freshMarket();return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
-  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],prologue:false,
+  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},rq:[],ofN:0,ofG:0,prologue:false,
   mkt:mk.m,sec:mk.s,clock:0,day:0,ev:[],nextEv:60,caravan:null,nextCar:1.2,collector:null,nextCol:420,
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,msc:1,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store',sel:null,mkView:'list',filter:null}}
 /* 시계 조작 방지
@@ -48,6 +48,8 @@ function cleanSave(d){const f=fresh(),S2={};
   const m={};ORDER.forEach(id=>{const q=S2.mkt&&S2.mkt[id];m[id]=q&&num(q.q)?q:{q:ITEMS[id].T,fat:0}});S2.mkt=m;
   S2.unlocked=clamp(S2.unlocked|0,1,LAYERS.length);S2.layer=clamp(S2.layer|0,0,S2.unlocked-1);
   if(!ITEMS[S2.sel])S2.sel=null;if(S2.filter&&!SECT[S2.filter])S2.filter=null;
+  const up={};for(const k in S2.up||{})if(UPS[k]&&num(S2.up[k])&&S2.up[k]>0)up[k]=Math.min(S2.up[k]|0,UPS[k].max??999);S2.up=up;
+  S2.rq=(Array.isArray(S2.rq)?S2.rq:[]).filter(j=>j&&RECIPES[j.r]&&num(j.n)).map(j=>({r:j.r,n:Math.max(0,j.n|0),t:num(j.t)?j.t:0,loop:!!j.loop}));
   if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;S2.log=(S2.log||[]).slice(0,60);
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
@@ -69,7 +71,7 @@ function toast(msg){const box=$('toasts');if(!box)return;const t=document.create
 /* 보너스: 탑 구간 완공(입주자) + 층수 */
 function bonus(){const done=SECTIONS.filter(s=>S.floors>=s.to).length,has=i=>done>i,all=has(12)?1.1:1,sky=Math.max(0,S.floors-99);
   return{done,tap:(1+(has(0)?.1:0))*all*(1+.02*sky),wh:1+(has(1)?.5:0),auto:(1+(has(2)?.25:0)+(has(9)?.5:0))*all,success:has(3)?.05:0,
-    sell:(1+(has(4)?.05:0)+(has(7)?.1:0))*(1+.01*Math.min(S.floors,99))*all,spread:has(5)?.7:1,rare:has(6)?1.2:1,rockHp:has(8)?.85:1,great:has(10)?.05:0,
+    sell:(1+(has(4)?.05:0)+(has(7)?.1:0))*(1+.01*Math.min(S.floors,99))*all*(1+.01*ul('haggle')),spread:has(5)?.7:1,rare:has(6)?1.2:1,rockHp:has(8)?.85:1,great:has(10)?.05:0,
     perfectIntel:has(11),dem:{metal:has(3)?1.1:1,gem:has(5)?1.1:1,fuel:has(10)?1.1:1,arcane:has(12)?1.1:1,build:1}}}
 function refreshBonus(){BON=bonus()}
 
@@ -99,12 +101,12 @@ const boxUsed=()=>Object.values(S.box||{}).reduce((a,b)=>a+b,0);
 // 오프라인: 비운 8시간 = 직접 플레이 1시간 30분치 (언제나 같은 비율). 패키지는 16시간까지
 const OFF_RATIO=1.5/8;
 const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto)/layerHp(S.layer);
-const boxCap=()=>Math.floor(playRate()*offlineH()*3600*OFF_RATIO);
+const boxCap=()=>boxCapOf(ul('box'));
 function boxAdd(id,n){S.box=S.box||{};if(n>0)S.box[id]=(S.box[id]||0)+n;return n}
 const used=()=>Object.values(S.inv).reduce((a,b)=>a+b,0);
 const space=()=>Math.max(0,cap()-used());
 const successRate=()=>Math.min(.97,.78+Math.min(S.furnace,5)*.04+BON.success);
-const greatRate=()=>Math.min(.3,.06+Math.min(S.furnace,5)*.01+BON.great);
+const greatRate=()=>Math.min(.35,.06+Math.min(S.furnace,5)*.01+BON.great+ul('great')*.01);
 const pickTier=()=>{let t=0;PICK_TIERS.forEach((p,i)=>{if(S.pick>=p[0])t=i});return t};
 const layerHp=i=>LAYERS[i].hp*BON.rockHp;
 function rollDrop(L){const d=LAYERS[L].drops.map(([id,w])=>[id,w<25?w*BON.rare:w]);let t=d.reduce((s,x)=>s+x[1],0),r=Math.random()*t;for(const x of d){if((r-=x[1])<0)return x[0]}return d[0][0]}

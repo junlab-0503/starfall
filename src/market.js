@@ -87,7 +87,7 @@ function spawnEvent(quiet){const secs=seenSectors(),raws=S.seen.filter(id=>!ITEM
   S.ev.push(e);if(!quiet){log('소문: '+e.text,true);if(S.tab!=='market')$('newsDot').hidden=false}}
 function recordHist(){ORDER.forEach(id=>{(H[id]=H[id]||[]).push(mid(id));if(H[id].length>120)H[id].shift()})}
 // 짧은 시간에 많이 팔수록 일부는 떠돌이 상단이 사 가서 장터 재고에 덜 쌓인다 (rv: 최근 판매량, 몇 분에 걸쳐 줄어듦)
-const sellInc=(it,m)=>1/(1+3*(m.rv||0)/it.T);
+const sellInc=(it,m)=>(1-.12*ul('bulk'))/(1+3*(m.rv||0)/it.T);
 function sell(id,n){n=Math.min(n,cnt(id));if(n<=0)return 0;let t=0;const it=ITEMS[id],m=S.mkt[id];for(let i=0;i<n;i++){t+=bid(id);m.q+=sellInc(it,m);m.rv=(m.rv||0)+1;m.fat=Math.min(1,m.fat+2/it.T)}
   add(id,-n);S.gold+=t;S.earned+=t;S.sec[it.s].rep+=t/Math.max(50,it.p);S.bestSale=Math.max(S.bestSale,t);return t}
 function buy(id,n){let t=0,k=0;const fl=ITEMS[id].T*.05+1;while(k<n&&S.mkt[id].q>fl&&space()>0){const c=ask(id);if(S.gold<c)break;S.gold-=c;t+=c;S.mkt[id].q-=1;add(id,1);k++}return{k,t}}
@@ -112,12 +112,18 @@ function comment(id){const it=ITEMS[id],s=it.s,who=SECT[s].who,m=S.mkt[id],sp=m.
   if(need(s)>1.15)return{who,t:say(s,'busy')};if(need(s)<.85)return{who,t:say(s,'idle')};
   if(GILD[id]>.3)return{who,t:say(s,'craft')};
   return{who,t:say(s,'normal')}}
-// 앱을 꺼 둔 동안: 시장을 빠르게 돌리고, 월세와 자동 드릴 몫을 계산
+// 로봇이 캔 n개를 지층의 나올 확률대로 나눈다 (많으면 하나씩 굴리지 않고, 쇠맥 찾기 · 보석 눈썰미 포함)
+function splitDrops(n){const o={};if(n>2000){const d=LAYERS[S.layer].drops.map(([id,w])=>[id,w<25?w*BON.rare:w]),tot=d.reduce((s,x)=>s+x[1],0);let left=n;d.forEach(([id,w],i)=>{const k=i===d.length-1?left:Math.min(left,Math.round(n*w/tot));if(k>0)o[id]=k;left-=k})}
+  else for(let i=0;i<n;i++){const id=rollDrop(S.layer);o[id]=(o[id]||0)+1}
+  for(const id in o)o[id]=Math.round(o[id]*(1+extraP(ITEMS[id].s)));return o}
+// 넘친 광석 팔기: 원석 값의 50% (자동 재련 장치가 있으면 재련해서 더 비싸게)
+function sellOverflow(id,n){if(n<=0)return 0;const g=bid(id)*n*ofMul(ul('refiner'));S.gold+=g;S.earned+=g;S.ofN=(S.ofN||0)+n;S.ofG=(S.ofG||0)+g;return g}
+// 앱을 꺼 둔 동안: 시장을 빠르게 돌리고, 월세 · 드릴 로봇 몫 · 자동 재련을 계산
 function catchUp(sec){sec=Math.min(sec,16*3600);if(sec<30)return null;const steps=Math.floor(sec/5);for(let i=0;i<steps;i++){tickMarket(5,true);if(i%Math.max(1,Math.floor(steps/120))===0)recordHist()}
-  sec=Math.min(sec,offlineH()*3600);const rent=Math.min(rentPerSec()*sec,rentPerSec()*offlineH()*3600-S.rentAcc);S.rentAcc+=Math.max(0,rent);
-  // 드릴 로봇은 자리를 비운 동안 늘 일한다 (채굴 화면의 켜기·끄기는 켜 둔 동안에만 해당)
-  let ores={},boxFull=false;if(S.auto>0){let n0=Math.floor(playRate()*sec*OFF_RATIO),n=Math.max(0,Math.min(n0,boxCap()-boxUsed()));boxFull=n<n0;
-    // 많으면 하나씩 굴리지 않고 확률대로 나눈다 (개발자 모드처럼 수백만 개일 때 멈추지 않게)
-    if(n>2000){const d=LAYERS[S.layer].drops.map(([id,w])=>[id,w<25?w*BON.rare:w]),tot=d.reduce((s,x)=>s+x[1],0);let left=n;d.forEach(([id,w],i)=>{const k=i===d.length-1?left:Math.min(left,Math.round(n*w/tot));if(k>0)ores[id]=k;left-=k})}
-    else for(let i=0;i<n;i++){const id=rollDrop(S.layer);ores[id]=(ores[id]||0)+1}for(const id in ores)boxAdd(id,ores[id])}
-  return{sec,rent:Math.max(0,rent),ores,boxFull,capped:sec>=offlineH()*3600}}
+  sec=Math.min(sec,offlineH()*3600);
+  const capR=rentPerSec()*rentCapH(ul('safe'))*3600,rent=Math.max(0,Math.min(rentPerSec()*sec,capR-S.rentAcc));S.rentAcc+=rent;
+  // 드릴 로봇은 자리를 비운 동안 늘 일한다: 로봇 보관함에 담고, 넘치면 판다
+  const ores={},sold={n:0,g:0};if(S.auto>0){const all=splitDrops(Math.floor(playRate()*sec*OFF_RATIO*offEff())),n0=Object.values(all).reduce((a,b)=>a+b,0),f=n0?Math.min(1,Math.max(0,boxCap()-boxUsed())/n0):0;
+    for(const id in all){const k=Math.floor(all[id]*f);if(k>0){ores[id]=k;boxAdd(id,k)}const over=all[id]-k;if(over>0){sold.n+=over;sold.g+=sellOverflow(id,over)}}}
+  const made=rqRun(sec);
+  return{sec,rent,ores,sold,made,capped:sec>=offlineH()*3600}}

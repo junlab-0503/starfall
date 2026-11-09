@@ -1,0 +1,55 @@
+/* ═════════ 장비: 마을 사람들의 공방 ═════════
+   곡괭이 = 무쇠(대장장이), 자동 드릴 = 핀(꼬마 기계공), 풀무·용광로 = 미르(연금술사), 창고 = 셈 할멈(창고지기), 장터 정보 = 루카(떠돌이 상인)
+   기존 장비(곡괭이 Lv, 드릴 수, 풀무, 창고, 정보원)는 저장 필드 그대로 쓰고, 세부 강화는 S.up[키]에 단계로 저장한다. */
+const ul=k=>(S.up&&S.up[k])||0;
+const upCostOf=(k,lv)=>{const c=BAL.ups[k];return Math.round(c[0]*Math.pow(c[1],lv))};
+const UPS={
+  pick:{n:'곡괭이 벼리기',ic:()=>['iron','iron','steel','resonant','lavaheart','stariron'][pickTier()],lv:()=>S.pick,cost:()=>pickCost(S.pick),buy:()=>{const o=pickTier();S.pick++;if(pickTier()>o)log(`새 곡괭이: ${PICK_TIERS[pickTier()][1]}!`,true)},
+    d:()=>{const NT=PICK_TIERS[pickTier()+1];return`한 번 탭에 ${big(tapPower())} 피해${NT?` · Lv.${NT[0]}에 ${NT[1]}`:''}`}},
+  crit:{n:'힘껏 내려치기',ic:()=>'charge',max:10,d:l=>`탭할 때 ${l*3}% 확률로 3배 피해${l<10?` → ${(l+1)*3}%`:''}`},
+  metal:{n:'쇠맥 찾기',ic:()=>'goldbar',max:10,d:l=>`금속 광석을 캘 때 ${l*5}% 확률로 하나 더${l<10?` → ${(l+1)*5}%`:''}`},
+  gem:{n:'보석 눈썰미',ic:()=>'cutemerald',max:10,d:l=>`보석 원석을 캘 때 ${l*5}% 확률로 하나 더${l<10?` → ${(l+1)*5}%`:''}`},
+  auto:{n:'드릴 로봇',ic:()=>'drillbit',lv:()=>S.auto,cost:()=>autoCost(S.auto),buy:()=>{S.auto++;if(S.auto===1)log('핀이 만들어 준 드릴 로봇이 일을 시작했어요.',true)},
+    d:()=>S.auto?`로봇 ${S.auto}대 · 초당 ${big(autoDps())} 피해`:'혼자서도 바위를 깨는 작은 로봇을 들여요'},
+  box:{n:'로봇 보관함',ic:()=>'mortar',d:l=>`창고가 차면 로봇이 여기에 모아요 · ${big(boxCapOf(l))}칸 → ${big(boxCapOf(l+1))}칸`},
+  refiner:{n:'자동 재련 장치',ic:()=>'engine',max:5,d:l=>`보관함이 넘치면 ${l?`재련해서 원석 값의 ${Math.round(ofMul(l)*100)}%로`:`원석 값의 ${Math.round(ofMul(0)*100)}%로`} 팔아요${l<5?` → ${Math.round(ofMul(l+1)*100)}%`:''}`},
+  night:{n:'밤샘 근무',ic:()=>'abysslamp',max:5,d:l=>`자리를 비운 동안 로봇 효율 +${l*15}%${l<5?` → +${(l+1)*15}%`:''}`},
+  furn:{n:'풀무',ic:()=>'coke',lv:()=>S.furnace,max:5,cost:()=>furnCost(S.furnace),buy:()=>{S.furnace++},d:()=>`재련 성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`},
+  great:{n:'별빛 불씨',ic:()=>'starember',max:5,d:l=>`대성공 확률 +${l}%${l<5?` → +${l+1}%`:''}`},
+  qslot:{n:'자동 재련 칸',ic:()=>'lavaglass',max:3,d:l=>`자동 재련을 ${1+l}가지 동시에${l<3?` → ${2+l}가지`:''}`},
+  qspeed:{n:'센 불꽃',ic:()=>'stardust',max:10,d:l=>`자동 재련 한 번에 ${pf(rqTime(l))}초${l<10?` → ${pf(rqTime(l+1))}초`:''}`},
+  wh:{n:'창고 늘리기',ic:()=>'tile',lv:()=>S.wh,cost:()=>whCost(S.wh),buy:()=>{S.wh++},d:()=>`용량 ${big(cap())}칸 → ${big(capOf(S.wh+1))}칸`},
+  autosell:{n:'알뜰 정리',ic:()=>'gear',max:1,d:l=>l?'창고가 가득 차면 가장 싼 원석을 팔아 자리를 만들어요':'창고가 가득 차도 가장 싼 원석을 팔며 계속 캐요'},
+  safe:{n:'월세 금고',ic:()=>'goldbar',max:3,d:l=>`월세를 ${rentCapH(l)}시간치까지 모아 둬요${l<3?` → ${rentCapH(l+1)}시간`:''}`},
+  intel:{n:'소문 감정',ic:()=>'lens',lv:()=>S.intel,max:3,cost:()=>intelCost(S.intel),buy:()=>{S.intel++},d:()=>BON.perfectIntel?'점성술사 노을 덕분에 소문의 진위를 늘 알아요':['소문의 진위를 알 수 없어요','소문 신뢰도 표시 (적중 75%)','소문 신뢰도 표시 (적중 88%)','소문 신뢰도 표시 (적중 97%)'][Math.min(S.intel,3)]},
+  haggle:{n:'흥정 솜씨',ic:()=>'crown',max:10,d:l=>`모든 판매가 +${l}%${l<10?` → +${l+1}%`:''}`},
+  bulk:{n:'도매 거래처',ic:()=>'carving',max:5,d:l=>`많이 팔 때 값이 덜 떨어져요 (−${l*12}%)${l<5?` → −${(l+1)*12}%`:''}`}};
+const SHOPS=[
+  {who:'무쇠',place:'무쇠네 대장간',ups:['pick','crit','metal','gem'],lines:['허허, 날이 무뎌졌구려. 내가 벼려 주리다.','쇠는 두드릴수록 정직해지는 법이오.','깊이 내려갈수록 연장이 먼저 지치는 법이오. 자주 들르시오!']},
+  {who:'핀',place:'핀의 작업대',ups:['auto','box','refiner','night'],lines:['로봇들이 오늘도 열심히 일하고 있어요!','보관함이 넘치면 제 장치가 알아서 재련해서 팔아 줘요!','밤에도 일하게 해 볼까요? 기름만 넉넉하면 돼요!']},
+  {who:'미르',place:'미르의 용광로',ups:['furn','great','qslot','qspeed'],lines:['…불은 거짓말을 하지 않아요.','재료만 맡겨 두세요. …알아서 녹여 둘게요.','불씨가 별빛을 닮을수록… 대성공이 잦아지죠.']},
+  {who:'셈 할멈',place:'셈 할멈의 창고',ups:['wh','autosell','safe'],lines:['창고는 넓을수록 좋지. 돈이 들 뿐이야.','바닥에 굴러다니는 광석은 못 봐. 내가 정리해 주지.','월세는 꼬박꼬박. 금고에 잘 넣어 둘게.']},
+  {who:'루카',place:'루카의 정보소',ups:['intel','haggle','bulk'],lines:['정보가 곧 돈이죠! 오늘은 뭐가 궁금하세요?','흥정은 웃으면서 하는 거예요. 제가 알려 드릴게요!','큰손 거래처를 소개해 드릴까요? 한꺼번에 팔아도 값이 덜 떨어져요!']}];
+const upLv=k=>UPS[k].lv?UPS[k].lv():ul(k);
+const upMax=k=>UPS[k].max!=null&&upLv(k)>=UPS[k].max;
+const upCost=k=>UPS[k].cost?UPS[k].cost():upCostOf(k,ul(k));
+const upCan=k=>!upMax(k)&&S.gold>=upCost(k);
+function buyUp(k){if(!upCan(k))return false;S.gold-=upCost(k);if(UPS[k].buy)UPS[k].buy();else{S.up[k]=ul(k)+1}refreshBonus();return true}
+/* 효과 */
+const critP=()=>ul('crit')*.03;
+const extraP=s=>s==='metal'?ul('metal')*.05:s==='gem'?ul('gem')*.05:0;
+const boxCapOf=l=>Math.floor(BAL.box[0]*Math.pow(BAL.box[1],l));
+const ofMul=l=>.5+.2*l;            // 넘친 광석 판매 배율 (자동 재련 장치)
+const offEff=()=>1+.15*ul('night'); // 자리 비운 동안 로봇 효율
+const rentCapH=l=>offlineH()+4*l;
+const rqTime=l=>8/(1+.25*l);        // 자동 재련 한 번에 걸리는 초
+const rqSlots=()=>1+ul('qslot');
+/* 화면 */
+const shopLine={};
+function renderEquip(){const html=SHOPS.map((sh,si)=>{const line=sh.lines[shopLine[si]??(shopLine[si]=Math.floor(Math.random()*sh.lines.length))];
+    return`<div class="panel shop"><div class="shop-h"><canvas class="shop-por" data-shop="${si}" width="48" height="48"></canvas><div><h2>${sh.place}</h2><div class="say-s"><span class="who">${sh.who}</span> "${line}"</div></div></div>
+    <div class="ups">${sh.ups.map(k=>{const U=UPS[k],l=upLv(k),mx=upMax(k),can=upCan(k),c=upCost(k);
+      return`<div class="up${can?' ready':''}">${ico(U.ic())}<span class="t">${U.n} <span class="dim">Lv.${l}${U.max!=null?'/'+U.max:''}</span></span><span class="s">${U.d(ul(k))}</span><button class="px-btn${can?' ndot':''}" data-up="${k}" type="button" ${mx||!can?'disabled':''}>${mx?'최대':big(c)+'G'}</button></div>`}).join('')}</div></div>`}).join('');
+  if(HC.get($('shops'))!==html){setHTML($('shops'),html);document.querySelectorAll('[data-shop]').forEach(cv=>{const sh=SHOPS[+cv.dataset.shop],t=(SECTIONS.find(s=>s.t.name===sh.who)||{}).t;if(t)drawPortrait(cv,t,false)})}}
+$('shops').addEventListener('click',e=>{const b=e.target.closest('[data-up]');if(b){if(buyUp(b.dataset.up)){sfx('buy');renderAll()}return}
+  const p=e.target.closest('[data-shop]');if(p){const si=+p.dataset.shop;shopLine[si]=((shopLine[si]||0)+1)%SHOPS[si].lines.length;renderEquip()}});

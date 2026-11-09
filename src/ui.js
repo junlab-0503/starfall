@@ -6,13 +6,25 @@ function renderHeader(){
   fitText($('gold'),big(S.gold)+'G');$('depth').textContent=`−${fmt(LAYERS[S.layer].d)}m`;
   const u=used(),c=cap(),st=$('store');fitText(st,`${cbig(u)}/${cbig(c)}`);st.style.color=u>=c?'var(--bad)':u>=c*.85?'var(--lamp)':'';
   $('towerStat').textContent=big(S.floors)+'층';$('cal').textContent=calText();$('starIc').hidden=!S.ended;
-  const B=badges();$('towerDot').hidden=!B.tower;$('manageDot').hidden=!B.manage;$('gearDot').hidden=!B.gear;$('shaftDot').hidden=!B.shaft;
+  updateTitle();const B=badges();$('towerDot').hidden=!B.tower;$('manageDot').hidden=!B.manage;$('equipDot').hidden=!B.equip;$('shaftDot').hidden=!B.shaft;
 }
+/* 제목의 금: 개척한 지층만큼 흙빛 돌 글씨가 갈라지고, 틈으로 아래 잠든 오로라가 드러난다. 별을 돌려보내면 돌이 모두 떨어져 나간다 */
+let ttlKey='',TTL=null;
+function updateTitle(){const el=$('ttlS');if(!el)return;const p=S.ended?1:clamp((S.unlocked-1)/(LAYERS.length-1),0,1),r=el.getBoundingClientRect(),W=Math.round(r.width),H=Math.round(r.height);if(!W||!H)return;
+  const key=p+'|'+W+'|'+H+'|'+S.ended;if(key===ttlKey)return;ttlKey=key;
+  if(!TTL){const R=rng(2024);TTL={cr:[],ch:[]};for(let k=0;k<18;k++){const fromTop=R()<.5,pts=[];let x=(k+.3+R()*.4)/18,y=fromTop?0:1;pts.push([x,y]);const n=4+(R()*3|0);for(let i=1;i<=n;i++){x+=(R()-.5)*.09;y=fromTop?i/n:1-i/n;pts.push([x,y])}TTL.cr.push(pts);
+      const c=pts[1+(R()*(pts.length-2)|0)],s=.025+R()*.03;TTL.ch.push([[c[0]-s,c[1]-.28],[c[0]+s*1.4,c[1]-.05],[c[0]+s*.4,c[1]+.3],[c[0]-s*1.2,c[1]+.1]])}
+    for(let i=TTL.cr.length-1;i>0;i--){const j=R()*(i+1)|0;[TTL.cr[i],TTL.cr[j]]=[TTL.cr[j],TTL.cr[i]];[TTL.ch[i],TTL.ch[j]]=[TTL.ch[j],TTL.ch[i]]}}
+  const show=Math.round(p*TTL.cr.length),sw=(.9+p*2.2).toFixed(2),P=a=>a.map(([x,y])=>`${(x*W).toFixed(1)},${(y*H).toFixed(1)}`).join(' ');
+  // 마스크는 알파로 읽히므로, SVG 안의 <mask>로 금 자리를 투명하게 뚫는다
+  let svg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${W} ${H}' width='${W}' height='${H}' shape-rendering='crispEdges'><mask id='m'><rect width='100%' height='100%' fill='white'/>`;
+  if(S.ended)svg+=`<rect width='100%' height='100%' fill='black'/>`;
+  else{for(let k=0;k<show;k++)svg+=`<polyline points='${P(TTL.cr[k])}' fill='none' stroke='black' stroke-width='${sw}'/>`;const nc=Math.round(Math.max(0,p-.45)/.55*TTL.ch.length);for(let k=0;k<nc;k++)svg+=`<polygon points='${P(TTL.ch[k])}' fill='black'/>`}
+  svg+=`</mask><rect width='100%' height='100%' fill='white' mask='url(#m)'/></svg>`;const u=`url("data:image/svg+xml,${encodeURIComponent(svg)}")`;el.style.webkitMaskImage=u;el.style.maskImage=u}
 // 빨간 점: 지금 할 수 있는 업그레이드·개척·탑 짓기·월세가 있으면 탭 → 하위 탭 → 그 버튼까지
-function upReady(){return{pick:S.gold>=pickCost(S.pick),auto:S.gold>=autoCost(S.auto),furn:S.furnace<5&&S.gold>=furnCost(S.furnace),wh:S.gold>=whCost(S.wh),intel:S.intel<3&&S.gold>=intelCost(S.intel)}}
-function badges(){const u=upReady(),gear=Object.values(u).some(Boolean),shaft=S.unlocked<LAYERS.length&&reqMet(LAYERS[S.unlocked]),
+function badges(){const equip=SHOPS.some(sh=>sh.ups.some(upCan)),shaft=S.unlocked<LAYERS.length&&reqMet(LAYERS[S.unlocked]),
   build=!towerBlocked()&&canBuild(floorCost(S.floors+1)),rent=S.rentAcc>=rentPerSec()*1800&&rentPerSec()>0,fin=towerBlocked()&&cnt('philo')>=1&&cnt('starshard')>=10;
-  return{u,gear,shaft,manage:gear||shaft,build,rent,tower:build||rent||fin}}
+  return{equip,shaft,manage:shaft,build,rent,tower:build||rent||fin}}
 function renderMineHud(){
   const L=LAYERS[S.layer],id=S.next||'stone',hp=layerHp(S.layer);
   setHTML($('scOre'),`${ico(id)}<div style="min-width:0"><div class="nm"><b>${ITEMS[id].n}</b></div><div class="hpbar"><i style="width:${clamp(S.hp/hp,0,1)*100}%"></i></div></div>`);
@@ -27,7 +39,7 @@ function renderMineHud(){
 $('autoBtn').addEventListener('pointerdown',e=>e.stopPropagation());$('boxBtn').addEventListener('pointerdown',e=>e.stopPropagation());
 $('boxBtn').onclick=e=>{e.stopPropagation();collectBox()};
 function collectBox(){let moved=0,left=0;for(const id of Object.keys(S.box||{})){const k=Math.min(S.box[id],space());if(k>0){add(id,k);S.box[id]-=k;moved+=k}if(S.box[id]<=0)delete S.box[id];else left+=S.box[id]}
-  if(moved)toast(`드릴 로봇이 캔 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 합성해 보세요.');renderAll()}
+  if(moved)toast(`드릴 로봇이 캔 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.');renderAll()}
 $('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;toast(S.autoOn?'자동 드릴을 켰어요.':'자동 드릴을 껐어요.');renderMineHud()};
 $('layerChips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(c){setLayer(+c.dataset.chip);return}if(e.target.closest('[data-chiplock]')){S.sub='shaft';setTab('manage')}});
 /* 갱도 */
@@ -42,22 +54,6 @@ function renderLayers(){
     return`<div class="layer lock">${d}<span><span class="nm">???</span><br><span class="dim">더 깊은 곳</span></span><span></span></div>`}).join(''));
 }
 $('layers').addEventListener('click',e=>{const g2_=e.target.closest('[data-go]');if(g2_){setLayer(+g2_.dataset.go);setTab('mine');return}const u=e.target.closest('[data-unlock]');if(u)unlockLayer(+u.dataset.unlock)});
-/* 장비 */
-function renderUps(){const pc=pickCost(S.pick),ac=autoCost(S.auto),fc=furnCost(S.furnace),wc=whCost(S.wh),ic=intelCost(S.intel),T=PICK_TIERS[pickTier()],NT=PICK_TIERS[pickTier()+1];
-  const U=upReady(),row=(icn,t,s,key,cost,max)=>`<div class="up${U[key]?' ready':''}">${ico(icn)}<span class="t">${t}</span><span class="s">${s}</span><button class="px-btn${U[key]?' ndot':''}" data-up="${key}" type="button" ${max||S.gold<cost?'disabled':''}>${max?'최대':big(cost)+'G'}</button></div>`;
-  setHTML($('ups'),
-    row(['iron','iron','steel','resonant','lavaheart','stariron'][pickTier()],`${T[1]} Lv.${S.pick}`,`한 번 탭에 ${big(tapPower())} 피해${NT?` · Lv.${NT[0]}에 ${NT[1]}`:''}`,'pick',pc)+
-    row('drillbit',`자동 드릴 ×${S.auto}`,`초당 ${big(autoDps())} 피해 · 자리를 비운 동안엔 로봇 보관함에 모아요 (최대 ${offlineH()}시간)`,'auto',ac)+
-    row('coke',`풀무 Lv.${Math.min(S.furnace,5)}`,`합성 성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`,'furn',fc,S.furnace>=5)+
-    row('brick',`창고 Lv.${S.wh}`,`용량 ${big(cap())}칸 → ${big(capOf(S.wh+1))}칸`,'wh',wc)+
-    row('lens',`장터 정보원 Lv.${Math.min(S.intel,3)}`,BON.perfectIntel?'점성술사 노을 덕분에 소문의 진위를 늘 알아요':['소문의 진위를 알 수 없어요','소문 신뢰도 표시 (적중 75%)','소문 신뢰도 표시 (적중 88%)','소문 신뢰도 표시 (적중 97%)'][Math.min(S.intel,3)],'intel',ic,S.intel>=3))}
-$('ups').addEventListener('click',e=>{const b=e.target.closest('[data-up]');if(!b)return;const t=b.dataset.up;
-  if(t==='pick'&&S.gold>=pickCost(S.pick)){const old=pickTier();S.gold-=pickCost(S.pick);S.pick++;if(pickTier()>old)log(`새 곡괭이: ${PICK_TIERS[pickTier()][1]}!`,true)}
-  if(t==='auto'&&S.gold>=autoCost(S.auto)){S.gold-=autoCost(S.auto);S.auto++;if(S.auto===1)log('핀이 만들어 준 드릴 로봇이 일을 시작했어요.',true)}
-  if(t==='furn'&&S.furnace<5&&S.gold>=furnCost(S.furnace)){S.gold-=furnCost(S.furnace);S.furnace++}
-  if(t==='wh'&&S.gold>=whCost(S.wh)){S.gold-=whCost(S.wh);S.wh++}
-  if(t==='intel'&&S.intel<3&&S.gold>=intelCost(S.intel)){S.gold-=intelCost(S.intel);S.intel++}
-  renderAll()});
 /* 창고 */
 function renderInv(){const ids=ORDER.filter(id=>cnt(id)>0);$('invCap').textContent=`${big(used())}/${big(cap())}칸`;
   patchList($('inv'),ids,ids.map(id=>[`×${big(cnt(id))}`,`${pf(bid(id))}G`]),(id,P)=>`<div class="irow"><button class="nmb" data-mk="${id}" type="button">${ico(id,'sm')}<span>${ITEMS[id].n}</span></button><span class="dim">${P[0]}</span><span>${P[1]}</span><span class="acts"><button class="px-btn sm" data-sellq="${id}" type="button">판매</button></span></div>`,'<p class="dim">창고가 비어 있어요.</p>',[1,2])}
@@ -74,7 +70,7 @@ function renderBookTab(){
   $('dexCount').textContent=`${S.seen.length}/${ORDER.length}`;
   setHTML($('dex'),ORDER.map(id=>`<button class="dx${S.seen.includes(id)?'':' unk'}" data-dx="${id}" type="button" aria-label="${S.seen.includes(id)?ITEMS[id].n:'아직 모르는 광물'}">${ico(id)}</button>`).join(''));
   const mins=Math.round((gtime()-S.t0)/60000);
-  setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['합성',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
+  setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['재련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
 $('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([{k:'할아버지의 일지',t:`B${i+1} ${LAYERS[i].n}`,b:`"${JOURNAL[i]}"`}])});
 /* 장터 */
 function sparkSvg(arr,w,h,col){if(!arr||arr.length<2)return'';let mn=Math.min(...arr),mx=Math.max(...arr);if(mx-mn<1e-9){mx+=1;mn-=1}
@@ -96,7 +92,7 @@ function renderMarket(force){if(S.tab!=='market')return;const det=S.mkView==='de
     return`<button class="stall${S.filter===k?' on':''}" data-st="${k}" type="button"><span>${SECT[k].guild}</span><span class="bz ${b==='바쁨'?'up':b==='한산'?'dn':'dim'}">${b}</span><span class="rp">${rl?'단골 '+'★'.repeat(rl):'처음 거래'}</span></button>`}).join(''));
   const ids=[...new Set(S.seen)].filter(id=>!S.filter||ITEMS[id].s===S.filter).sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
   // 줄 구조가 같으면 바뀐 칸(개수 · 가격 · 한마디 · 그래프)만 고친다
-  const parts=ids.map(id=>{const r=pr(id),cm=comment(id),col=r>1.02?'#8ff0a8':r<.98?'#ff5f86':'#8ea3cc';
+  const parts=ids.map(id=>{const r=pr(id),cm=comment(id),col=r>1.02?'#8fd36a':r<.98?'#ff7a6a':'#b29c80';
     return[`<b>${ITEMS[id].n}</b>${cnt(id)?`<span class="dim">×${big(cnt(id))}</span>`:''}`,`<b>${pf(bid(id))}G</b> ${pctHtml(r)}`,`${cm.who}: ${cm.t}`,sparkSvg((H[id]||[]).slice(-40),56,16,col)]});
   patchList($('mkList'),ids,parts,(id,P)=>`<button class="mrow" data-sel="${id}" type="button">${ico(id)}<span class="nmx">${P[0]}</span><span class="px">${P[1]}</span><span class="cm">${P[2]}</span><span style="grid-column:3;grid-row:2">${P[3]}</span></button>`,'<p class="dim">광물을 캐면 여기에 시세가 나와요.</p>',[1,2,3,4]);
 }
@@ -142,19 +138,20 @@ function nextStory(){const c=STQ.shift();if(!c){$('story').hidden=true;return}
   if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=STQ.length?'다음':'계속';$('story').hidden=false;if(c.done)c.done()}
 $('storyNext').onclick=nextStory;
 /* 탭 */
-const TABS=['mine','forge','market','tower','manage'];
+const TABS=['mine','equip','forge','market','tower','manage'];
 function setTab(t){if(!TABS.includes(t))t='mine';S.tab=t;document.querySelector('main').classList.toggle('mine-mode',t==='mine');document.querySelector('main').scrollTop=0;TABS.forEach(k=>$('tab-'+k).hidden=k!==t);document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;renderTab();scrollTo(0,0)}
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 $('seg').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(!b)return;S.sub=b.dataset.sub;renderManage()});
-function renderManage(){['store','gear','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.sub===S.sub));
-  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='gear')renderUps();if(S.sub==='shaft')renderLayers();if(S.sub==='book')renderBookTab();if(S.sub==='set'){renderPkg();renderSnd()}}
-function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='manage')renderManage()}
+function renderManage(){['store','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.sub===S.sub));
+  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book')renderBookTab();if(S.sub==='set'){renderPkg();renderSnd()}}
+function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='equip')renderEquip();if(S.tab==='manage')renderManage()}
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */
-function navIcons(){const mk=f=>{const pb=new PB(16,16);f(pb);pb.outline('#05070e');return pb.canvas(1).toDataURL()},C='#d8e6ff';
+function navIcons(){const mk=f=>{const pb=new PB(16,16);f(pb);pb.outline('#0a0705');return pb.canvas(1).toDataURL()},C='#e8d8c0';
   const icons={mine:mk(p=>{p.line(3,13,11,5,'#8a6040',2);p.line(7,2,14,9,C,2)}),forge:mk(p=>{p.rect(3,6,10,8,C);p.rect(5,3,6,3,C);p.rect(6,9,4,3,'#ff7a3d')}),
     market:mk(p=>{p.rect(2,4,12,3,'#ff7a6a');p.rect(2,7,12,1,C);p.rect(3,8,2,6,C);p.rect(11,8,2,6,C);p.rect(6,9,4,3,'#ffd23f')}),
+    equip:mk(p=>{p.rect(2,6,12,3,C);p.rect(5,9,6,2,C);p.rect(4,11,8,2,C);p.rect(1,6,3,2,C);p.line(9,1,13,5,'#8a6040',2);p.rect(7,1,4,2,'#ffb84a')}),
     tower:mk(p=>{p.rect(6,3,4,11,C);p.rect(5,6,6,2,C);p.rect(4,11,8,3,C);p.set(7,1,'#ffe9a8');p.set(8,1,'#ffe9a8')}),
     manage:mk(p=>{p.rect(3,3,10,10,C);p.rect(5,5,6,1,'#8a6040');p.rect(5,8,6,1,'#8a6040');p.rect(5,11,4,1,'#8a6040')})};
   const st=document.createElement('style');st.textContent=Object.entries(icons).map(([k,v])=>`.ni-${k}{background-image:url(${v})}`).join('');document.head.appendChild(st)}
@@ -196,9 +193,9 @@ $('qtyModal').addEventListener('click',e=>{const b=e.target.closest('[data-q]');
 $('qtyCancel').onclick=()=>{$('qtyModal').hidden=true;QTY=null};
 $('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){doSell(QTY,n)}$('qtyModal').hidden=true;QTY=null};
 /* 도감: 광물 설명 */
-const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'합성에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
+const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'재련에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
 function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 찾지 못한 광물이에요. 더 깊이 파 내려가거나 새로운 조합을 시도해 보세요.'}]);return}
   const it=ITEMS[id],L=itemLayer(id),src=it.cr?(()=>{const i=RMAP[key(INS[id][0],INS[id][1])];return S.found.includes(i)?`${ITEMS[INS[id][0]].n} + ${ITEMS[INS[id][1]].n}로 만들어요.`:'만드는 법은 아직 몰라요.'})():id==='slag'?'':`B${L} ${LAYERS[L-1].n}에서 캘 수 있어요.`;
   const uses=OUTS[id].filter(o=>S.found.some(i=>RECIPES[i].out===o)).map(o=>ITEMS[o].n);
-  story([{k:`도감 · ${SECT[it.s].n}`,t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${src}`,extra:`<div style="display:flex;justify-content:center;margin-bottom:8px">${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${it.cr?'합성품':id==='slag'?'찌꺼기':'원석'}</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>지금 팔면</span><span>${pf(bid(id))}G</span>${uses.length?`<span>쓰이는 곳</span><span>${uses.join(', ')}</span>`:''}</div>`}])}
+  story([{k:`도감 · ${SECT[it.s].n}`,t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${src}`,extra:`<div style="display:flex;justify-content:center;margin-bottom:8px">${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${it.cr?'재련품':id==='slag'?'찌꺼기':'원석'}</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>지금 팔면</span><span>${pf(bid(id))}G</span>${uses.length?`<span>쓰이는 곳</span><span>${uses.join(', ')}</span>`:''}</div>`}])}
 $('dex').addEventListener('click',e=>{const b=e.target.closest('[data-dx]');if(b)itemInfo(b.dataset.dx)});

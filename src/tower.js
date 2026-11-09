@@ -20,19 +20,21 @@ function collectRent(){if(S.rentAcc<1)return;S.gold+=S.rentAcc;log(`입주자들
 function finale(){if(S.floors<99||S.ended)return;if(cnt('philo')<1||cnt('starshard')<10){toast('현자의 원석 1개와 별의 파편 10개가 필요해요.');return}
   add('philo',-1);add('starshard',-10);S.ended=true;refreshBonus();
   const mins=Math.round((gtime()-S.t0)/60000);
-  story(ENDING.map((c,i)=>Object.assign({k:'에필로그'},c)).concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>합성</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
+  story(ENDING.map((c,i)=>Object.assign({k:'에필로그'},c)).concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>재련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
   renderAll()}
 // 탑 구간 색: 구간 이름에 맞춰 (흙 · 돌 · 청동 · 강철 · 은빛 온실 · 수정 · 청화 · 황금 · 용암 · 백금 · 다이아 · 달빛 · 별)
 const TCOL=['#8a6440','#8c8a84','#b0743a','#5f7488','#76b09a','#9a6ad0','#3f63b8','#d8a832','#c0482e','#a8b4c4','#5cc8d8','#6a68b8','#f0d890'];
 function sectColor(i){return TCOL[i]||ITEMS[SECTIONS[i].mats[0][0]].c}
 // 탑: 끊김 없이 위로 갈수록 가늘어지는 한 덩어리. 층마다 그 구간 재료 색, 구간 사이는 점묘로 자연스럽게 섞는다
 let towerKey='';
-function drawTower(){const key=S.floors+'|'+S.ended+'|'+BON.done;if(key===towerKey)return;towerKey=key;
+function drawTower(){const key=S.floors+'|'+S.ended+'|'+BON.done+'|'+S.unlocked;if(key===towerKey)return;towerKey=key;
   const cvT=$('towerCv'),t=cvT.getContext('2d'),W=64,Hh=120;t.imageSmoothingEnabled=false;
   const sky=t.createLinearGradient(0,0,0,Hh);sky.addColorStop(0,'#0b0a1a');sky.addColorStop(1,'#2a1c22');t.fillStyle=sky;t.fillRect(0,0,W,Hh);
   const R=rng(5);for(let i=0;i<26;i++){t.fillStyle=R()<.3?'#ffe9a8':'#7a7aa0';t.fillRect(Math.floor(R()*W),Math.floor(R()*70),1,1)}
   // 오로라: 하늘에 물결치는 초록 · 청록 · 보라 띠
-  [['98,240,196',.2,18,0],['95,207,242',.16,26,1.7],['165,140,255',.18,34,3.1]].forEach(([c,al,y0,ph])=>{for(let x=0;x<W;x++){const yy=y0+Math.sin(x*.11+ph)*5+Math.sin(x*.27+ph*2)*2;for(let k=0;k<9;k++){t.fillStyle=`rgba(${c},${(al*(1-k/9)).toFixed(3)})`;t.fillRect(x,Math.round(yy+k),1,1)}}});
+  // 오로라는 깊이 내려갈수록 하늘에 짙어진다
+  const auP=S.ended?1:clamp((S.unlocked-1)/(LAYERS.length-1),0,1);
+  if(auP>0)[['98,240,196',.2*auP,18,0],['95,207,242',.16*auP,26,1.7],['165,140,255',.18*auP,34,3.1]].forEach(([c,al,y0,ph])=>{for(let x=0;x<W;x++){const yy=y0+Math.sin(x*.11+ph)*5+Math.sin(x*.27+ph*2)*2;for(let k=0;k<9;k++){t.fillStyle=`rgba(${c},${(al*(1-k/9)).toFixed(3)})`;t.fillRect(x,Math.round(yy+k),1,1)}}});
   // 마을: 입주자 수만큼 창에 불
   const done=BON.done;t.fillStyle='#1a120c';t.fillRect(0,108,W,12);
   [[2,100,10,8],[14,103,8,5],[44,101,9,7],[54,99,9,9]].forEach((h,k)=>{t.fillStyle='#2e2319';t.fillRect(h[0],h[1],h[2],h[3]);t.fillStyle='#3a2a1c';t.fillRect(h[0]-1,h[1]-2,h[2]+2,2);
@@ -74,7 +76,7 @@ function renderTower(){
     <div class="row-btns" style="margin-top:2px"><button class="px-btn ${S.rentAcc>=1?'lamp':''}${badges().rent?' ndot':''}" id="rentBtn" type="button" ${S.rentAcc<1?'disabled':''}>월세 받기 ${S.rentAcc>=1?big(S.rentAcc)+'G':''}</button></div>`);
   let card='';
   if(towerBlocked()){const ok=cnt('philo')>=1&&cnt('starshard')>=10;
-    card=`<h2>천공의 용광로</h2><p class="dim">하늘에 가장 가까운 용광로. 마지막 합성으로 별을 하늘로 돌려보낼 수 있어요.</p>
+    card=`<h2>천공의 용광로</h2><p class="dim">하늘에 가장 가까운 용광로. 마지막 재련으로 별을 하늘로 돌려보낼 수 있어요.</p>
     <div class="matl">${ico('philo')}<span>현자의 원석</span><span class="${cnt('philo')>=1?'ok':'no'}">${cnt('philo')}/1</span></div><div class="matl">${ico('starshard')}<span>별의 파편</span><span class="${cnt('starshard')>=10?'ok':'no'}">${cnt('starshard')}/10</span></div>
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="finaleBtn" type="button" ${ok?'':'disabled'}>별을 돌려보내기</button></div>`}
   else{const c=floorCost(f+1),ok=canBuild(c);
@@ -115,73 +117,76 @@ const PSTYLE={
   '노을':{skin:'#f4d2b0',hs:'long',mouth:'smile',lash:1,eye:'#d86a3a'},
   '아르덴 교수':{skin:'#ecc4a4',hs:'side',beard:'long',age:2,glasses:1,mouth:'flat'},
   '이장 할머니':{skin:'#f0c8a8',hs:'bun',age:2,mouth:'smile'}};
-function drawPortrait(cvP,t,hide){const W=48,pb=new PB(W,W),st=PSTYLE[t.name]||{},SK=st.skin||'#f4c8a0',HR=ramp(t.hair),CR=ramp(t.coat),SR=[shade(SK,-.42),shade(SK,-.13),SK,shade(SK,.18),shade(SK,.4)],out='#141020';
-  const hx=24,hy=21,rx=9.6,ry=10.6,eye=st.eye||'#2a2034';
-  // 몸: 어깨와 옷
-  pb.ell(24,47,19,12,(x,y)=>{const v=(x-24)/19;return v<-.55?CR[3]:v>.45?CR[1]:CR[2]});
-  if(st.wear==='apron'){pb.rect(15,38,18,10,(x,y)=>x>28?'#5a3a22':'#7a5030');pb.rect(17,37,2,4,'#5a3a22');pb.rect(29,37,2,4,'#4a2e1a')}
-  pb.poly([[19,35],[24,41],[29,35]],'#e8e0d4');pb.poly([[21,35],[24,39],[27,35]],SR[1]);           // 깃과 목
-  if(st.wear==='scarf'){pb.rect(17,35,14,3,'#e8b84a');pb.rect(26,37,3,6,'#d09a2a')}
-  if(st.wear==='gold'){pb.rect(23,41,2,7,'#e8c060');[42,45].forEach(y=>pb.set(24,y,'#fff0a0'));pb.line(19,35,23,40,'#e8c060');pb.line(29,35,25,40,'#e8c060')}
-  pb.rect(21,30,6,6,SR[1]);pb.rect(25,30,2,6,shade(SK,-.25));                                               // 목
-  // 긴 머리 뒷부분
-  if(st.hs==='long')pb.ell(24,25,13,14,(x,y)=>y>10&&(y<20||x<17||x>31)?(x>30?HR[1]:HR[2]):null);
-  if(t.hat==='hood')pb.ell(24,22,14.5,15,(x,y)=>x>31?'#3a2c58':'#4a3a6a');
-  // 얼굴(턱은 조금 좁게)
-  for(let y=hy-ry;y<=hy+ry;y++)for(let x=hx-rx-1;x<=hx+rx+1;x++){const dy=(y+.5-hy)/ry,rr=rx*(1-.2*Math.max(0,dy)**1.6),dx=(x+.5-hx)/rr;if(dx*dx+dy*dy>1)continue;
-    pb.set(x,y,dx>.62||dy>.82?SR[1]:dx<-.45&&dy<.1&&dy>-.6?SR[3]:SR[2])}
-  pb.rect(13,21,2,4,SR[2]);pb.rect(33,21,2,4,SR[1]);pb.set(14,22,SR[1]);pb.set(33,22,SR[0]);       // 귀
-  if(st.ear){pb.set(14,25,st.ear);pb.set(33,25,st.ear)}
-  // 눈 · 눈썹
-  const ey=23,eyes=[[18,ey],[28,ey]];
-  eyes.forEach(([x,y],k)=>{if(st.half){pb.rect(x,y+1,3,1,eye);pb.rect(x,y,3,1,SR[0])}
-    else if(st.age===2){pb.rect(x,y,2,2,eye);pb.set(x,y,'#ffffff');pb.set(k?x+3:x-2,y-1,SR[0]);pb.set(k?x+3:x-2,y+2,SR[0])}
-    else{pb.rect(x,y,3,3,eye);pb.rect(x,y+2,3,1,shade(eye,.25));pb.set(x,y,'#ffffff');if(st.lash){pb.rect(x-(k?0:1),y-1,4,1,out)}}});
-  const bc=st.age===2?'#d8d4cc':shade(t.hair,-.25);
-  eyes.forEach(([x,y],k)=>{const by=y-3;if(st.brow==='stern'){pb.line(k?x:x,k?by+1:by,k?x+3:x+3,k?by:by+1,bc)}else{pb.rect(x,by,3,1,bc);if(st.brow==='thick')pb.rect(x,by-1,3,1,bc)}});
+function drawPortrait(cvP,t,hide){const W=64,pb=new PB(W,W),st=PSTYLE[t.name]||{},SK=st.skin||'#f4c8a0',HR=ramp(t.hair),CR=ramp(t.coat),out='#2a1a18';
+  const SR=[shade(SK,-.4),shade(SK,-.12),SK,shade(SK,.16),shade(SK,.38)],hx=32,hy=29,rx=13.2,ry=13.8,eyeC=st.eye||'#3a2830',old=st.age===2;
+  const HRd=shade(t.hair,-.35),hairTop=st.hs==='bun'||old?'#dcd6cc':null,R2=hairTop?ramp(hairTop):HR;
+  // 몸: 어깨 · 옷 (주름과 단추)
+  pb.ell(32,66,27,17,(x,y)=>{const v=(x-32)/27;return v<-.5?CR[3]:v>.42?CR[1]:CR[2]});
+  for(let y=52;y<64;y+=4){pb.set(17+(y%8?1:0),y,CR[1]);pb.set(46-(y%8?1:0),y,CR[1])}
+  if(st.wear==='apron'){pb.rect(20,51,24,13,(x,y)=>x>38?'#5a3a22':x<23?'#8a5c38':'#7a5030');pb.rect(22,49,2,5,'#5a3a22');pb.rect(40,49,2,5,'#4a2e1a');pb.rect(28,56,8,4,'#6a4428');pb.rect(28,56,8,1,'#8a5c38')}
+  pb.poly([[24,46],[32,55],[40,46]],'#efe6d8');pb.poly([[27,46],[32,52],[37,46]],SR[1]);
+  if(st.wear==='scarf'){pb.rect(21,45,22,4,'#f0c050');pb.rect(21,45,22,1,'#ffe08a');pb.rect(36,48,4,9,'#d8a030');pb.set(37,57,'#d8a030')}
+  if(st.wear==='gold'){pb.rect(31,55,2,9,'#e8c060');[57,61].forEach(y=>pb.set(32,y,'#fff4b0'));pb.line(24,46,30,54,'#e8c060');pb.line(40,46,34,54,'#e8c060')}
+  if(!st.wear)[[32,58],[32,62]].forEach(([x,y])=>{pb.set(x,y,CR[0]);pb.set(x,y-1,CR[3])});
+  pb.rect(27,39,10,9,SR[1]);pb.rect(34,39,3,9,SR[0]);
+  // 긴 머리 뒤 · 두건 뒤
+  if(st.hs==='long')pb.ell(32,34,17.5,19,(x,y)=>y>12&&(y<27||x<19||x>45)?(x>42?HR[1]:x<22?HR[3]:HR[2]):null);
+  if(t.hat==='hood')pb.ell(32,30,19.5,20,(x,y)=>x>43?'#3a2c58':'#4a3a6a');
+  // 얼굴: 둥글게, 턱은 살짝 좁게
+  for(let y=Math.floor(hy-ry);y<=hy+ry;y++)for(let x=Math.floor(hx-rx-1);x<=hx+rx+1;x++){const dy=(y+.5-hy)/ry,rr=rx*(1-.16*Math.max(0,dy)**1.5),dx=(x+.5-hx)/rr;if(dx*dx+dy*dy>1)continue;
+    pb.set(x,y,dx>.68||dy>.86?SR[1]:dx<-.48&&dy<.25&&dy>-.55?SR[3]:SR[2])}
+  pb.rect(17,27,3,7,SR[2]);pb.rect(44,27,3,7,SR[1]);pb.set(18,29,SR[1]);pb.set(18,30,SR[1]);pb.set(45,29,SR[0]);pb.set(45,30,SR[0]);
+  if(st.ear){pb.rect(18,34,2,2,st.ear);pb.set(18,34,'#ffffff');pb.rect(45,34,2,2,st.ear)}
+  // 눈: 크고 반짝이게 (사람마다 모양)
+  const EY=29,E=[[21,EY],[38,EY]];
+  E.forEach(([x,y],k)=>{
+    if(st.half){pb.rect(x,y+3,5,3,eyeC);pb.rect(x,y+2,5,1,out);pb.rect(x+1,y+3,2,1,'#ffffff')}
+    else if(old){pb.rect(x,y+2,5,1,out);pb.rect(x,y+3,5,2,eyeC);pb.set(x+1,y+3,'#ffffff');pb.set(k?x+5:x-1,y+1,SR[0]);pb.set(k?x+5:x-1,y+4,SR[0])}
+    else{pb.rect(x,y,5,6,eyeC);pb.rect(x,y,5,1,out);pb.set(x-1,y+1,out);pb.set(x+5,y+1,out);pb.rect(x,y+4,5,2,shade(eyeC,.3));pb.set(x+2,y+5,shade(eyeC,.5));pb.rect(x+1,y+1,2,2,'#ffffff');pb.set(x+3,y+4,'#ffffff');
+      if(st.lash){pb.set(k?x+5:x-1,y,out);pb.set(k?x+6:x-2,y-1,out)}}});
+  const bc=old?'#dcd6cc':HRd;
+  E.forEach(([x,y],k)=>{const by=y-3;if(st.brow==='stern')pb.line(x,k?by+1:by,x+4,k?by:by+1,bc);else{pb.rect(x,by,5,1,bc);if(st.brow==='thick')pb.rect(x,by-1,5,1,bc)}});
   // 코 · 볼 · 입
-  pb.set(24,26,SR[1]);pb.set(25,27,SR[0]);
-  if(!st.beard||st.beard==='stub'){pb.rect(16,27,2,1,'#e88a7a');pb.rect(31,27,2,1,'#e88a7a')}
-  const m=st.mouth;if(m==='grin'){pb.rect(21,29,6,2,'#5a1e1e');pb.rect(22,29,4,1,'#ffffff')}else if(m==='smile'){pb.set(21,29,'#8a3a3a');pb.rect(22,30,4,1,'#8a3a3a');pb.set(26,29,'#8a3a3a')}else pb.rect(22,30,4,1,'#8a4a40');
-  if(st.age){pb.set(16,29,SR[1]);pb.set(31,29,SR[0]);if(st.age===2){pb.line(19,20,21,20,SR[1]);pb.set(22,32,SR[1]);pb.set(26,32,SR[1])}}
-  if(st.freck)[[17,26],[19,27],[29,27],[31,26]].forEach(([x,y])=>pb.set(x,y,'#c88a5a'));
-  if(st.soot){pb.rect(29,26,3,1,'#6a6058');pb.set(18,18,'#6a6058')}
-  if(st.scar)pb.line(30,24,32,28,'#b07a68');
+  pb.set(31,36,SR[1]);pb.set(32,37,SR[0]);
+  if(!st.beard||st.beard==='stub'){pb.rect(19,37,4,2,'#f09a8a');pb.set(19,37,'#ffc0b0');pb.rect(41,37,4,2,'#e88a7a')}
+  const m=st.mouth;if(m==='grin'){pb.rect(28,39,8,3,'#6a1e1e');pb.rect(29,39,6,1,'#ffffff');pb.rect(30,41,4,1,'#e86a6a')}else if(m==='smile'){pb.set(28,39,'#9a3a3a');pb.rect(29,40,6,1,'#9a3a3a');pb.set(35,39,'#9a3a3a')}else pb.rect(29,40,6,1,'#9a4a40');
+  if(st.age){pb.set(22,39,SR[1]);pb.set(41,39,SR[0]);if(old){pb.line(24,26,27,26,SR[1]);pb.set(30,43,SR[1]);pb.set(34,43,SR[1])}}
+  if(st.freck)[[22,35],[24,36],[39,36],[41,35],[23,37]].forEach(([x,y])=>pb.set(x,y,'#c88a5a'));
+  if(st.soot){pb.rect(39,35,4,1,'#6a6058');pb.set(24,23,'#6a6058');pb.set(25,23,'#6a6058')}
+  if(st.scar)pb.line(40,32,43,37,'#b07a68');
   // 수염
-  if(st.beard==='stub')for(let x=18;x<=30;x++)for(let y=28;y<=32;y++)if((x+y)%2===0&&Math.hypot((x-24)/6.5,(y-29)/4)<1&&!(y===30&&x>=22&&x<=25))pb.set(x,y,shade(t.hair,.1));
-  if(st.beard==='full'||st.beard==='long'){const L=st.beard==='long'?9:5,BR=ramp(st.beard==='long'?'#e8e8f0':t.hair);
-    pb.ell(24,30+L/3,8.5,4+L/2,(x,y)=>y>27?(x>27?BR[1]:x<20?BR[3]:BR[2]):null);pb.rect(20,27,8,2,BR[2]);pb.rect(22,30,4,1,'#5a2a2a')}
-  if(st.beard==='mous'){pb.rect(20,28,8,1,HR[2]);pb.set(19,29,HR[2]);pb.set(28,29,HR[2])}
-  // 앞머리
+  if(st.beard==='stub')for(let x=22;x<=42;x++)for(let y=37;y<=43;y++)if((x+y)%2===0&&Math.hypot((x-32)/9.5,(y-39.5)/5)<1&&!(y===40&&x>=28&&x<=35))pb.set(x,y,shade(t.hair,.1));
+  if(st.beard==='full'||st.beard==='long'){const L=st.beard==='long'?12:6,BR=ramp(st.beard==='long'?'#ececf2':t.hair);
+    pb.ell(32,40+L/3,11.5,5+L/2,(x,y)=>y>36?(x>37?BR[1]:x<26?BR[3]:BR[2]):null);pb.rect(26,36,12,3,BR[2]);pb.rect(29,40,6,1,'#5a2a2a');for(let k=0;k<4;k++)pb.line(25+k*4,43,26+k*4,46+L/2,BR[1])}
+  if(st.beard==='mous'){pb.rect(26,37,12,2,HR[2]);pb.set(25,39,HR[2]);pb.set(38,39,HR[2]);pb.set(27,37,HR[3])}
+  // 앞머리 (결과 하이라이트)
   const Hs=st.hs;
-  if(Hs!=='bald'){const top=Hs==='bun'||st.age===2?'#d8d4cc':null,R2=top?ramp(top):HR;
-    pb.ell(24,16,11,7.5,(x,y)=>y<17?(x>29?R2[1]:x<19?R2[3]:R2[2]):null);
-    for(let x=14;x<=34;x++){const sp=Hs==='spiky'?3:Hs==='messy'?2:1,yy=15+((x*7)%5<2?sp:0)+(Hs==='side'&&x<22?-1:0);for(let y=13;y<=yy;y++)pb.set(x,y,x>29?R2[1]:R2[2])}
-    pb.rect(14,15,2,6,R2[2]);pb.rect(33,15,2,6,R2[1]);
-    if(Hs==='spiky')for(let k=0;k<5;k++)pb.poly([[15+k*4,12],[17+k*4,4+((k*3)%3)],[19+k*4,12]],k>3?R2[1]:R2[2]);
-    if(Hs==='messy')[[16,9],[22,7],[28,8],[32,11]].forEach(([x,y])=>pb.poly([[x-2,y+4],[x,y],[x+2,y+4]],R2[2]));
-    if(Hs==='bun')pb.ell(24,8,4.5,3.8,(x,y)=>x>25?R2[1]:R2[3]);
-    if(Hs==='long'){pb.rect(13,17,3,15,HR[2]);pb.rect(32,17,3,15,HR[1])}
-    pb.line(18,11,22,10,R2[4]);pb.set(23,10,R2[3])}
-  else{pb.rect(13,17,2,6,HR[2]);pb.rect(33,17,2,6,HR[1]);pb.ell(24,14,9.5,5,(x,y)=>y<17?(x<21?SR[3]:SR[2]):null);pb.set(19,10,'#ffffff')}
-  // 모자와 소품
+  if(Hs!=='bald'){pb.ell(32,20,15,10.5,(x,y)=>y<22?(x>40?R2[1]:x<24?R2[3]:R2[2]):null);
+    for(let x=18;x<=46;x++){const sp=Hs==='spiky'?4:Hs==='messy'?3:2,yy=20+((x*7)%5<2?sp:(x*3)%4===0?1:0)+(Hs==='side'&&x<30?-2:0);for(let y=17;y<=yy;y++)pb.set(x,y,x>41?R2[1]:R2[2])}
+    pb.rect(18,19,3,9,R2[2]);pb.rect(43,19,3,9,R2[1]);
+    [[24,11,26,15],[37,11,38,14]].forEach(([a,b,c,d])=>pb.line(a,b,c,d,R2[3]));pb.line(21,13,27,10,R2[4]);pb.set(28,10,R2[4]);
+    if(Hs==='spiky')for(let k=0;k<6;k++)pb.poly([[17+k*5,16],[20+k*5,5+((k*3)%4)],[23+k*5,16]],k>4?R2[1]:R2[2]);
+    if(Hs==='messy')[[20,13],[28,10],[36,11],[43,14]].forEach(([x,y])=>pb.poly([[x-3,y+5],[x,y-1],[x+3,y+5]],R2[2]));
+    if(Hs==='bun'){pb.ell(32,9,6,5,(x,y)=>x>34?R2[1]:R2[3]);pb.line(29,7,33,6,R2[4])}
+    if(Hs==='long'){pb.rect(16,22,4,22,HR[2]);pb.rect(44,22,4,22,HR[1]);pb.line(17,24,17,40,HR[3])}}
+  else{pb.rect(17,22,3,8,HR[2]);pb.rect(44,22,3,8,HR[1]);pb.ell(32,19,12.5,7,(x,y)=>y<22?(x<28?SR[3]:SR[2]):null);pb.rect(25,13,3,2,SR[4])}
+  // 모자 · 소품
   switch(t.hat){
-    case'helmet':{const Y=ramp('#e8b13a');pb.ell(24,15,12,8.5,(x,y)=>y<16?(x>30?Y[1]:x<18?Y[3]:Y[2]):null);pb.rect(11,15,26,2,Y[1]);pb.rect(12,15,24,1,Y[2]);pb.rect(16,9,3,2,Y[4]);
-      pb.ell(24,11,3,2.6,'#5a5a64');pb.ell(24,11,1.8,1.6,'#fff6c8');pb.set(23,10,'#ffffff');break}
-    case'scarf':{const Q=ramp('#9a6aaa');pb.ell(24,15,12.5,9,(x,y)=>y<18?(x>30?Q[1]:x<18?Q[3]:Q[2]):null);pb.rect(12,15,3,10,Q[2]);pb.rect(33,15,3,10,Q[1]);for(let x=14;x<34;x+=4)pb.set(x,12,Q[4]);break}
-    case'goggles':{pb.rect(13,15,22,2,'#4a3a2a');[[17,13],[26,13]].forEach(([x,y])=>{pb.rect(x,y,6,5,'#8a7a5a');pb.rect(x+1,y+1,4,3,'#7cc8ff');pb.set(x+1,y+1,'#e8f8ff')});break}
-    case'cap':{const G=ramp('#3f8a5a');pb.ell(25,14,11,7,(x,y)=>y<16?(x>30?G[1]:G[2]):null);pb.rect(8,15,14,2,G[1]);pb.rect(9,15,12,1,G[3]);pb.set(25,8,G[4]);break}
-    case'hairpin':pb.rect(30,13,4,3,'#c28cf4');pb.set(31,13,'#f0d8ff');pb.set(33,15,'#8a5ac8');break;
-    case'tophat':{pb.rect(15,1,18,12,(x)=>x>28?'#14141e':'#22222e');pb.rect(15,10,18,2,'#a03a3a');pb.rect(11,12,26,3,'#1a1a28');pb.rect(16,2,2,8,'#3a3a4e');break}
-    case'bandana':{const B=ramp('#c0402a');pb.ell(24,14,11.5,7,(x,y)=>y<16?(x>30?B[1]:B[2]):null);[[17,11],[25,12],[30,10]].forEach(([x,y])=>pb.set(x,y,'#ffe0d0'));pb.poly([[34,14],[40,11],[39,18]],B[1]);break}
-    case'hood':{pb.ell(24,14,13.5,9,(x,y)=>y<17?(x>31?'#3a2c58':'#4a3a6a'):null);pb.rect(11,14,4,18,'#4a3a6a');pb.rect(33,14,4,18,'#3a2c58');break}
-    case'wizard':{const Wz=ramp('#2a2a6a');pb.poly([[12,15],[36,15],[28,-2]],(x,y)=>x>28?Wz[1]:Wz[2]);pb.rect(9,14,30,3,Wz[3]);pb.rect(9,16,30,1,Wz[1]);[[22,8],[26,4]].forEach(([x,y])=>{pb.set(x,y,'#ffe9a8');pb.set(x-1,y,'#c8b070');pb.set(x+1,y,'#c8b070')});break}}
-  if(st.glasses||t.hat==='glasses'){eyes.forEach(([x,y])=>{for(let a=0;a<6.28;a+=.4)pb.set(x+1+Math.cos(a)*3,y+1+Math.sin(a)*2.6,'#3a3040')});pb.rect(21,ey+1,4,1,'#3a3040');pb.set(19,ey-1,'#ffffff')}
-  if(st.mono){for(let a=0;a<6.28;a+=.4)pb.set(29+Math.cos(a)*3,24+Math.sin(a)*3,'#e8c060');pb.line(32,25,33,34,'#e8c060')}
+    case'helmet':{const Y=ramp('#e8b13a');pb.ell(32,20,16,11,(x,y)=>y<21?(x>40?Y[1]:x<24?Y[3]:Y[2]):null);pb.rect(14,20,36,3,Y[1]);pb.rect(15,20,34,1,Y[2]);pb.rect(22,11,4,2,Y[4]);
+      pb.ell(32,14,4,3.5,'#5a5a64');pb.ell(32,14,2.6,2.2,'#fff6c8');pb.set(31,13,'#ffffff');break}
+    case'scarf':{const Q=ramp('#9a6aaa');pb.ell(32,20,16.5,12,(x,y)=>y<24?(x>40?Q[1]:x<24?Q[3]:Q[2]):null);pb.rect(16,20,4,13,Q[2]);pb.rect(44,20,4,13,Q[1]);for(let x=19;x<46;x+=5){pb.set(x,15,Q[4]);pb.set(x+2,18,Q[4])}break}
+    case'goggles':{pb.rect(17,19,30,3,'#4a3a2a');[[22,16],[35,16]].forEach(([x,y])=>{pb.rect(x,y,8,7,'#8a7a5a');pb.rect(x+1,y+1,6,5,'#7cc8ff');pb.rect(x+1,y+1,2,2,'#e8f8ff');pb.set(x+5,y+4,'#5aa8e0')});break}
+    case'cap':{const G=ramp('#3f8a5a');pb.ell(33,18,15,9.5,(x,y)=>y<21?(x>41?G[1]:G[2]):null);pb.rect(10,20,18,3,G[1]);pb.rect(11,20,16,1,G[3]);pb.set(33,9,G[4]);pb.line(26,12,32,10,G[3]);break}
+    case'hairpin':pb.rect(40,17,5,4,'#c28cf4');pb.set(41,17,'#f4e0ff');pb.set(42,18,'#ffffff');pb.set(44,20,'#8a5ac8');break;
+    case'tophat':{pb.rect(20,0,24,16,(x)=>x>38?'#14141e':'#22222e');pb.rect(20,13,24,3,'#a03a3a');pb.rect(14,16,36,4,'#1a1a28');pb.rect(22,2,2,10,'#3a3a4e');break}
+    case'bandana':{const B=ramp('#c0402a');pb.ell(32,18,15.5,9.5,(x,y)=>y<21?(x>40?B[1]:B[2]):null);[[22,14],[31,15],[39,13],[27,11]].forEach(([x,y])=>pb.set(x,y,'#ffe0d0'));pb.poly([[46,18],[54,14],[53,24]],B[1]);pb.poly([[46,19],[52,22],[47,25]],B[2]);break}
+    case'hood':{pb.ell(32,19,18,12,(x,y)=>y<23?(x>43?'#3a2c58':'#4a3a6a'):null);pb.rect(14,19,5,25,'#4a3a6a');pb.rect(45,19,5,25,'#3a2c58');pb.line(15,22,15,42,'#5a4a7a');break}
+    case'wizard':{const Wz=ramp('#2a2a6a');pb.poly([[15,20],[49,20],[38,-3]],(x,y)=>x>38?Wz[1]:Wz[2]);pb.rect(11,19,42,4,Wz[3]);pb.rect(11,22,42,1,Wz[1]);[[29,11],[35,5],[26,16]].forEach(([x,y])=>{pb.set(x,y,'#ffe9a8');pb.set(x-1,y,'#c8b070');pb.set(x+1,y,'#c8b070');pb.set(x,y-1,'#c8b070')});break}}
+  if(st.glasses||t.hat==='glasses'){E.forEach(([x,y])=>{for(let a=0;a<6.28;a+=.22)pb.set(x+2+Math.cos(a)*4.8,y+2.5+Math.sin(a)*4.4,'#3a3040')});pb.rect(27,EY+2,7,1,'#3a3040');pb.set(20,EY-1,'#ffffff')}
+  if(st.mono){for(let a=0;a<6.28;a+=.22)pb.set(40.5+Math.cos(a)*4.8,31.5+Math.sin(a)*4.8,'#e8c060');pb.line(42,35,44,46,'#e8c060')}
   pb.outline(out);
-  // 배경: 인물 색을 은은하게, 가장자리는 어둡게
-  const bg=document.createElement('canvas');bg.width=W;bg.height=W;const g=bg.getContext('2d');const gr=g.createRadialGradient(24,18,4,24,24,34);
-  gr.addColorStop(0,hide?'#1c2440':shade(t.coat,-.35));gr.addColorStop(1,hide?'#0c1022':shade(t.coat,-.78));g.fillStyle=gr;g.fillRect(0,0,W,W);
-  const fg=pb.canvas(1);if(hide){const x=fg.getContext('2d');x.globalCompositeOperation='source-in';x.fillStyle='#2a3352';x.fillRect(0,0,W,W)}
-  g.drawImage(fg,0,0);if(hide){g.fillStyle='#8ea3cc';g.font='bold 14px sans-serif';g.textAlign='center';g.fillText('?',24,30)}
+  const bg=document.createElement('canvas');bg.width=W;bg.height=W;const g=bg.getContext('2d'),gr=g.createRadialGradient(32,24,6,32,32,46);
+  gr.addColorStop(0,hide?'#2a2018':shade(t.coat,-.3));gr.addColorStop(1,hide?'#120c08':shade(t.coat,-.76));g.fillStyle=gr;g.fillRect(0,0,W,W);
+  const fg=pb.canvas(1);if(hide){const x=fg.getContext('2d');x.globalCompositeOperation='source-in';x.fillStyle='#3a2c20';x.fillRect(0,0,W,W)}
+  g.drawImage(fg,0,0);if(hide){g.fillStyle='#b29c80';g.font='bold 18px sans-serif';g.textAlign='center';g.fillText('?',32,40)}
   cvP.width=W;cvP.height=W;const c2=cvP.getContext('2d');c2.imageSmoothingEnabled=false;c2.clearRect(0,0,W,W);c2.drawImage(bg,0,0)}

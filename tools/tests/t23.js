@@ -9,7 +9,7 @@ const closeStory=async()=>{while(await p.isVisible('#storyNext'))await p.click('
 const glow=()=>p.evaluate(()=>[...document.querySelectorAll('.tut-glow')].map(e=>e.id||e.dataset.pk||e.dataset.tab||e.className.split(' ')[0]).join(','));
 await p.goto(url);await p.waitForTimeout(500);await closeStory();
 // 튜토리얼
-await p.evaluate(()=>{const S=__d().S;S.mined=5;S.earned=10;S.inv.stone=6;S.inv.clay=3;S.tut=3});await p.click('[data-tab="forge"]');await p.waitForTimeout(400);
+await p.evaluate(()=>{const S=__d().S;S.mined=5;S.earned=10;S.inv.stone=6;S.inv.clay=3;S.tut=TUT.findIndex(st=>st.sel==='.nb[data-tab="forge"]')});await p.click('[data-tab="forge"]');await p.waitForTimeout(400);
 ok((await glow())==='stone','합성: 돌 재료 버튼만 반짝임 → '+await glow());
 await p.click('[data-pk="stone"]');await p.waitForTimeout(300);ok((await glow())==='stone','한 칸 넣은 뒤에도 돌만 → '+await glow());
 await p.click('[data-pk="stone"]');await p.waitForTimeout(300);ok((await glow())==='smelt','두 칸 다 차면 합성 버튼 → '+await glow()+' / '+(await p.textContent('#tutT')).slice(0,24));

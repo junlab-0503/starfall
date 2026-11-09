@@ -29,9 +29,14 @@ function newWall(){A.crackSeed=(Math.random()*1e9)|0;CRACKS=crackPaths();BLOBS=o
 function swing(){A.sw=0}
 function full(){return space()<=0}
 function doTap(){
-  if(full()){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}
-  swing();applyDmg(tapPower(),false);
+  if(full()&&!(ul('autosell')&&autoSellRoom())){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}
+  swing();let d=tapPower();if(Math.random()<critP()){d*=3;A.shake=3;const w=charW();for(let i=0;i<10;i++)PARTS.push({x:w.x-10,y:w.y-14,vx:-30+Math.random()*60,vy:-60-Math.random()*50,life:.6,c:'#fff2b0',sz:1,star:Math.random()<.4});floatText('크게!','#ffd36a')}
+  applyDmg(d,false);
 }
+// 알뜰 정리(셈 할멈): 창고가 가득 차면 가장 싼 원석을 팔아 자리를 만든다
+let autoSellT=0;
+function autoSellRoom(){const ids=ORDER.filter(id=>cnt(id)>0&&ITEMS[id].L).sort((a,b)=>bid(a)-bid(b));if(!ids.length)return false;const id=ids[0],k=Math.min(cnt(id),Math.max(1,Math.ceil(cap()*.05)));
+  const t=sell(id,k);if(!t)return false;if(performance.now()-autoSellT>4000){autoSellT=performance.now();log(`셈 할멈이 ${ITEMS[id].n} ${k}개를 팔아 자리를 만들었어요: +${big(t)}G`)}invDirty=true;return space()>0}
 function applyDmg(d,auto){
   S.hp-=d;const w=charW(),wx=w.x-10,wy=w.y-14;
   const T=PICK_TIERS[pickTier()][3],L=LOOK[S.layer];
@@ -48,14 +53,17 @@ function tierFx(T,x,y){const add=(n,c,o)=>{for(let i=0;i<n;i++)PARTS.push(Object
   if(T==='star'){add(8,'#fff6c8',{star:1,life:.7});add(4,'#bfe0f6')}}
 function breakWall(auto){
   const L=S.layer,hp=layerHp(L);let n=0;const got={};
-  while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1}
+  while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1+(Math.random()<extraP(ITEMS[id].s)?1:0)}
   const w=charW();
   for(let i=0;i<14;i++)PARTS.push({x:w.x-14+Math.random()*8,y:w.y-24+Math.random()*22,vx:(Math.random()-.8)*80,vy:-40-Math.random()*60,life:.8,c:Math.random()<.4?ITEMS[S.next||'stone'].c:LOOK[L].rock,sz:2,grav:1});
-  for(const id in got)gain(id,got[id]);
+  for(const id in got)gain(id,got[id],auto);
   S.digs[L]=digOf(L)+1;A.stepT=.3;A.shake=2;S.next=rollDrop(L);newWall();
   if(!S.journal.includes(0)&&S.mined>=1)revealJournal(0);
 }
-function gain(id,n){S.mined+=n;if(!S.seen.includes(id))A.joy=.9;let ok=Math.min(n,space());if(ok<n){S.lost=(S.lost||0)+(n-ok)}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
+// 캔 광석: 창고 → (드릴 로봇이면) 로봇 보관함 → 넘치면 판매
+let ofFxT=0;
+function gain(id,n,auto){S.mined+=n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&space()<n&&ul('autosell'))autoSellRoom();let ok=Math.min(n,space());
+  if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else S.lost=(S.lost||0)+rest}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
 let FLOATS=[];
 function floatText(t,c,id){const wrap=$('sceneWrap');const ex=id&&FLOATS.find(f=>f.id===id&&f.life>.3);
   if(ex){ex.n++;ex.el.querySelector('b').textContent=`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}
@@ -71,7 +79,7 @@ function update(dt){
   if(A.sw>=0){A.sw+=dt/.26;if(A.sw>=1)A.sw=-1}
   A.stepT=Math.max(0,A.stepT-dt);A.bobT+=dt;A.blinkT-=dt;if(A.blinkT<0){A.blink=.14;A.blinkT=2+Math.random()*3}A.blink=Math.max(0,A.blink-dt);A.head=Math.max(0,A.head-dt);A.joy=Math.max(0,A.joy-dt);A.yawn=Math.max(0,A.yawn-dt);if(A.sw<0&&!full()){A.yawnT-=dt;if(A.yawnT<0){A.yawn=1.2;A.yawnT=14+Math.random()*12}}else A.yawnT=Math.max(A.yawnT,6);A.shake=Math.max(0,A.shake-dt*8);
   // 자동 드릴
-  if(S.auto>0&&S.autoOn&&!full()){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true)}}
+  if(S.auto>0&&S.autoOn){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true)}}
   PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt});PARTS=PARTS.filter(p=>p.life>0);
   FLY.forEach(f=>f.t+=dt);FLY=FLY.filter(f=>f.t<.6);
   stepFloats(dt);
@@ -115,14 +123,14 @@ function draw(t){
   // 주인공
   const sit=full()&&A.sw<0,ang=sit?100:swingAngle()+(A.head>0?Math.sin(A.head*30)*6:0),face=sit?'tired':A.joy>0?'joy':A.yawn>0?'yawn':'';
   const spr=charSprite({ang,bob:A.joy>0?-(Math.floor(A.joy*8)%2):(!sit&&A.sw<0&&Math.sin(A.bobT*3)>0)?1:0,sit,step:A.stepT>0?(Math.floor(A.stepT*20)%2):0,tier:pickTier(),blink:A.blink>0,face});
-  g.drawImage(spr,Math.round(w.x+6-camX)-19,Math.round(w.y-camY)-37);
+  g.drawImage(spr,Math.round(w.x+6-camX)-20,Math.round(w.y-camY)-37);
   if(sit&&Math.sin(t*3)>.3){g.fillStyle='#9fd8ff';g.fillRect(Math.round(w.x+10-camX),Math.round(w.y-camY)-26,1,2)}
   // 휘두름 잔상
-  if(A.sw>.38&&A.sw<.7){const T=PICK_TIERS[pickTier()],RR=ramp(T[2]),cx0=Math.round(w.x+6-camX)-19+18,cy0=Math.round(w.y-camY)-37+23,a1=-80*Math.PI/180,a2=swingAngle()*Math.PI/180;g.globalAlpha=.55*(1-(A.sw-.38)/.32);g.fillStyle=pickTier()>=3?RR[4]:'#fff6dc';for(let a=a1;a<a2;a+=.09){const r=15+Math.round(Math.sin(a*3));g.fillRect(Math.round(cx0+Math.cos(a)*r),Math.round(cy0+Math.sin(a)*r),1,1)}g.globalAlpha=1}
+  if(A.sw>.38&&A.sw<.7){const T=PICK_TIERS[pickTier()],RR=ramp(T[2]),cx0=Math.round(w.x+6-camX)-20+18,cy0=Math.round(w.y-camY)-37+25,a1=-80*Math.PI/180,a2=swingAngle()*Math.PI/180;g.globalAlpha=.55*(1-(A.sw-.38)/.32);g.fillStyle=pickTier()>=3?RR[4]:'#fff6dc';for(let a=a1;a<a2;a+=.09){const r=15+Math.round(Math.sin(a*3));g.fillRect(Math.round(cx0+Math.cos(a)*r),Math.round(cy0+Math.sin(a)*r),1,1)}g.globalAlpha=1}
   // 입자
   PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리
-  const lx=Math.round(w.x-2-camX),ly=Math.round(w.y-28-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
+  const lx=Math.round(w.x-5-camX),ly=Math.round(w.y-32-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
   // 떠다니는 먼지
   DUST.forEach(d=>{const x=Math.round(((d.x+t*d.v*6)%IW+IW)%IW),y=Math.round(((d.y-t*d.v*3)%IH+IH)%IH);const dd=Math.hypot(x-lx,y-ly);if(dd<IW*.35){g.globalAlpha=(1-dd/(IW*.35))*.7;g.fillStyle='#fff3d0';g.fillRect(x,y,1,1)}});g.globalAlpha=1;
   // 날아가는 광석 → 창고

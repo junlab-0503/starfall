@@ -45,50 +45,50 @@ const ico=(id,sz='')=>`<i class="ico ${sz} ic-${id}" aria-hidden="true"></i>`;
 
 /* 캐릭터 (옆모습, 왼쪽을 봄). 발 중앙이 기준점 (16, 31) */
 const CHAR_PAL={out:'#2a1610',skin:'#f4c8a0',skinS:'#d9a078',hair:'#4a2e1c',helm:'#e8b13a',helmS:'#b07a1e',lamp:'#fff6c8',shirt:'#5f86b8',shirtS:'#46668f',over:'#7a5a3a',overS:'#5a3f27',boot:'#3a2a20',cheek:'#e8907a',handle:'#7a5030',handleS:'#55361f'};
-function drawChar(o){ // o: {ang, bob, sit, step, tier, blink, face} — 2.5등신, 왼쪽을 봄. 머리·몸통·팔·다리가 다 보이게
-  const C=CHAR_PAL,pb=new PB(40,40),ox=19,oy=37+(o.bob||0),sit=o.sit,fy=oy;
-  // 다리와 장화
-  if(sit){pb.rect(ox-9,fy-3,10,3,C.over);pb.rect(ox-9,fy-1,10,1,C.overS);pb.rect(ox-12,fy-4,3,4,C.boot);pb.rect(ox-12,fy-1,4,1,C.out)}
+function drawChar(o){ // o: {ang, bob, sit, step, tier, blink, face} — 2등신, 큰 눈, 왼쪽을 봄 (몸과 머리가 이어지게)
+  const C=CHAR_PAL,pb=new PB(40,40),ox=20,fy=37+(o.bob||0),sit=o.sit;
+  const sk=C.skin,skS=C.skinS,hair=C.hair,hairL=shade(C.hair,.22),ov=C.over,ovS=C.overS,ovL=shade(C.over,.18),sh=C.shirt,shS=C.shirtS,shL=shade(C.shirt,.2),bt=C.boot,btL=shade(C.boot,.28);
+  // 다리 · 장화
+  if(sit){pb.rect(ox-10,fy-3,11,3,ov);pb.rect(ox-10,fy-1,11,1,ovS);pb.rect(ox-13,fy-5,3,5,bt);pb.rect(ox-13,fy-5,3,1,btL);pb.rect(ox-14,fy-1,4,1,'#1e140e')}
   else{const s=o.step||0;
-    pb.rect(ox+1-s,fy-6,3,5,C.overS);pb.rect(ox-s,fy-2,4,2,C.boot);pb.set(ox-s,fy-1,C.out);           // 뒷다리
-    pb.rect(ox-4+s,fy-6,3,5,C.over);pb.rect(ox-4+s,fy-6,1,5,shade(C.over,.15));pb.rect(ox-6+s,fy-2,5,2,C.boot);pb.rect(ox-6+s,fy-2,2,1,shade(C.boot,.25))} // 앞다리
-  // 몸통: 셔츠 + 멜빵 작업복
-  const by=sit?fy-3:fy-6; // 허리
-  pb.rect(ox-5,by-9,10,9,C.shirt);pb.rect(ox+2,by-9,3,9,C.shirtS);           // 셔츠
-  pb.rect(ox-5,by-4,10,4,C.over);pb.rect(ox+2,by-4,3,4,C.overS);              // 바지 윗부분
-  pb.rect(ox-4,by-7,6,4,C.over);pb.rect(ox-3,by-6,3,2,C.overS);                // 앞치마 판과 주머니
-  pb.rect(ox-4,by-9,1,3,C.overS);pb.rect(ox+1,by-9,1,3,C.overS);               // 멜빵
-  pb.set(ox-4,by-7,'#d8c070');pb.set(ox+1,by-7,'#d8c070');                       // 단추
-  pb.rect(ox-5,by-1,10,1,'#4a3020');pb.set(ox-2,by-1,'#c8a050');               // 허리띠
-  // 목과 머리 (몸보다 조금 큰 정도)
-  const hx=ox-1,hy=by-15;
-  pb.rect(hx-1,by-10,3,1,C.skinS);
-  pb.ell(hx,hy,6,5.6,(x,y)=>x>hx+2?C.skinS:C.skin);
-  pb.ell(hx+3,hy+.5,3.4,4.6,(x,y)=>y>hy-2?C.hair:null);pb.rect(hx+3,hy-1,3,5,C.hair);pb.set(hx+5,hy+4,C.hair);pb.set(hx+2,hy+1,shade(C.hair,.2));
-  pb.set(hx+1,hy+1,C.skinS);pb.set(hx+1,hy+2,C.skin); // 귀
-  const fc=o.face||'';
-  if(fc==='joy'){pb.set(hx-5,hy+1,C.out);pb.set(hx-4,hy,C.out);pb.set(hx-3,hy+1,C.out);pb.rect(hx-5,hy+3,2,1,'#8a3a2a')}
-  else if(fc==='tired'){pb.rect(hx-5,hy+1,2,1,C.out);pb.set(hx-4,hy+4,C.skinS);pb.set(hx,hy-3,'#9fd8ff');pb.set(hx,hy-2,'#9fd8ff')}
-  else if(fc==='yawn'){pb.rect(hx-5,hy,2,1,C.out);pb.rect(hx-5,hy+3,2,2,'#5a2a1a')}
-  else{pb.rect(hx-4,hy,1,2,o.blink?C.skinS:C.out);if(!o.blink)pb.set(hx-4,hy,'#ffffff');pb.set(hx-5,hy+3,'#a85a4a')}
-  pb.rect(hx-5,hy+2,2,1,C.cheek);pb.set(hx-6,hy+1,C.skin);
-  // 헬멧과 등불
-  pb.ell(hx,hy-2.2,6.8,4.6,(x,y)=>y<hy-1?(x>hx+3?C.helmS:C.helm):null);
-  pb.rect(hx-8,hy-2,5,1,C.helmS);pb.rect(hx-3,hy-6,4,1,shade(C.helm,.35));
-  pb.rect(hx-6,hy-5,2,2,C.lamp);pb.set(hx-7,hy-4,C.lamp);pb.set(hx-2,hy-5,'#fff3c0');
-  // 뒷팔(몸 뒤)
-  pb.rect(ox+3,by-8,2,5,C.shirtS);pb.rect(ox+3,by-3,2,2,C.skinS);
-  // 앞팔과 곡괭이: 어깨에서 손잡이를 쥔다
-  const sx=ox-1,sy=by-8,a=o.ang*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a);
-  const hx2=sx+dx*5,hy2=sy+dy*5;
-  const T=PICK_TIERS[o.tier||0],HR=ramp(T[2]);
-  const ex=hx2+dx*10,ey=hy2+dy*10,px=-dy,py=dx;
-  pb.line(hx2-dx*2,hy2-dy*2,ex,ey,C.handle,1);
-  const tip=(k)=>[ex+px*k*5.5-dx*1.8,ey+py*k*5.5-dy*1.8];
-  const t1=tip(1),t2=tip(-1);
-  pb.line(t1[0],t1[1],ex+px*2,ey+py*2,HR[2],2);pb.line(ex-px*2,ey-py*2,t2[0],t2[1],HR[2],2);pb.line(ex-px*2,ey-py*2,ex+px*2,ey+py*2,HR[1],2);
-  pb.line(t1[0],t1[1],ex+px*2,ey+py*2,HR[4],1);pb.set(Math.round(t2[0]),Math.round(t2[1]),HR[3]);
-  pb.line(sx,sy,hx2,hy2,C.shirt,2);pb.rect(Math.round(hx2-1),Math.round(hy2-1),2,2,C.skin);
+    pb.rect(ox+1-s,fy-5,3,3,ovS);pb.rect(ox-s,fy-3,5,3,bt);pb.rect(ox-s,fy-3,5,1,btL);pb.rect(ox-s,fy-1,5,1,'#1e140e');            // 뒷다리
+    pb.rect(ox-5+s,fy-5,3,3,ov);pb.set(ox-5+s,fy-5,ovL);pb.rect(ox-7+s,fy-3,5,3,bt);pb.rect(ox-7+s,fy-3,5,1,btL);pb.set(ox-7+s,fy-2,btL);pb.rect(ox-7+s,fy-1,5,1,'#1e140e')} // 앞다리
+  // 몸통: 셔츠 + 멜빵 작업복 (둥근 어깨)
+  const by=sit?fy-3:fy-5,ty=by-9;
+  pb.rect(ox-5,ty+1,10,9,sh);pb.rect(ox-4,ty,8,1,sh);pb.rect(ox+2,ty+1,3,9,shS);pb.set(ox-4,ty+1,shL);pb.set(ox-5,ty+2,shL);
+  pb.rect(ox-5,by-3,10,3,ov);pb.rect(ox+2,by-3,3,3,ovS);                    // 바지 허리
+  pb.rect(ox-4,ty+3,6,5,ov);pb.rect(ox-4,ty+3,6,1,ovL);pb.rect(ox-3,ty+5,3,2,ovS);pb.set(ox-2,ty+5,ovL);   // 앞판 · 주머니
+  pb.rect(ox-4,ty+1,1,3,ovS);pb.rect(ox+1,ty+1,1,3,ovS);pb.set(ox-4,ty+3,'#f0d070');pb.set(ox+1,ty+3,'#f0d070'); // 멜빵 · 단추
+  pb.rect(ox-5,by-1,10,1,'#4a3020');pb.set(ox-1,by-1,'#e0b050');            // 허리띠
+  pb.rect(ox-4,ty,7,1,'#d84a3a');pb.set(ox+3,ty+1,'#b83a2c');pb.set(ox+3,ty+2,'#b83a2c'); // 빨간 목수건
+  // 뒷팔
+  pb.rect(ox+4,ty+2,2,5,shS);pb.rect(ox+4,ty+7,2,2,skS);
+  // 머리: 몸만큼 크게, 큰 눈
+  const hx=ox-1,hy=ty-7;
+  pb.ell(hx,hy,7.6,7.2,(x,y,dx,dy)=>dx>.5?skS:sk);
+  pb.ell(hx+4,hy+1,4.2,6,(x,y)=>y>hy-3?hair:null);pb.rect(hx+3,hy-2,4,7,hair);pb.set(hx+7,hy+4,hair);pb.set(hx+6,hy+5,hair);pb.set(hx+4,hy,hairL);pb.set(hx+5,hy+2,hairL);
+  pb.rect(hx+2,hy+1,2,3,skS);pb.set(hx+2,hy+2,sk);                           // 귀
+  pb.rect(hx-7,hy-3,9,2,hair);pb.set(hx-7,hy-1,hair);pb.set(hx-4,hy-1,hair);pb.set(hx-1,hy-1,hair);pb.set(hx-5,hy-3,hairL); // 앞머리
+  const fc=o.face||'',E='#2a1a14',ex1=hx-6,ex2=hx-2,ey=hy;
+  if(fc==='joy'){[ex1,ex2].forEach(x=>{pb.set(x,ey+1,E);pb.set(x+1,ey,E);pb.set(x+2,ey+1,E)});pb.rect(hx-5,hy+4,3,1,'#a83a2a');pb.set(hx-4,hy+5,'#e86a5a')}
+  else if(fc==='tired'){[ex1,ex2].forEach(x=>{pb.rect(x,ey+1,2,1,E)});pb.set(hx-4,hy+4,skS);pb.set(hx+1,hy-4,'#9fd8ff');pb.set(hx+1,hy-3,'#9fd8ff')}
+  else if(fc==='yawn'){[ex1,ex2].forEach(x=>{pb.rect(x,ey+1,2,1,E)});pb.rect(hx-5,hy+3,2,3,'#6a2418');pb.set(hx-5,hy+5,'#e86a5a')}
+  else if(o.blink){[ex1,ex2].forEach(x=>pb.rect(x,ey+1,2,1,E))}
+  else{[ex1,ex2].forEach((x,k)=>{pb.rect(x,ey-1,2,4,E);pb.set(x,ey-1,'#ffffff');pb.set(x+1,ey+2,'#6a4a3a');if(!k)pb.set(x-1,ey-1,E)});pb.set(hx-4,hy+4,'#a85a4a');pb.set(hx-3,hy+4,'#a85a4a')}
+  pb.rect(hx-7,hy+2,2,1,C.cheek);pb.rect(hx-1,hy+2,2,1,C.cheek);pb.set(hx-8,hy+1,sk);
+  // 헬멧 · 등불
+  const Y=C.helm,YS=C.helmS,YL=shade(C.helm,.35);
+  pb.ell(hx+.5,hy-3.5,8.2,5.4,(x,y)=>y<hy-2?(x>hx+4?YS:Y):null);pb.rect(hx-10,hy-3,9,2,YS);pb.rect(hx-10,hy-3,9,1,Y);pb.rect(hx-2,hy-8,4,1,YL);pb.set(hx-4,hy-7,YL);
+  pb.rect(hx-6,hy-7,3,3,'#5a4a3a');pb.rect(hx-6,hy-7,2,2,C.lamp);pb.set(hx-6,hy-7,'#ffffff');
+  // 앞팔과 곡괭이
+  const sx=ox-2,sy=ty+2,a=o.ang*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a);
+  const hx2=sx+dx*5,hy2=sy+dy*5,T=PICK_TIERS[o.tier||0],HR=ramp(T[2]);
+  const ex=hx2+dx*10,ey2=hy2+dy*10,px=-dy,py=dx;
+  pb.line(hx2-dx*2,hy2-dy*2,ex,ey2,C.handle,1);
+  const tip=k=>[ex+px*k*5.5-dx*1.8,ey2+py*k*5.5-dy*1.8],t1=tip(1),t2=tip(-1);
+  pb.line(t1[0],t1[1],ex+px*2,ey2+py*2,HR[2],2);pb.line(ex-px*2,ey2-py*2,t2[0],t2[1],HR[2],2);pb.line(ex-px*2,ey2-py*2,ex+px*2,ey2+py*2,HR[1],2);
+  pb.line(t1[0],t1[1],ex+px*2,ey2+py*2,HR[4],1);pb.set(Math.round(t2[0]),Math.round(t2[1]),HR[3]);
+  pb.line(sx,sy,hx2,hy2,sh,2);pb.rect(Math.round(hx2-1),Math.round(hy2-1),3,2,sk);pb.set(Math.round(hx2-1),Math.round(hy2),skS);
   pb.outline(C.out);
   return pb;
 }
@@ -111,14 +111,33 @@ function drawBot(state,ph){const pb=new PB(20,13),R=ramp('#d6aa52');
 const BOT_CACHE={};const botSprite=(s,ph)=>BOT_CACHE[s+ph]||(BOT_CACHE[s+ph]=drawBot(s,ph));
 const CAT_CACHE={};const catSprite=f=>CAT_CACHE[f]||(CAT_CACHE[f]=drawCat(f));
 /* 지층 타일 (32×32, 이어 붙여도 자연스럽게): 둥근 돌덩이들이 맞물리고 틈은 어둡게 */
-function rockTile(L,kind){const N=64,lk=LOOK[L],pb=new PB(N,N),rn=rng(L*131+(kind==='back'?7:1)),base=kind==='back'?lk.dark:lk.rock,R=ramp(base);
-  const seeds=[];const n=kind==='back'?14:26;for(let i=0;i<n;i++)seeds.push([rn()*N,rn()*N,.75+rn()*.6,rn()*.6-.3]);
+function rockTile(L,kind){const N=64,lk=LOOK[L],pb=new PB(N,N),rn=rng(L*131+(kind==='back'?7:1)),back=kind==='back',base=back?lk.dark:lk.rock,R=ramp(base);
+  // 둥근 돌이 맞물린 벽: 돌마다 왼쪽 위는 빛을 받아 테두리가 밝고, 오른쪽 아래 틈은 깊게
+  const seeds=[];const n=back?14:24;for(let i=0;i<n;i++)seeds.push([rn()*N,rn()*N,.75+rn()*.6,rn()*.6-.3]);
+  const AU=['#62f0c4','#5fcff2','#a58cff','#ff8fd6'],au=L>=10?[.3,.55,.85][L-10]:0; // 깊은 지층: 틈 사이로 오로라
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){let b1=1e9,b2=1e9,bi=0;seeds.forEach((sd,i)=>{for(let oy=-N;oy<=N;oy+=N)for(let ox=-N;ox<=N;ox+=N){const dx=x+.5-(sd[0]+ox),dy=(y+.5-(sd[1]+oy))*sd[2],d=Math.hypot(dx,dy);if(d<b1){b2=b1;b1=d;bi=i}else if(d<b2)b2=d}});
     const edge=b2-b1,sd=seeds[bi];let c;const th=(BAYER4[y&3][x&3]+.5)/16;
-    if(edge<.8)c=R[1];else if(edge<1.8)c=th<.5?R[1]:R[2];else{let dx=x+.5-sd[0],dy=y+.5-sd[1];dx=((dx+N*1.5)%N)-N/2;dy=((dy+N*1.5)%N)-N/2;const v=-(dx*.55+dy*.8)/7+sd[3];
-      const lv=2+v;c=R[Math.max(1,Math.min(kind==='back'?2:3,lv+th-.5>2.5?3:lv+th-.5>1.5?2:1))]}
+    let dx=x+.5-sd[0],dy=y+.5-sd[1];dx=((dx+N*1.5)%N)-N/2;dy=((dy+N*1.5)%N)-N/2;const side=-(dx*.55+dy*.8);
+    if(edge<.8){c=R[0];if(au&&!back){const w=Math.sin(x*.21+y*.13+L)+Math.sin(y*.17-x*.07);if(w>1.1-au*1.4)c=AU[((x+y*2)>>4)&3]}}
+    else if(edge<1.8)c=side>0?(th<.5?R[2]:R[1]):R[1];
+    else if(edge<2.8&&!back)c=side>2?R[Math.min(4,3+(th<.35?1:0))]:side<-2?R[1]:R[2];
+    else{const v=side/7+sd[3],lv=2+v;c=R[Math.max(1,Math.min(back?2:3,lv+th-.5>2.5?3:lv+th-.5>1.5?2:1))]}
     pb.set(x,y,c)}
-  if(kind!=='back'){for(let i=0;i<40;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);pb.set(x,y,rn()<.5?lk.spec[0]:lk.spec[1])}for(let i=0;i<14;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);if(pb.get(x,y)===R[3])pb.set(x,y,R[4])}}
-  else{for(let y=6;y<N;y+=11)for(let x=0;x<N;x++)if(rn()<.3)pb.set(x,y,R[0])}
+  if(!back){
+    for(let i=0;i<40;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);pb.set(x,y,rn()<.5?lk.spec[0]:lk.spec[1])}
+    for(let i=0;i<14;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);if(pb.get(x,y)===R[3])pb.set(x,y,R[4])}
+    // 작은 조약돌 (반짝이는 윗면)
+    for(let i=0;i<6;i++){const x=Math.floor(rn()*(N-3)),y=Math.floor(rn()*(N-2)),P=ramp(lk.spec[0]);pb.rect(x,y,3,2,P[2]);pb.set(x,y,P[4]);pb.set(x+1,y,P[3]);pb.rect(x,y+2,3,1,R[0])}
+    // 층마다 작은 디테일
+    const D=lk.deco;
+    if(D==='grass')for(let i=0;i<5;i++){const x=Math.floor(rn()*(N-6)),y=Math.floor(rn()*(N-4));for(let k=0;k<6;k++)pb.set(x+k,y+Math.round(Math.sin(k*1.3)),'#6a4a2a');pb.set(x+2,y-1,'#8a6a3a')} // 나무뿌리
+    if(D==='shards'||D==='stalactite')for(let i=0;i<4;i++){const x=Math.floor(rn()*(N-4)),y=Math.floor(rn()*(N-5));pb.rect(x+1,y+2,2,3,'#c8b8a0');pb.set(x+1,y+1,'#f0e4d0');pb.rect(x,y+3,1,2,'#8a7a64');pb.set(x+3,y+3,'#d8c0e8');pb.set(x+3,y+2,'#b898d0')} // 작은 버섯
+    if(D==='crystal'||D==='drip')for(let i=0;i<4;i++){const x=Math.floor(rn()*(N-4)),y=Math.floor(rn()*(N-6)),C=ramp(lk.band);pb.rect(x+1,y+1,2,4,C[2]);pb.set(x+1,y+1,C[4]);pb.set(x+2,y,C[3]);pb.rect(x,y+3,1,2,C[1]);pb.rect(x+3,y+3,1,2,C[1])}
+    if(D==='goldspeck')for(let i=0;i<18;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);pb.set(x,y,rn()<.3?'#fff2a0':'#ffd23f')}
+    if(D==='lava')for(let i=0;i<3;i++){let x=rn()*N,y=rn()*N;for(let k=0;k<14;k++){x+=rn()*2-.6;y+=rn()*2-1;pb.set(x,y,k%4?'#e2581e':'#ffb84a')}}
+    if(D==='glass'||D==='diamond')for(let i=0;i<6;i++){const x=Math.floor(rn()*(N-2)),y=Math.floor(rn()*(N-2));pb.set(x,y,'#ffffff');pb.set(x+1,y+1,lk.band)}
+    if(au)for(let i=0;i<10+L*2;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);pb.set(x,y,rn()<.5?'#ffffff':AU[i&3])}}
+  else{for(let y=6;y<N;y+=11)for(let x=0;x<N;x++)if(rn()<.3)pb.set(x,y,R[0]);
+    if(au)for(let y=0;y<N;y++)for(let x=0;x<N;x++){const w=Math.sin(x*.09+y*.05+L)*Math.sin(y*.12-x*.03);if(w>.72-au*.3&&((x+y)&1))pb.set(x,y,shade(AU[((x>>3)+L)&3],-.55))}}
   return pb.canvas(1)}
 const BAYER4=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
