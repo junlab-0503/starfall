@@ -8,11 +8,13 @@ FILES=['data.js','pixel.js','icons.js','state.js','market.js','mine.js','forge.j
 js=''.join(open(os.path.join(SRC,f),encoding='utf-8').read()+'\n' for f in FILES)
 # 직접 그린 그림: art/portraits/<입주자>.png, art/items/<광물 id>.png → ART.<이름> (data URL)
 art={}
-for sub_ in ('portraits','items'):
+for sub_ in ('portraits','items','hero'):
     d_=os.path.join(R,'art',sub_)
     if os.path.isdir(d_):
         for f in sorted(os.listdir(d_)):
             if f.endswith('.png'):art[os.path.splitext(f)[0]]=base64.b64encode(open(os.path.join(d_,f),'rb').read()).decode()
+HM=os.path.join(R,'art','hero','hero_meta.json')
+if os.path.exists(HM):js='const HERO_META='+open(HM,encoding='utf-8').read().strip()+';\n'+js
 js='const ART={'+','.join(f"{k}:'data:image/png;base64,{v}'" for k,v in art.items())+'};\n'+js
 css=open(os.path.join(SRC,'style.css'),encoding='utf-8').read();body=open(os.path.join(SRC,'body.html'),encoding='utf-8').read()
 chars=set(c for c in js+css+body if ord(c)>127)|set(chr(i) for i in range(32,127))|set('…·→←▲▼★')

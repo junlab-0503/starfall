@@ -28,6 +28,10 @@ let BLOBS=oreBlobs();
 function newWall(){A.crackSeed=(Math.random()*1e9)|0;CRACKS=crackPaths();BLOBS=oreBlobs();if(!S.next)S.next=rollDrop(S.layer)}
 function swing(){A.sw=0}
 function full(){return space()<=0}
+const HERO={img:null};if(typeof ART!=='undefined'&&ART.hero&&typeof HERO_META!=='undefined'){const im=new Image();im.onload=()=>{HERO.img=im};im.src=ART.hero}
+// 곡괭이질 7장: 들어 올림 → 머리 위 → 내려찍기 → 부딪힘 → 따라가기 → 거두기. 쉬기 · 걷기 · 기쁨 · 하품 · 창고 가득(누워 쉬기)
+function heroFrameKey(sit,t){if(sit)return'sleep';if(A.sw>=0){const s=A.sw;return s<.2?'sw0':s<.4?'sw1':s<.5?'sw2':s<.62?'sw3':s<.8?'sw4':'sw5'}
+  if(A.joy>0)return A.joy>.45?'joy':'happy';if(A.stepT>0)return'walk'+((t*14|0)%6);if(A.yawn>0)return'yawn';return'rest'}
 function doTap(){
   if(full()&&!(ul('autosell')&&autoSellRoom())){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}
   swing();let d=tapPower();if(Math.random()<critP()){d*=3;A.shake=3;const w=charW();for(let i=0;i<10;i++)PARTS.push({x:w.x-10,y:w.y-14,vx:-30+Math.random()*60,vy:-60-Math.random()*50,life:.6,c:'#fff2b0',sz:1,star:Math.random()<.4});floatText('크게!','#ffd36a')}
@@ -90,6 +94,7 @@ function draw(t){
   const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;g.translate(sh,0);
   // 암벽
   g.save();g.translate(-((camX%64)+64)%64,-((camY%64)+64)%64);g.fillStyle=pat(L,'rock');g.fillRect(0,0,IW+128,IH+128);g.restore();
+  strataBands(L,t);
   // 굴: 지나온 칸들 + 오른쪽 위 입구까지
   const ox=((camX%64)+64)%64,oy=((camY%64)+64)%64;
   for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;
@@ -120,23 +125,48 @@ function draw(t){
   if(S.auto>0){const st=!S.autoOn?'off':full()?'full':'on',bs=botSprite(st,Math.floor(A.botPh)%3);const bx=Math.round(w.x-STX/2-2-camX),by=Math.round(w.y-camY-bs.height+2);g.drawImage(bs,bx,by);
     if(st==='off'&&Math.sin(t*2)>0){g.fillStyle='#a8c8c8';g.fillRect(bx+15,by-4,3,1);g.fillRect(bx+17,by-5,1,1)}
     if(st==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
-  // 주인공
-  const sit=full()&&A.sw<0,ang=sit?100:swingAngle()+(A.head>0?Math.sin(A.head*30)*6:0),face=sit?'tired':A.joy>0?'joy':A.yawn>0?'yawn':'';
-  const spr=charSprite({ang,bob:A.joy>0?-(Math.floor(A.joy*8)%2):(!sit&&A.sw<0&&Math.sin(A.bobT*3)>0)?1:0,sit,step:A.stepT>0?(Math.floor(A.stepT*20)%2):0,tier:pickTier(),blink:A.blink>0,face});
-  g.drawImage(spr,Math.round(w.x+6-camX)-20,Math.round(w.y-camY)-37);
-  if(sit&&Math.sin(t*3)>.3){g.fillStyle='#9fd8ff';g.fillRect(Math.round(w.x+10-camX),Math.round(w.y-camY)-26,1,2)}
-  // 휘두름 잔상
-  if(A.sw>.38&&A.sw<.7){const T=PICK_TIERS[pickTier()],RR=ramp(T[2]),cx0=Math.round(w.x+6-camX)-20+18,cy0=Math.round(w.y-camY)-37+25,a1=-80*Math.PI/180,a2=swingAngle()*Math.PI/180;g.globalAlpha=.55*(1-(A.sw-.38)/.32);g.fillStyle=pickTier()>=3?RR[4]:'#fff6dc';for(let a=a1;a<a2;a+=.09){const r=15+Math.round(Math.sin(a*3));g.fillRect(Math.round(cx0+Math.cos(a)*r),Math.round(cy0+Math.sin(a)*r),1,1)}g.globalAlpha=1}
+  // 주인공: 직접 그린 스프라이트(art/hero) — 아직 안 불러왔으면 예전 도트 그림
+  const sit=full()&&A.sw<0,fxw=Math.round(w.x+6-camX),fyw=Math.round(w.y-camY);
+  if(HERO.img){const k=heroFrameKey(sit,t),[sx,sy,sw,sh,fx]=HERO_META[k],bob=k==='rest'&&Math.sin(A.bobT*2.2)>.6?1:0;
+    g.drawImage(HERO.img,sx,sy,sw,sh,fxw-fx,fyw-sh+1+bob,sw,sh);
+    if(sit){const z=(t*.8)%1;g.fillStyle=`rgba(232,224,255,${(1-z).toFixed(2)})`;const zx=fxw+8+z*4,zy=fyw-18-z*10;g.fillRect(zx,zy,3,1);g.fillRect(zx+1,zy+1,1,1);g.fillRect(zx,zy+2,3,1)}}
+  else{const ang=sit?100:swingAngle()+(A.head>0?Math.sin(A.head*30)*6:0),face=sit?'tired':A.joy>0?'joy':A.yawn>0?'yawn':'';
+    const spr=charSprite({ang,bob:A.joy>0?-(Math.floor(A.joy*8)%2):(!sit&&A.sw<0&&Math.sin(A.bobT*3)>0)?1:0,sit,step:A.stepT>0?(Math.floor(A.stepT*20)%2):0,tier:pickTier(),blink:A.blink>0,face});
+    g.drawImage(spr,fxw-20,fyw-37)}
   // 입자
   PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리
-  const lx=Math.round(w.x-5-camX),ly=Math.round(w.y-32-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
+  const lx=Math.round(w.x-3-camX),ly=Math.round(w.y-28-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
+  wallGems(L,d,t);
   // 떠다니는 먼지
   DUST.forEach(d=>{const x=Math.round(((d.x+t*d.v*6)%IW+IW)%IW),y=Math.round(((d.y-t*d.v*3)%IH+IH)%IH);const dd=Math.hypot(x-lx,y-ly);if(dd<IW*.35){g.globalAlpha=(1-dd/(IW*.35))*.7;g.fillStyle='#fff3d0';g.fillRect(x,y,1,1)}});g.globalAlpha=1;
   // 날아가는 광석 → 창고
   FLY.forEach(f=>{const k=f.t/.6,e=k*k,x=f.x0-camX+((IW-14)-(f.x0-camX))*e,y=f.y0-camY+(10-(f.y0-camY))*e-Math.sin(k*Math.PI)*20;g.drawImage(icon16(f.id),Math.round(x-8),Math.round(y-8))});
   g.setTransform(1,0,0,1,0,0);
 }
+/* 지층 단면: 띠 모양 흙층(밝고 어두운 띠가 물결치며 겹침) + 돌 틈에 박힌 빛나는 결정 무리 */
+const BANDH=46;
+function strataBands(L,t){const lk=LOOK[L],cols=[shade(lk.rock,.16),shade(lk.dark,-.1),shade(lk.rock,-.12)];
+  const b0=Math.floor((camY-20)/BANDH),b1=Math.floor((camY+IH+20)/BANDH);
+  for(let b=b0;b<=b1;b++){const R=rng(b*733+L*17),c=cols[((b%3)+3)%3],y0=b*BANDH-camY,ph=R()*6,amp=2+R()*3,th=10+R()*8;g.globalAlpha=.32;g.fillStyle=c;
+    for(let x=0;x<IW;x+=2){const wx=x+camX,top=Math.round(y0+Math.sin(wx*.045+ph)*amp+Math.sin(wx*.11+ph*2)),hh=Math.round(th+Math.sin(wx*.07+ph)*2);g.fillRect(x,top,2,hh)}
+    g.globalAlpha=.5;g.fillStyle=shade(lk.dark,-.3);for(let x=0;x<IW;x+=2){const wx=x+camX,top=Math.round(y0+Math.sin(wx*.045+ph)*amp+Math.sin(wx*.11+ph*2));g.fillRect(x,top,2,1)}}
+  g.globalAlpha=1}
+const GEM_SPR={};
+function gemCluster(col){if(GEM_SPR[col])return GEM_SPR[col];const pb=new PB(15,13),R=ramp(col);
+  pb.ell(7,11.5,6.5,2,'#3a2a20');pb.ell(4,11,2.4,1.6,'#5a4434');pb.ell(11,11.2,2.2,1.5,'#4a3628');
+  const pr=(cx,by,w,h,lean)=>{const top=by-h;pb.poly([[cx-w,by],[cx-w+lean,top],[cx+lean,top-w*.9],[cx,by]],R[3]);pb.poly([[cx,by],[cx+lean,top-w*.9],[cx+w+lean,top],[cx+w,by]],R[1]);pb.line(cx-w+.6+lean*.6,top+1,cx-w+.6,by-1,R[4])};
+  pr(4,11,1.8,4,-1.2);pr(11,11,1.6,3.5,1.1);pr(7.5,11,2.3,7,0);pb.set(7,3,'#ffffff');pb.set(4,6,'#ffffff');
+  pb.outline('#1a120c');return GEM_SPR[col]=pb.canvas(1)}
+function wallGems(L,d,t){const cw=58,ch=50,lk=LOOK[L],cols=[['#6ab8ff','#ffc84a','#b07cff'][L%3],['#6ab8ff','#ffc84a','#b07cff'][(L+1)%3],lk.band];
+  const i0=Math.floor((camX-10)/cw),i1=Math.floor((camX+IW)/cw),j0=Math.floor((camY-10)/ch),j1=Math.floor((camY+IH)/ch);
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const R=rng(i*92821+j*68917+L*131);if(R()>.3)continue;
+    const wx=i*cw+4+R()*(cw-20),wy=j*ch+8+R()*(ch-16),k=Math.round(-(wx+8)/STX);
+    if(k>=d-31&&k<=d+1&&wy>k*STY-46&&wy<k*STY+6)continue;   // 굴과 겹치면 건너뜀
+    if(k<0&&wy<0)continue;                                     // 땅 위(하늘)는 건너뜀
+    const col=cols[(R()*3)|0],sp=gemCluster(col),x=Math.round(wx-camX),y=Math.round(wy-camY),a=.28+.14*Math.sin(t*2+i*1.7+j);
+    const gr=g.createRadialGradient(x+7,y+7,1,x+7,y+7,14);gr.addColorStop(0,col);gr.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=a;g.fillStyle=gr;g.fillRect(x-8,y-8,30,30);g.globalAlpha=1;
+    g.drawImage(sp,x,y);if(Math.sin(t*3+i*2.3+j)>.92){g.fillStyle='#ffffff';g.fillRect(x+7,y+1,1,1);g.fillRect(x+6,y+2,3,1)}}}
 function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);
   if(type==='stalactite'&&R()<.6){g.fillStyle='#d8d4c0';const sx=x-8+Math.floor(R()*16);g.fillRect(sx,y-31,2,3);g.fillRect(sx,y-28,1,2)}
   if(type==='crystal'&&R()<.5){const sx=x-10+Math.floor(R()*20),c=['#c28cf4','#eeeae2'][R()<.5?0:1],a=.6+.4*Math.sin(t*2+i);g.globalAlpha=a;g.fillStyle=c;g.fillRect(sx,y-36,2,3);g.fillRect(sx+1,y-38,1,2);g.globalAlpha=1}
@@ -149,7 +179,9 @@ function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);
   if(type==='meteor'&&R()<.4){g.fillStyle='#bfe0f6';g.fillRect(x-10+Math.floor(R()*20),y+4,2,1)}
   if(type==='star'&&R()<.6){const a=.4+.6*Math.abs(Math.sin(t*1.5+i));g.fillStyle=`rgba(255,233,168,${a})`;const sx=x-10+Math.floor(R()*20),sy=y-42+Math.floor(R()*8);g.fillRect(sx,sy,1,1);if(a>.8){g.fillRect(sx-1,sy,3,1);g.fillRect(sx,sy-1,1,3)}}
   if(type==='shards'&&R()<.4){g.fillStyle='#e8d8c0';g.fillRect(x-10+Math.floor(R()*20),y+3,2,1)}
-  if(type==='grass'&&i<=0){g.fillStyle='#5f8a3a';g.fillRect(x-STX/2,y-35,STX,2)}
+  if(type==='grass'&&i<=0){g.fillStyle='#5f8a3a';g.fillRect(x-STX/2,y-35,STX,2);g.fillStyle='#7fae4a';g.fillRect(x-STX/2,y-35,STX,1);
+    for(let k=0;k<5;k++){const gx=x-STX/2+2+Math.floor(R()*(STX-4)),gh=1+Math.floor(R()*3),sw=Math.sin(t*2+gx)>.6?1:0;g.fillStyle='#4a7a2e';g.fillRect(gx,y-35-gh,1,gh);g.fillStyle='#9ccf5a';g.fillRect(gx+sw,y-36-gh,1,1)}
+    if(R()<.7){const fx=x-STX/2+3+Math.floor(R()*(STX-6));g.fillStyle='#4a7a2e';g.fillRect(fx,y-38,1,3);g.fillStyle='#ffffff';g.fillRect(fx-1,y-40,3,1);g.fillRect(fx,y-41,1,3);g.fillStyle='#ffd23f';g.fillRect(fx,y-40,1,1)}}
 }
 cv.addEventListener('pointerdown',e=>{e.preventDefault();doTap()});
 document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||S.tab!=='mine'||$('story').hidden===false)return;if(e.code==='Space'||e.code==='Enter'){e.preventDefault();doTap()}});
