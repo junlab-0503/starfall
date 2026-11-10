@@ -57,34 +57,3 @@ function drawBot(state,ph){const pb=new PB(20,13),R=ramp('#d6aa52');
   pb.outline('#120c08');return pb.canvas(1)}
 const BOT_CACHE={};const botSprite=(s,ph)=>BOT_CACHE[s+ph]||(BOT_CACHE[s+ph]=drawBot(s,ph));
 const CAT_CACHE={};const catSprite=f=>CAT_CACHE[f]||(CAT_CACHE[f]=drawCat(f));
-/* 지층 타일 (32×32, 이어 붙여도 자연스럽게): 둥근 돌덩이들이 맞물리고 틈은 어둡게 */
-function rockTile(L,kind){const N=64,lk=LOOK[L],pb=new PB(N,N),rn=rng(L*131+(kind==='back'?7:1)),back=kind==='back',base=back?lk.dark:lk.rock,R=ramp(base);
-  // 둥근 돌이 맞물린 벽: 돌마다 왼쪽 위는 빛을 받아 테두리가 밝고, 오른쪽 아래 틈은 깊게
-  const seeds=[];const n=back?14:24;for(let i=0;i<n;i++)seeds.push([rn()*N,rn()*N,.75+rn()*.6,rn()*.6-.3]);
-  const AU=['#62f0c4','#5fcff2','#a58cff','#ff8fd6'],au=L>=10?[.3,.55,.85][L-10]:0; // 깊은 지층: 틈 사이로 오로라
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){let b1=1e9,b2=1e9,bi=0;seeds.forEach((sd,i)=>{for(let oy=-N;oy<=N;oy+=N)for(let ox=-N;ox<=N;ox+=N){const dx=x+.5-(sd[0]+ox),dy=(y+.5-(sd[1]+oy))*sd[2],d=Math.hypot(dx,dy);if(d<b1){b2=b1;b1=d;bi=i}else if(d<b2)b2=d}});
-    const edge=b2-b1,sd=seeds[bi];let c;const th=(BAYER4[y&3][x&3]+.5)/16;
-    let dx=x+.5-sd[0],dy=y+.5-sd[1];dx=((dx+N*1.5)%N)-N/2;dy=((dy+N*1.5)%N)-N/2;const side=-(dx*.55+dy*.8);
-    if(edge<.8){c=R[0];if(au&&!back){const w=Math.sin(x*.21+y*.13+L)+Math.sin(y*.17-x*.07);if(w>1.1-au*1.4)c=AU[((x+y*2)>>4)&3]}}
-    else if(edge<1.8)c=side>0?(th<.5?R[2]:R[1]):R[1];
-    else if(edge<2.8&&!back)c=side>2?R[Math.min(4,3+(th<.35?1:0))]:side<-2?R[1]:R[2];
-    else{const v=side/7+sd[3],lv=2+v;c=R[Math.max(1,Math.min(back?2:3,lv+th-.5>2.5?3:lv+th-.5>1.5?2:1))]}
-    pb.set(x,y,c)}
-  if(!back){
-    for(let i=0;i<40;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);pb.set(x,y,rn()<.5?lk.spec[0]:lk.spec[1])}
-    for(let i=0;i<14;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);if(pb.get(x,y)===R[3])pb.set(x,y,R[4])}
-    // 작은 조약돌 (반짝이는 윗면)
-    for(let i=0;i<6;i++){const x=Math.floor(rn()*(N-3)),y=Math.floor(rn()*(N-2)),P=ramp(lk.spec[0]);pb.rect(x,y,3,2,P[2]);pb.set(x,y,P[4]);pb.set(x+1,y,P[3]);pb.rect(x,y+2,3,1,R[0])}
-    // 층마다 작은 디테일
-    const D=lk.deco;
-    if(D==='grass')for(let i=0;i<5;i++){const x=Math.floor(rn()*(N-6)),y=Math.floor(rn()*(N-4));for(let k=0;k<6;k++)pb.set(x+k,y+Math.round(Math.sin(k*1.3)),'#6a4a2a');pb.set(x+2,y-1,'#8a6a3a')} // 나무뿌리
-    if(D==='shards'||D==='stalactite')for(let i=0;i<4;i++){const x=Math.floor(rn()*(N-4)),y=Math.floor(rn()*(N-5));pb.rect(x+1,y+2,2,3,'#c8b8a0');pb.set(x+1,y+1,'#f0e4d0');pb.rect(x,y+3,1,2,'#8a7a64');pb.set(x+3,y+3,'#d8c0e8');pb.set(x+3,y+2,'#b898d0')} // 작은 버섯
-    if(D==='crystal'||D==='drip')for(let i=0;i<4;i++){const x=Math.floor(rn()*(N-4)),y=Math.floor(rn()*(N-6)),C=ramp(lk.band);pb.rect(x+1,y+1,2,4,C[2]);pb.set(x+1,y+1,C[4]);pb.set(x+2,y,C[3]);pb.rect(x,y+3,1,2,C[1]);pb.rect(x+3,y+3,1,2,C[1])}
-    if(D==='goldspeck')for(let i=0;i<18;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);pb.set(x,y,rn()<.3?'#fff2a0':'#ffd23f')}
-    if(D==='lava')for(let i=0;i<3;i++){let x=rn()*N,y=rn()*N;for(let k=0;k<14;k++){x+=rn()*2-.6;y+=rn()*2-1;pb.set(x,y,k%4?'#e2581e':'#ffb84a')}}
-    if(D==='glass'||D==='diamond')for(let i=0;i<6;i++){const x=Math.floor(rn()*(N-2)),y=Math.floor(rn()*(N-2));pb.set(x,y,'#ffffff');pb.set(x+1,y+1,lk.band)}
-    if(au)for(let i=0;i<10+L*2;i++){const x=Math.floor(rn()*N),y=Math.floor(rn()*N);pb.set(x,y,rn()<.5?'#ffffff':AU[i&3])}}
-  else{for(let y=6;y<N;y+=11)for(let x=0;x<N;x++)if(rn()<.3)pb.set(x,y,R[0]);
-    if(au)for(let y=0;y<N;y++)for(let x=0;x<N;x++){const w=Math.sin(x*.09+y*.05+L)*Math.sin(y*.12-x*.03);if(w>.72-au*.3&&((x+y)&1))pb.set(x,y,shade(AU[((x>>3)+L)&3],-.55))}}
-  return pb.canvas(1)}
-const BAYER4=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];

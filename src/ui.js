@@ -73,9 +73,6 @@ function renderBookTab(){
   setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['재련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
 $('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([{k:'할아버지의 일지',t:`B${i+1} ${LAYERS[i].n}`,b:`"${JOURNAL[i]}"`}])});
 /* 장터: [지층 출입권] 소문을 읽고 사고팔기 · [광물 거래] 정해진 값 */
-function sparkSvg(arr,w,h,col){if(!arr||arr.length<2)return'';let mn=Math.min(...arr),mx=Math.max(...arr);if(mx-mn<1e-9){mx+=1;mn-=1}
-  const pts=arr.map((v,i)=>`${Math.round(i/(arr.length-1)*(w-1))},${Math.round(h-2-(v-mn)/(mx-mn)*(h-4))}`).join(' ');
-  return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/></svg>`}
 const pctHtml=v=>{const p=Math.round((v-1)*100);if(p===0)return'<span class="pct dim">평소</span>';return`<span class="pct ${p>0?'good':'bad'}">${p>0?'▲':'▼'}${Math.abs(p)}%</span>`};
 const mm=s=>{s=Math.max(0,Math.ceil(s/60));return s>=60?`${Math.floor(s/60)}시간 ${s%60}분`:`${s}분`};
 function srcRecTxt(n){const r=S.srcRec[n];return r&&r.n?`지금까지 ${r.n}번 중 ${r.h}번 맞음`:'아직 기록 없음'}
@@ -91,10 +88,10 @@ function renderMarket(){if(S.tab!=='market')return;const sub=S.mkSub==='ore'?'or
     setHTML($('rumors'),h);$('rumInfo').textContent=S.rum.length<2?`다음 소문 약 ${mm(S.rumT)} 뒤`:'';
     // 출입권 목록
     const L=[...Array(S.unlocked).keys()],mx=passMax(),pv=passValue();$('passInfo').textContent=pv?`가진 출입권 ${big(pv)}G`:`지층마다 ${mx}장까지`;
-    patchList($('passes'),L,L.map(i=>{const v=passPrice(i),hd=S.pass[i],n=passHeld(i),ret=n?v*n/hd.c-1:null,ch=v/passBase(i),cs=ch>1.02?'#8fd36a':ch<.98?'#ff7a6a':'#b29c80';
-      return[`${pf(v)}G ${pctHtml(ch)}`,sparkSvg(H['p'+i]||[],56,16,cs),n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${ret>=0?'+':''}${Math.round(ret*100)}%</span>`:`0/${mx}장`,
+    patchList($('passes'),L,L.map(i=>{const v=passPrice(i),hd=S.pass[i],n=passHeld(i),ret=n?v*n/hd.c-1:null,ch=v/passBase(i);
+      return[`${pf(v)}G ${pctHtml(ch)}`,n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${ret>=0?'+':''}${Math.round(ret*100)}%</span>`:`0/${mx}장`,
         `배당 1장당 시간당 약 ${pf(passDiv(i)*3600)}G어치 광석`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>팔기</button>`]}),
-      (i,P)=>`<div class="prow"><span class="pn"><b>B${i+1}</b> ${LAYERS[i].n}</span><span class="pv">${P[0]}</span><span class="psp">${P[1]}</span><span class="ph">${P[2]}</span><span class="pd dim">${P[3]}</span><span class="pbtn">${P[4]}</span></div>`,'',[1,2,3,4,5])}
+      (i,P)=>`<div class="prow"><span class="pn"><b>B${i+1}</b> ${LAYERS[i].n}</span><span class="pv">${P[0]}</span><span class="ph">${P[1]}</span><span class="pd dim">${P[2]}</span><span class="pbtn">${P[3]}</span></div>`,'',[1,2,3,4])}
   else{const ids=ORDER.filter(id=>S.seen.includes(id));
     patchList($('oreList'),ids,ids.map(id=>[`×${big(cnt(id))}`,`<span class="good">${pf(bid(id))}</span> / <span class="lamp">${pf(ask(id))}</span>G`]),
       (id,P)=>`<div class="orow">${ico(id,'sm')}<span>${ITEMS[id].n} <span class="dim">${P[0]}</span></span><span class="small">${P[1]}</span><span class="acts"><button class="px-btn sm" data-osell="${id}" type="button">팔기</button><button class="px-btn sm" data-obuy="${id}" type="button">사기</button></span></div>`,'<p class="dim">광물을 캐면 여기에 나와요.</p>',[1,2])}}

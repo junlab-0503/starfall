@@ -3,7 +3,7 @@ buildIcons();navIcons();
 const had=load();refreshBonus();
 if(!S.next||!LAYERS[S.layer].drops.some(d=>d[0]===S.next))S.next=rollDrop(S.layer);
 if(!(S.hp>0)||S.hp>layerHp(S.layer))S.hp=layerHp(S.layer);
-for(let i=0;i<180;i++){tickMarket(2,true);if(i%2)recordHist()}
+for(let i=0;i<180;i++)tickMarket(2,true)
 // 다시 열 때: 서버 시각을 먼저 확인(최대 1.5초)하고, 시계를 되돌렸는지 본 뒤 자리 비운 시간을 계산
 let resuming=false;
 async function resume(){if(resuming)return;resuming=true;CLK.hold=true;clockRebase();await syncTime(1500);CLK.hold=false;const back=clockCheck();
@@ -27,14 +27,14 @@ $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode
     log('개발자 코드 적용: 전부 해금 · 모든 광물 9,999개 · 골드 9,999억 · 탑 99층',true);msg.textContent='적용됨: 탑 탭에서 바로 별을 돌려보낼 수 있어요.';renderAll()}
   else msg.textContent=v?'알 수 없는 코드예요.':'';$('devCode').value=''});
 let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
-  try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();H={};refreshBonus();for(let i=0;i<180;i++){tickMarket(2,true);if(i%2)recordHist()}S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');story(PROLOGUE.map(c=>Object.assign({k:'프롤로그'},c)));S.prologue=true;save()};
-let lastT=0,secAcc=0,hist=0,saveAcc=0,hudAcc=0,invDirtyT=0;
+  try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');story(PROLOGUE.map(c=>Object.assign({k:'프롤로그'},c)));S.prologue=true;save()};
+let lastT=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;
 function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden)clockWatch();
   if(S.tab==='mine'&&!IW)sceneResize();
   update(dt);rqRun(dt);if(S.tab==='mine'&&IW)draw(now/1000);
   if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();if(S.tab==='forge')rqBars();renderHeader();tutTick()}
   if(invDirty&&now-invDirtyT>400){invDirty=false;invDirtyT=now;if(S.tab==='forge')renderForge();if(S.tab==='manage'&&S.sub==='store')renderInv()}
-  secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);if(++hist%6===0)recordHist();S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);
+  secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);
     if(S.tab==='market'||S.tab==='tower'||S.tab==='equip'||S.tab==='forge'||(S.tab==='manage'&&S.sub!=='set'))renderTab();if(++saveAcc%10===0)save()}
   requestAnimationFrame(frame)}
 requestAnimationFrame(frame);

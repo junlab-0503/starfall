@@ -2,23 +2,42 @@
  저해상도 캔버스에 그리고 픽셀 그대로 키운다. 주인공은 왼쪽 암벽을 파고, 굴은 오른쪽 위에서부터 계단처럼 이어진다.
  암벽에 박힌 광석이 다음에 나올 광물이다. */
 const cv=$('scene'),g=cv.getContext('2d');
-let IW=0,IH=0,SC=3,TILE={},PAT={};
+let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
 const STX=24,STY=9; // 굴 한 칸의 가로/세로 이동
-function sceneResize(){fitScene();const r=cv.parentElement.getBoundingClientRect();if(!r.width)return;SC=Math.max(2,Math.round(r.width/180));IW=Math.ceil(r.width/SC);IH=Math.ceil(r.height/SC);cv.width=IW;cv.height=IH;g.imageSmoothingEnabled=false;PAT={}}
+function sceneResize(){fitScene();const r=cv.parentElement.getBoundingClientRect();if(!r.width)return;SC=Math.max(2,Math.round(r.width/180));IW=Math.ceil(r.width/SC);IH=Math.ceil(r.height/SC);cv.width=IW*SC;cv.height=IH*SC;g.imageSmoothingEnabled=false}
 addEventListener('resize',()=>{IW=0});
 function fitScene(){}
 if(window.ResizeObserver)new ResizeObserver(()=>{IW=0}).observe($('sceneWrap'));
-function pat(L,kind){const k=L+kind;if(!PAT[k]){if(!TILE[k])TILE[k]=rockTile(L,kind);PAT[k]=g.createPattern(TILE[k],'repeat')}return PAT[k]}
+/* 지층 그림(art/strata): 뒤 = 지층 그림(어둡게, 느리게 움직임) · 가운데 = 채굴층(굴이 뚫린 바위 띠) · 앞 = 바닥 바위 · 천장 종유석(어둡게, 빠르게 움직임)
+   그림은 위아래 · 좌우로 뒤집어 이어 붙여(2×2) 끝없이 반복 */
+const STRATA={};
+// 가운데 채굴층 그림(art/strata/m<번호>.webp = 바위 무늬, m<번호>_d.webp = 굴 안쪽 벽)이 있으면 그것, 없으면 지층 그림으로 대신
+function strata(L){const o=STRATA[L]||(STRATA[L]={});if(o.ok)return o;if(o.wait)return null;o.wait=1;const n=L+1,keys=['s'+n,'s'+n+'_b','s'+n+'_t','m'+n,'m'+n+'_d'].filter(k=>ART['strata_'+k]);let left=keys.length;
+  keys.forEach(k=>{const im=new Image();im.onload=()=>{if(!--left)buildStrata(L,o)};im.src=ART['strata_'+k];o[k.replace(/\d+/,'')]=im});return null}
+function cvs(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return[c,x]}
+function mirror(im,v){const w=im.width,h=im.height,[c,x]=cvs(w*2,v?h*2:h);x.drawImage(im,0,0);x.save();x.scale(-1,1);x.drawImage(im,-w*2,0);x.restore();
+  if(v){x.save();x.scale(1,-1);x.drawImage(c,0,0,w*2,h,0,-h*2,w*2,h);x.restore()}return c}
+function tint(src,col,a){const[c,x]=cvs(src.width,src.height);x.drawImage(src,0,0);x.globalCompositeOperation='source-atop';x.globalAlpha=a;x.fillStyle=col;x.fillRect(0,0,c.width,c.height);return c}
+function buildStrata(L,o){const lk=LOOK[L],sup=mirror(o.s,true);
+  o.back=tint(sup,lk.dark,.62);o.mid=o.m?mirror(o.m,true):sup;o.dark=o.m_d?mirror(o.m_d,true):tint(sup,'#050308',.66);o.fb=tint(mirror(o.s_b),'#07040a',.5);o.ft=tint(mirror(o.s_t),'#07040a',.5);
+  ['back','mid','dark'].forEach(k=>o['p'+k]=g.createPattern(o[k],'repeat'));
+  const[c1,x1]=cvs(1,1);x1.imageSmoothingEnabled=true;x1.drawImage(o.m||o.s,0,0,1,1);const v=x1.getImageData(0,0,1,1).data;o.rock='#'+[v[0],v[1],v[2]].map(n=>n.toString(16).padStart(2,'0')).join('');o.ok=1}   // 굴 바닥 · 천장 색 = 그림의 평균색
+// 캔버스 좌표로 무늬 채우기: (ax,ay)에 무늬 원점을 두고 사각형을 채움
+function fillPat(p,tw,th,ax,ay,x,y,w,h){const ox=((Math.round(ax)%tw)+tw)%tw,oy=((Math.round(ay)%th)+th)%th;g.save();g.translate(ox,oy);g.fillStyle=p;g.fillRect(x-ox,y-oy,w,h);g.restore()}
+// 가운데 채굴층의 위 · 아래 가장자리(월드 y): 굴 바닥선을 따라 울퉁불퉁하게
+const slabTop=(wx,L)=>-wx*STY/STX-33-20+Math.round(3*Math.sin(wx*.11+L)+2*Math.sin(wx*.29+L*2)+1.5*Math.sin(wx*.67));
+const slabBot=(wx,L)=>-wx*STY/STX+24+Math.round(3*Math.sin(wx*.09+L*3)+2*Math.sin(wx*.23+1)+1.5*Math.sin(wx*.59+L));
 const digOf=L=>S.digs[L]||0;
 let camX=0,camY=0,camInit=false;
 const A={joy:0,yawn:0,yawnT:9,sw:-1,step:0,stepT:0,bobT:0,blinkT:2.5,blink:0,shake:0,crackSeed:1,head:0,autoT:0,autoPh:0,botPh:0};
 let PARTS=[],FLY=[];
 const DUST=Array.from({length:26},()=>({x:Math.random()*400,y:Math.random()*400,v:.3+Math.random()*.7}));
-const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];let LMASK=null,LMK='';
+let LMASK=null,LMK='';
 function lightMask(){const dim=LOOK[S.layer].dim+(S.ended?-.08:0),k=IW+'x'+IH+'_'+dim.toFixed(2);if(LMK===k)return LMASK;LMK=k;
   const W=IW*2+2,H=IH*2+2,c=document.createElement('canvas');c.width=W;c.height=H;const t=c.getContext('2d'),img=t.createImageData(W,H),R=Math.max(IW,IH)*.95,cx=W/2,cy=H/2;
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const d=Math.hypot(x-cx,(y-cy)*1.1)/R;let a;const lv=clamp((d-.22)/.55,0,1);
-    const th=(BAYER[y&3][x&3]+.5)/16;a=lv>=1?dim*.95+.05:(lv>th?dim*.9:dim*.9*lv*.25);if(d<.22)a=0;const o=(y*W+x)*4;img.data[o]=6;img.data[o+1]=4;img.data[o+2]=10;img.data[o+3]=Math.round(a*255)}
+  // 계단식 고리(4단계, 점무늬 없이): 그림 위에 점무늬가 끼지 않게
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const d=Math.hypot(x-cx,(y-cy)*1.1)/R,lv=clamp((d-.22)/.55,0,1),q=Math.ceil(lv*4)/4,a=lv>=1?dim*.95+.05:dim*.9*q;
+    const o=(y*W+x)*4;img.data[o]=6;img.data[o+1]=4;img.data[o+2]=10;img.data[o+3]=Math.round(a*255)}
   t.putImageData(img,0,0);LMASK=c;return c}
 const charW=()=>({x:-digOf(S.layer)*STX,y:digOf(S.layer)*STY}); // 발 위치(월드)
 function crackPaths(){const R=rng(A.crackSeed),out=[];for(let k=0;k<5;k++){let x=0,y=-6-R()*16;const p=[[x,y]];for(let j=0;j<7;j++){x-=1+R()*2.2;y+=(R()-.5)*4;p.push([x,y])}out.push(p)}return out}
@@ -89,18 +108,25 @@ function update(dt){
   stepFloats(dt);
 }
 function draw(t){
-  const L=S.layer,lk=LOOK[L],d=digOf(L);g.setTransform(1,0,0,1,0,0);
-  const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;g.translate(sh,0);
-  // 암벽
-  g.save();g.translate(-((camX%64)+64)%64,-((camY%64)+64)%64);g.fillStyle=pat(L,'rock');g.fillRect(0,0,IW+128,IH+128);g.restore();
-  strataBands(L,t);
-  // 굴: 지나온 칸들 + 오른쪽 위 입구까지
-  const ox=((camX%64)+64)%64,oy=((camY%64)+64)%64;
-  for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;
-    g.save();g.beginPath();g.rect(x-STX/2,y-33,STX+1,33);g.clip();g.translate(-ox,-oy);g.fillStyle=pat(L,'back');g.fillRect(x-STX/2+ox-1,y-34+oy,STX+3,36);g.restore()}
+  const L=S.layer,lk=LOOK[L],d=digOf(L);
+  const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;
+  const K=SC,CW=cv.width,CH=cv.height,st=strata(L);g.setTransform(1,0,0,1,sh*K,0);
+  if(st){let tw=st.back.width,th=st.back.height;
+    // 뒤: 지층 그림, 느리게(0.45배)
+    fillPat(st.pback,tw,th,-camX*K*.45,-camY*K*.45,-K,0,CW+2*K,CH);
+    // 가운데: 채굴층 바위 띠(카메라와 같이). 3px 단위로 울퉁불퉁 → 도트 느낌
+    tw=st.mid.width;th=st.mid.height;const ax=((Math.round(-camX*K)%tw)+tw)%tw,ay=((Math.round(-camY*K)%th)+th)%th;g.save();g.translate(ax,ay);g.fillStyle=st.pmid;
+    const cols=[];for(let cx=-3;cx<CW+3;cx+=3){const wx=camX+cx/K,t0=Math.round((slabTop(wx,L)-camY)*K),b0=Math.round((slabBot(wx,L)-camY)*K);cols.push([cx,t0,b0]);g.fillRect(cx-ax,t0-ay,3,b0-t0)}
+    g.restore();
+    cols.forEach(([cx,t0,b0])=>{g.fillStyle='rgba(0,0,0,.38)';g.fillRect(cx,b0,3,6);g.fillStyle='#0b070a';g.fillRect(cx,t0-2,3,2);g.fillRect(cx,b0,3,2);g.fillStyle='rgba(255,236,200,.22)';g.fillRect(cx,t0,3,2)});
+    // 굴 안: 어둡게, 조금 느리게(0.8배) → 안쪽이 깊어 보이게
+    for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;
+      fillPat(st.pdark,st.dark.width,st.dark.height,-camX*K*.8,-camY*K*.8,(x-STX/2)*K,(y-33)*K,(STX+1)*K,33*K)}
+  }else{g.fillStyle=LOOK[L].dark;g.fillRect(0,0,CW,CH)}
+  g.setTransform(K,0,0,K,sh*K,0);
   // 굴 바닥·천장 음영과 버팀목
   for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;
-    {const RR=ramp(lk.rock),Rn=rng(i*7919+S.layer);for(let k=0;k<STX+1;k++){const xx=x-STX/2+k,bump=Math.floor(Rn()*3),bump2=Math.floor(Rn()*2);
+    {const RR=ramp(st?st.rock:lk.rock),Rn=rng(i*7919+S.layer);for(let k=0;k<STX+1;k++){const xx=x-STX/2+k,bump=Math.floor(Rn()*3),bump2=Math.floor(Rn()*2);
       g.fillStyle=RR[1];g.fillRect(xx,y-33,1,bump+1);g.fillStyle=RR[3];g.fillRect(xx,y-33+bump+1,1,1);
       g.fillStyle=RR[1];g.fillRect(xx,y-bump2,1,bump2+2);g.fillStyle=RR[4];g.fillRect(xx,y-bump2-1,1,1)}
      g.fillStyle='rgba(0,0,0,.35)';g.fillRect(x-STX/2,y-30,STX+1,2)}
@@ -126,43 +152,21 @@ function draw(t){
     if(st==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
   // 주인공: 직접 그린 스프라이트(art/hero)
   const sit=full()&&A.sw<0,fxw=Math.round(w.x+6-camX),fyw=Math.round(w.y-camY);
-  if(HERO.img){const k=heroFrameKey(sit,t),[sx,sy,sw,sh,fx]=HERO_META[k],bob=k==='rest'&&Math.sin(A.bobT*2.2)>.6?1:0;
-    g.drawImage(HERO.img,sx,sy,sw,sh,fxw-fx,fyw-sh+1+bob,sw,sh);
+  if(HERO.img){const k=heroFrameKey(sit,t),[sx,sy,sw,sh,fx]=HERO_META[k],hs=HERO_META._s||1,bob=k==='rest'&&Math.sin(A.bobT*2.2)>.6?1:0;
+    g.drawImage(HERO.img,sx,sy,sw,sh,fxw-fx/hs,fyw-sh/hs+1+bob,sw/hs,sh/hs);   // 2배 도트를 절반 크기로 → 화면 1px = 그림 1px
     if(sit){const z=(t*.8)%1;g.fillStyle=`rgba(232,224,255,${(1-z).toFixed(2)})`;const zx=fxw+8+z*4,zy=fyw-18-z*10;g.fillRect(zx,zy,3,1);g.fillRect(zx+1,zy+1,1,1);g.fillRect(zx,zy+2,3,1)}}
   // 입자
   PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리
   const lx=Math.round(w.x-3-camX),ly=Math.round(w.y-28-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
-  wallGems(L,d,t);
+  // 앞: 바닥 바위 · 천장 종유석(어둡게, 빠르게 1.5배) → 단면이 입체로 보이게
+  if(st){g.setTransform(1,0,0,1,sh*K,0);[[st.fb,CH-st.fb.height],[st.ft,0]].forEach(([im,y])=>{const w2=im.width,x0=((Math.round(-camX*K*1.5)%w2)+w2)%w2-w2;for(let x=x0;x<CW;x+=w2)g.drawImage(im,x,y)});g.setTransform(K,0,0,K,sh*K,0)}
   // 떠다니는 먼지
   DUST.forEach(d=>{const x=Math.round(((d.x+t*d.v*6)%IW+IW)%IW),y=Math.round(((d.y-t*d.v*3)%IH+IH)%IH);const dd=Math.hypot(x-lx,y-ly);if(dd<IW*.35){g.globalAlpha=(1-dd/(IW*.35))*.7;g.fillStyle='#fff3d0';g.fillRect(x,y,1,1)}});g.globalAlpha=1;
   // 날아가는 광석 → 창고
   FLY.forEach(f=>{const k=f.t/.6,e=k*k,x=f.x0-camX+((IW-14)-(f.x0-camX))*e,y=f.y0-camY+(10-(f.y0-camY))*e-Math.sin(k*Math.PI)*20;g.drawImage(icon16(f.id),Math.round(x-8),Math.round(y-8))});
   g.setTransform(1,0,0,1,0,0);
 }
-/* 지층 단면: 띠 모양 흙층(밝고 어두운 띠가 물결치며 겹침) + 돌 틈에 박힌 빛나는 결정 무리 */
-const BANDH=46;
-function strataBands(L,t){const lk=LOOK[L],cols=[shade(lk.rock,.16),shade(lk.dark,-.1),shade(lk.rock,-.12)];
-  const b0=Math.floor((camY-20)/BANDH),b1=Math.floor((camY+IH+20)/BANDH);
-  for(let b=b0;b<=b1;b++){const R=rng(b*733+L*17),c=cols[((b%3)+3)%3],y0=b*BANDH-camY,ph=R()*6,amp=2+R()*3,th=10+R()*8;g.globalAlpha=.32;g.fillStyle=c;
-    for(let x=0;x<IW;x+=2){const wx=x+camX,top=Math.round(y0+Math.sin(wx*.045+ph)*amp+Math.sin(wx*.11+ph*2)),hh=Math.round(th+Math.sin(wx*.07+ph)*2);g.fillRect(x,top,2,hh)}
-    g.globalAlpha=.5;g.fillStyle=shade(lk.dark,-.3);for(let x=0;x<IW;x+=2){const wx=x+camX,top=Math.round(y0+Math.sin(wx*.045+ph)*amp+Math.sin(wx*.11+ph*2));g.fillRect(x,top,2,1)}}
-  g.globalAlpha=1}
-const GEM_SPR={};
-function gemCluster(col){if(GEM_SPR[col])return GEM_SPR[col];const pb=new PB(15,13),R=ramp(col);
-  pb.ell(7,11.5,6.5,2,'#3a2a20');pb.ell(4,11,2.4,1.6,'#5a4434');pb.ell(11,11.2,2.2,1.5,'#4a3628');
-  const pr=(cx,by,w,h,lean)=>{const top=by-h;pb.poly([[cx-w,by],[cx-w+lean,top],[cx+lean,top-w*.9],[cx,by]],R[3]);pb.poly([[cx,by],[cx+lean,top-w*.9],[cx+w+lean,top],[cx+w,by]],R[1]);pb.line(cx-w+.6+lean*.6,top+1,cx-w+.6,by-1,R[4])};
-  pr(4,11,1.8,4,-1.2);pr(11,11,1.6,3.5,1.1);pr(7.5,11,2.3,7,0);pb.set(7,3,'#ffffff');pb.set(4,6,'#ffffff');
-  pb.outline('#1a120c');return GEM_SPR[col]=pb.canvas(1)}
-function wallGems(L,d,t){const cw=58,ch=50,lk=LOOK[L],cols=[['#6ab8ff','#ffc84a','#b07cff'][L%3],['#6ab8ff','#ffc84a','#b07cff'][(L+1)%3],lk.band];
-  const i0=Math.floor((camX-10)/cw),i1=Math.floor((camX+IW)/cw),j0=Math.floor((camY-10)/ch),j1=Math.floor((camY+IH)/ch);
-  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const R=rng(i*92821+j*68917+L*131);if(R()>.3)continue;
-    const wx=i*cw+4+R()*(cw-20),wy=j*ch+8+R()*(ch-16),k=Math.round(-(wx+8)/STX);
-    if(k>=d-31&&k<=d+1&&wy>k*STY-46&&wy<k*STY+6)continue;   // 굴과 겹치면 건너뜀
-    if(k<0&&wy<0)continue;                                     // 땅 위(하늘)는 건너뜀
-    const col=cols[(R()*3)|0],sp=gemCluster(col),x=Math.round(wx-camX),y=Math.round(wy-camY),a=.28+.14*Math.sin(t*2+i*1.7+j);
-    const gr=g.createRadialGradient(x+7,y+7,1,x+7,y+7,14);gr.addColorStop(0,col);gr.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=a;g.fillStyle=gr;g.fillRect(x-8,y-8,30,30);g.globalAlpha=1;
-    g.drawImage(sp,x,y);if(Math.sin(t*3+i*2.3+j)>.92){g.fillStyle='#ffffff';g.fillRect(x+7,y+1,1,1);g.fillRect(x+6,y+2,3,1)}}}
 function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);
   if(type==='stalactite'&&R()<.6){g.fillStyle='#d8d4c0';const sx=x-8+Math.floor(R()*16);g.fillRect(sx,y-31,2,3);g.fillRect(sx,y-28,1,2)}
   if(type==='crystal'&&R()<.5){const sx=x-10+Math.floor(R()*20),c=['#c28cf4','#eeeae2'][R()<.5?0:1],a=.6+.4*Math.sin(t*2+i);g.globalAlpha=a;g.fillStyle=c;g.fillRect(sx,y-36,2,3);g.fillRect(sx+1,y-38,1,2);g.globalAlpha=1}

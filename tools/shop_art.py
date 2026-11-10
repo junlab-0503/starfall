@@ -1,12 +1,13 @@
 """상점 그림(사용자 원본) → 게임 도트로 줄이기.
-사람: art/source/shop/people.webp (검은 바탕)에서 다섯 명을 잘라 흉상 도트(높이 H)로 → art/shop/<키>.png
-배경: art/source/shop/bg_*.webp에서 가로로 긴 띠를 잘라 도트로 줄이고 살짝 어둡고 따뜻하게 → art/shop/bg_<키>.png
+사람: art/source/shop/people.webp (검은 바탕)에서 다섯 명을 잘라 상반신(머리 꼭대기 ~ 허리, 모두 같은 비율) 도트로 → art/shop/<키>.png (화면 1:1)
+배경: art/source/shop/bg_*.webp를 0.3배로 작게 줄여 띠를 자르고 양옆을 거울로 이어 448×200으로, 살짝 어둡고 따뜻하게 → art/shop/bg_<키>.png (화면 1:1)
 사용: python3 tools/shop_art.py"""
 from PIL import Image
 import numpy as np,os
 from collections import Counter
 SRC='art/source/shop/';OUT='art/shop/';os.makedirs(OUT,exist_ok=True)
-H=92            # 흉상 도트 높이(화면에서 2배)
+H=192           # 상반신 도트 높이(화면 1:1)
+CH=480          # 원본에서 머리 꼭대기부터 허리까지 높이(다섯 명 모두 같게 → 같은 비율)
 OUTLINE=np.array([36,22,12])
 def grow(seed,allow):
     cur=seed&allow
@@ -38,23 +39,26 @@ def people():
     P={'pin':((300,350),(0,600)),'mir':((850,400),(600,1199)),'musoe':((200,950),(0,370)),'sem':((540,1000),(360,712)),'luka':((960,1000),(712,1199))}
     for k,((x,y),(xa,xb)) in P.items():
         allow=fg.copy();allow[:,:xa]=False;allow[:,xb:]=False;sd=np.zeros_like(fg);sd[y,x]=True;m=grow(sd,allow)
-        ys,xs=np.where(m);y0,y1,x0,x1=ys.min(),ys.max()+1,xs.min(),xs.max()+1
-        sub=a[y0:y1,x0:x1];mm=m[y0:y1,x0:x1];Wd=round((x1-x0)*H/(y1-y0))
-        r=pixelate(sub,mm,Wd,H,40)
+        ys,xs=np.where(m);y0=ys.min();y1=y0+CH;m[y1:]=False;ys,xs=np.where(m);x0,x1=xs.min(),xs.max()+1
+        sub=a[y0:y1,x0:x1];mm=m[y0:y1,x0:x1];Wd=round((x1-x0)*H/CH)
+        r=pixelate(sub,mm,Wd,H,48)
         A=r[:,:,3]>0;o=r.copy()   # 바깥 테두리는 게임 윤곽색으로
         for j in range(H):
             for i in range(Wd):
                 if A[j,i] and any(not(0<=j+dj<H and 0<=i+di<Wd) or not A[j+dj,i+di] for dj,di in((1,0),(-1,0),(0,1),(0,-1))) and j<H-1:o[j,i,:3]=OUTLINE
-        Image.fromarray(o).save(OUT+k+'.png',optimize=True);print(k,o.shape[1],'x',o.shape[0])
+        Image.fromarray(o).quantize(64,method=Image.Quantize.FASTOCTREE,dither=Image.Dither.NONE).save(OUT+k+'.png',optimize=True)  # 팔레트 PNG(투명 유지, 용량 절약);print(k,o.shape[1],'x',o.shape[0])
 def backgrounds():
-    # 키: (원본, 위쪽 비율, 띠 높이 비율) → 192×120 도트
-    B={'musoe':('bg_workshop',.60,.40),'pin':('bg_workshop',.03,.40),'mir':('bg_magic',.05,.42),'sem':('bg_pantry',.06,.42),'luka':('bg_market',.08,.42)}
-    for k,(f,top,hh) in B.items():
-        im=Image.open(SRC+f+'.webp').convert('RGB');w,h=im.size;y0=int(h*top);band=im.crop((0,y0,w,y0+int(h*hh)))
-        W=192;Hh=round(W*band.size[1]/band.size[0])
-        sm=band.resize((W,Hh),Image.Resampling.BOX);a=np.asarray(sm).astype(float)
-        # 광산 마을 분위기: 조금 어둡게 · 채도 낮게 · 따뜻하게 → 앞의 사람과 말풍선이 잘 보이게
-        g=a@[.3,.59,.11];a=g[...,None]+(a-g[...,None])*.8;a=a*.72;a[...,0]*=1.04;a[...,2]*=.9
-        sm=Image.fromarray(a.clip(0,255).astype(np.uint8)).quantize(48,method=Image.Quantize.MEDIANCUT).convert('RGB')
-        sm.save(OUT+'bg_'+k+'.png',optimize=True);print('bg',k,sm.size)
+    # 사람(상반신 192px)보다 소품이 커 보이지 않게 원본을 0.3배로 작게 → 가운데에 두고 양옆은 가장자리를 거울처럼 이어 448×200을 채움
+    # 키: (원본, 띠 위쪽 y(원본 px), 좌우 뒤집기, 색 보정)
+    SCL=.3;BH=200;BW=448
+    B={'pin':('bg_workshop',230,0,(1,1,1)),'musoe':('bg_workshop',470,1,(1.1,.95,.82)),'mir':('bg_magic',200,0,(1,1,1)),'sem':('bg_pantry',120,0,(1,1,1)),'luka':('bg_market',250,0,(1,1,1))}
+    for k,(f,y0,flip,tint) in B.items():
+        im=Image.open(SRC+f+'.webp').convert('RGB');w,h=im.size;band=im.crop((0,y0,w,y0+round(BH/SCL)))
+        if flip:band=band.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        mid=np.asarray(band.resize((round(w*SCL),BH),Image.Resampling.BOX)).astype(float);mw=mid.shape[1];ex=(BW-mw+1)//2
+        L=mid[:,:ex][:,::-1]*.8;R=mid[:,-ex:][:,::-1]*.8          # 이어 붙인 부분은 조금 더 어둡게
+        a=np.concatenate([L,mid,R],1)[:,:BW]
+        g=a@[.3,.59,.11];a=g[...,None]+(a-g[...,None])*.8;a=a*.76;a[...,0]*=1.04*tint[0];a[...,1]*=tint[1];a[...,2]*=.9*tint[2]
+        sm=Image.fromarray(a.clip(0,255).astype(np.uint8)).quantize(64,method=Image.Quantize.MEDIANCUT)
+        sm.save(OUT+'bg_'+k+'.png',optimize=True);print('bg',k,sm.size,'mid',mw)
 people();backgrounds()

@@ -7,16 +7,17 @@ SRC=os.path.join(R,'src');FONT=os.path.join(R,'fonts');OUT=os.path.join(R,'dist'
 FILES=['data.js','pixel.js','icons.js','state.js','market.js','mine.js','forge.js','tower.js','ui.js','equip.js','sfx.js','tut.js','hooks.js','main.js']
 js=''.join(open(os.path.join(SRC,f),encoding='utf-8').read()+'\n' for f in FILES)
 # 직접 그린 그림 → ART.<이름> (data URL)
-#   art/portraits/<입주자>.png(탭 카드 초상화), art/hero/hero.png(주인공), art/shop/<가게>.png · bg_<가게>.png(장비 탭 사람 · 배경 → ART.shop_…)
+#   art/portraits/<입주자>.png(탭 카드 초상화), art/hero/hero.png(주인공), art/shop/<가게>.png · bg_<가게>.png(장비 탭 사람 · 배경 → ART.shop_…),
+#   art/strata/s<번호>(_b|_t).webp(채굴 화면 지층 → ART.strata_…)
 art={}
-for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_')):
+for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_'),('strata','strata_')):
     d_=os.path.join(R,'art',sub_)
     if os.path.isdir(d_):
         for f in sorted(os.listdir(d_)):
-            if f.endswith('.png'):art[pre_+os.path.splitext(f)[0]]=base64.b64encode(open(os.path.join(d_,f),'rb').read()).decode()
+            if f.endswith(('.png','.webp')):art[pre_+os.path.splitext(f)[0]]=('webp' if f.endswith('.webp') else 'png',base64.b64encode(open(os.path.join(d_,f),'rb').read()).decode())
 HM=os.path.join(R,'art','hero','hero_meta.json')
 if os.path.exists(HM):js='const HERO_META='+open(HM,encoding='utf-8').read().strip()+';\n'+js
-js='const ART={'+','.join(f"{k}:'data:image/png;base64,{v}'" for k,v in art.items())+'};\n'+js
+js='const ART={'+','.join(f"{k}:'data:image/{t};base64,{v}'" for k,(t,v) in art.items())+'};\n'+js
 css=open(os.path.join(SRC,'style.css'),encoding='utf-8').read();body=open(os.path.join(SRC,'body.html'),encoding='utf-8').read()
 chars=set(c for c in js+css+body if ord(c)>127)|set(chr(i) for i in range(32,127))|set('…·→←▲▼★')
 open(os.path.join(TMP,'chars.txt'),'w',encoding='utf-8').write(''.join(sorted(chars)))

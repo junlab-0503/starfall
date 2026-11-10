@@ -1,4 +1,4 @@
-"""입주자 초상화(사용자 원본 art/source/portraits_all.webp, 액자 13장) → 64×64 도트 art/portraits/<키>.png
+"""입주자 초상화(사용자 원본 art/source/portraits_all.webp, 액자 13장) → 128×128 도트 art/portraits/<키>.png
 사용: python3 tools/portrait_art.py"""
 from PIL import Image
 import numpy as np
@@ -17,7 +17,7 @@ boxes=[]
 for y0 in rows:
     band=~bg[y0+40:y0+200];boxes+=[(x0,y0) for x0 in runs(band.mean(0),.5)]
 assert len(boxes)==13,boxes
-N=64
+N=128
 for k,(x0,y0) in zip(KEYS,boxes):
     src=a[y0+14:y0+244,x0+15:x0+245].astype(float)   # 액자 안쪽 그림(정사각)
     h,w,_=src.shape
@@ -31,5 +31,5 @@ for k,(x0,y0) in zip(KEYS,boxes):
             dk=[q for q in cnt if luma[q]<55]
             q=max(dk,key=lambda q:cnt[q]) if dk and sum(cnt[q] for q in dk)>=n*.3 else cnt.most_common(1)[0][0]
             out[j,i]=pal[q]
-    Image.fromarray(out).save(f'art/portraits/{k}.png',optimize=True)
+    Image.fromarray(out).convert('P',palette=Image.Palette.ADAPTIVE,colors=48).save(f'art/portraits/{k}.png',optimize=True)  # 48색 팔레트 PNG(용량 절약)
 print('ok',len(boxes))

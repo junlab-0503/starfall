@@ -33,7 +33,7 @@ async function syncTime(ms){try{if(!/^https?:$/.test(location.protocol)||/^(loca
   const u=location.href.split('#')[0];const r=await fetch(u+(u.includes('?')?'&':'?')+'_t='+t0,{method:'HEAD',cache:'no-store',credentials:'same-origin',signal:ac.signal});clearTimeout(to);
   const d=Date.parse(r.headers.get('date')||'');if(!isFinite(d))return false;const age=(+r.headers.get('age')||0)*1000,t1=Date.now();
   const off=d+age+500-(t0+t1)/2;CLK.srv=off;if(Math.abs(off-CLK.off)>60000){CLK.off=off;clockRebase()}return true}catch(e){return false}}
-let S,H={},BON;
+let S,BON;
 // 저장 정리: 예전 시제품 저장 지우기, 지금 안 쓰는 필드 · 없어진 광물 · 잘못된 숫자 정리, 옛 이름이 남은 일지·소문 비우기
 const SAVE_VER=3,KEEP_EXTRA=['lost'];
 function cleanSave(d){const f=fresh(),S2={};

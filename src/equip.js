@@ -25,11 +25,11 @@ const UPS={
   haggle:{n:'흥정 솜씨',ic:()=>'crown',max:10,d:l=>`광물 판매가 +${l}%${l<10?` → +${l+1}%`:''}`},
   bulk:{n:'큰손 거래처',ic:()=>'carving',max:5,d:l=>`지층마다 출입권을 ${BAL.pass.max+5*l}장까지${l<5?` → ${BAL.pass.max+5*(l+1)}장`:''}`}};
 const SHOPS=[
-  {who:'무쇠',place:'무쇠네 대장간',ups:['pick','crit','metal','gem'],lines:['허허, 날이 무뎌졌구려. 내가 벼려 주리다.','쇠는 두드릴수록 정직해지는 법이오.','깊이 내려갈수록 연장이 먼저 지치는 법이오. 자주 들르시오!']},
-  {who:'핀',place:'핀의 작업대',ups:['auto','box','refiner','night'],lines:['로봇들이 오늘도 열심히 일하고 있어요!','보관함이 넘치면 제 장치가 알아서 재련해서 팔아 줘요!','밤에도 일하게 해 볼까요? 기름만 넉넉하면 돼요!']},
-  {who:'미르',place:'미르의 용광로',ups:['furn','great','qslot','qspeed'],lines:['…불은 거짓말을 하지 않아요.','재료만 맡겨 두세요. …알아서 녹여 둘게요.','불씨가 별빛을 닮을수록… 대성공이 잦아지죠.']},
-  {who:'셈',place:'셈의 창고',ups:['wh','autosell','safe'],lines:['창고는 넓을수록 좋지. 돈이 들 뿐이야.','바닥에 굴러다니는 광석은 못 봐. 내가 정리해 주지.','월세는 꼬박꼬박. 금고에 잘 넣어 둘게.']},
-  {who:'루카',place:'루카의 정보소',ups:['intel','haggle','bulk'],lines:['정보가 곧 돈이죠! 오늘은 뭐가 궁금하세요?','흥정은 웃으면서 하는 거예요. 제가 알려 드릴게요!','큰손 거래처를 소개해 드릴까요? 출입권을 더 많이 가질 수 있어요!']}];
+  {who:'무쇠',ups:['pick','crit','metal','gem'],lines:['허허, 날이 무뎌졌구려. 내가 벼려 주리다.','쇠는 두드릴수록 정직해지는 법이오.','깊이 내려갈수록 연장이 먼저 지치는 법이오. 자주 들르시오!']},
+  {who:'핀',ups:['auto','box','refiner','night'],lines:['로봇들이 오늘도 열심히 일하고 있어요!','보관함이 넘치면 제 장치가 알아서 재련해서 팔아 줘요!','밤에도 일하게 해 볼까요? 기름만 넉넉하면 돼요!']},
+  {who:'미르',ups:['furn','great','qslot','qspeed'],lines:['…불은 거짓말을 하지 않아요.','재료만 맡겨 두세요. …알아서 녹여 둘게요.','불씨가 별빛을 닮을수록… 대성공이 잦아지죠.']},
+  {who:'셈',ups:['wh','autosell','safe'],lines:['창고는 넓을수록 좋지. 돈이 들 뿐이야.','바닥에 굴러다니는 광석은 못 봐. 내가 정리해 주지.','월세는 꼬박꼬박. 금고에 잘 넣어 둘게.']},
+  {who:'루카',ups:['intel','haggle','bulk'],lines:['정보가 곧 돈이죠! 오늘은 뭐가 궁금하세요?','흥정은 웃으면서 하는 거예요. 제가 알려 드릴게요!','큰손 거래처를 소개해 드릴까요? 출입권을 더 많이 가질 수 있어요!']}];
 const upLv=k=>UPS[k].lv?UPS[k].lv():ul(k);
 const upMax=k=>UPS[k].max!=null&&upLv(k)>=UPS[k].max;
 const upCost=k=>UPS[k].cost?UPS[k].cost():upCostOf(k,ul(k));
@@ -47,23 +47,18 @@ const rqSlots=()=>1+ul('qslot');
 /* 화면: 가게를 고르면 한쪽에 그 사람이 서서 말하고, 아래에 강화 목록 */
 const THANKS={'무쇠':['허허, 좋은 날이 섰소!','이거면 바위가 두부처럼 쪼개질 거요.'],'핀':['짜잔! 훨씬 좋아졌죠?','로봇들이 신났어요!'],'미르':['…불이 한결 맑아졌어요.','좋은 선택이에요. …정말로.'],
   '셈':['좋아, 장부에 적어 둘게.','이제 좀 넉넉하겠네.'],'루카':['거래 성사! 후회 안 하실 거예요.','역시 보는 눈이 있으시네요!']};
-// 사람 · 배경: art/shop (사용자 원본을 도트로 줄인 것, tools/shop_art.py). face = 얼굴 칸에 쓸 부분 [x,y,크기], flip = 말풍선 쪽을 보게 뒤집기
-const SHOP_ART={'무쇠':{k:'musoe',face:[4,1,38]},'핀':{k:'pin',face:[14,8,40],flip:1},'미르':{k:'mir',face:[23,12,38],flip:1},'셈':{k:'sem',face:[12,3,38]},'루카':{k:'luka',face:[20,3,40]}};
+// 사람 · 배경: art/shop (tools/shop_art.py), 고르는 액자: 입주자 초상화(art/portraits) + 가게 이름표. flip = 말풍선 쪽을 보게 뒤집기
+const SHOP_ART={'무쇠':{k:'musoe',sign:'대장간'},'핀':{k:'pin',sign:'공방',flip:1},'미르':{k:'mir',sign:'용광로',flip:1},'셈':{k:'sem',sign:'창고'},'루카':{k:'luka',sign:'정보소'}};
 const shopLine={};let shopType=null,shopPose='idle',shopPoseT=null;
 function shopSay(text,pose){const p=$('npcSay');if(!p)return;clearInterval(shopType);clearTimeout(shopPoseT);let i=0;p.textContent='';
   shopType=setInterval(()=>{i++;p.textContent=text.slice(0,i);npcPose(pose==='happy'?'happy':(i%4<2?'talk':'idle'));if(i>=text.length){clearInterval(shopType);shopPoseT=setTimeout(()=>npcPose('idle'),pose==='happy'?1400:200)}},28)}
 function npcPose(p){if(p===shopPose)return;shopPose=p;const n=$('npcImg');if(n)n.dataset.pose=p}
 let shopShown=-1;
-const SHOP_IMG={};
-function shopImg(k){return SHOP_IMG[k]||(SHOP_IMG[k]=Object.assign(new Image(),{src:ART['shop_'+k]}))}
-function drawFace(cv,a){const im=shopImg(a.k),[x,y,n]=a.face,go=()=>{const c=cv.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,38,38);
-  c.save();if(a.flip){c.translate(38,0);c.scale(-1,1)}c.drawImage(im,a.flip?im.width-x-n:x,y,n,n,0,0,38,38);c.restore()};im.complete?go():im.addEventListener('load',go,{once:true})}
 function renderEquip(){const si=Math.min(SHOPS.length-1,S.shop|0),sh=SHOPS[si];
-  setHTML($('shopTabs'),SHOPS.map((x,i)=>`<button class="shopc${i===si?' on':''}" data-shop="${i}" type="button"><canvas data-head="${i}" width="38" height="38"></canvas><span>${x.who}</span>${x.ups.some(upCan)?'<i class="dot"></i>':''}</button>`).join(''));
-  document.querySelectorAll('[data-head]').forEach(cv=>{if(!cv.dataset.done){drawFace(cv,SHOP_ART[SHOPS[+cv.dataset.head].who]);cv.dataset.done=1}});
+  setHTML($('shopTabs'),SHOPS.map((x,i)=>`<button class="shopc${i===si?' on':''}" data-shop="${i}" type="button"><span class="fr"><img src="${ART[SHOP_ART[x.who].k]}" alt="${x.who}"></span><span class="plate">${SHOP_ART[x.who].sign}</span>${x.ups.some(upCan)?'<i class="dot"></i>':''}</button>`).join(''));
   if(shopShown!==si){shopShown=si;const st=$('shopStage');st.className='panel stage '+(si%2?'side-r':'side-l');
     const a=SHOP_ART[sh.who];st.style.backgroundImage=`url(${ART['shop_bg_'+a.k]})`;
-    setHTML(st,`<div class="npcw${a.flip?' flip':''}"><img class="npc" id="npcImg" src="${ART['shop_'+a.k]}" alt="${sh.who}"></div><div class="bubble"><div class="bn"><b>${sh.who}</b> <span class="dim">${sh.place}</span></div><p id="npcSay"></p></div>`);
+    setHTML(st,`<div class="npcw${a.flip?' flip':''}"><img class="npc" id="npcImg" src="${ART['shop_'+a.k]}" alt="${sh.who}"></div><div class="bubble"><div class="bn"><b>${sh.who}</b></div><p id="npcSay"></p></div>`);
     shopPose='';npcPose('idle');shopSay(sh.lines[shopLine[si]=((shopLine[si]??-1)+1)%sh.lines.length])}
   setHTML($('shopUps'),sh.ups.map(k=>{const U=UPS[k],l=upLv(k),mx=upMax(k),can=upCan(k),c=upCost(k);
     return`<div class="up${can?' ready':''}">${ico(U.ic())}<span class="t">${U.n} <span class="dim">Lv.${l}${U.max!=null?'/'+U.max:''}</span></span><span class="s">${U.d(ul(k))}</span><button class="px-btn${can?' ndot':''}" data-up="${k}" type="button" ${mx||!can?'disabled':''}>${mx?'최대':big(c)+'G'}</button></div>`}).join(''))}

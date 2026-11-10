@@ -1,11 +1,13 @@
 """주인공 스프라이트 묶음 만들기: art/source/hero_sheet.webp에서 프레임을 골라 게임 크기로 줄인다.
-사용: 작업 폴더에 sheet.webp, lab.npy, comps.json(프레임 분리 결과)을 두고 python3 hero_atlas.py 3.9"""
+사용: 작업 폴더에 sheet.webp, lab.npy, comps.json(프레임 분리 결과)을 두고 python3 hero_atlas.py 1.95 2
+  첫 값 = 줄이는 배율(3.9 → 게임 1배 크기), 둘째 값 = 화면 배율(2 → 2배 해상도 도트, 그릴 때 절반 크기로 → 같은 크기에 두 배 촘촘)"""
 from PIL import Image
 import numpy as np,json,sys
 from collections import Counter
 im=np.asarray(Image.open('sheet.webp').convert('RGBA')).astype(np.float64);lab=np.load('lab.npy')
 comps={c[0]:c for c in json.load(open('comps.json'))}
-F=float(sys.argv[1]) if len(sys.argv)>1 else 3.9
+F=float(sys.argv[1]) if len(sys.argv)>1 else 1.95
+HS=int(sys.argv[2]) if len(sys.argv)>2 else 2
 SEL={'rest':(12,1),'rest2':(11,1),'ready':(33,1),'sw0':(34,1),'sw1':(32,1),'sw2':(37,1),'sw3':(38,1),'sw4':(36,1),'sw5':(35,1),
      'walk0':(13,1),'walk1':(14,1),'walk2':(19,1),'walk3':(15,1),'walk4':(18,1),'walk5':(16,1),
      'joy':(55,0),'yawn':(53,0),'happy':(52,0),'sleep':(64,0)}
@@ -51,6 +53,7 @@ for k,t in tiles:atlas.paste(t,(x,Ht-t.height));meta[k]=[x,Ht-t.height,t.width,t
 A=np.asarray(atlas)
 for k,(x,y,w,h) in list(meta.items()):
     ys,xs=np.nonzero(A[y+h//2:y+h,x:x+w,3]>0);meta[k]=[x,y,w,h,int(round(np.median(xs))) if len(xs) else w//2]
-atlas.save('hero.png');json.dump(meta,open('hero_meta.json','w'),separators=(',',':'))
+meta['_s']=HS
+atlas.save('hero.png',optimize=True);json.dump(meta,open('hero_meta.json','w'),separators=(',',':'))
 bg=Image.new('RGBA',atlas.size,(46,35,25,255));bg.alpha_composite(atlas);bg.resize((atlas.width*6,atlas.height*6),Image.NEAREST).save('hero_x6.png')
 print(atlas.size,meta['rest'],meta['sw1'],meta['sleep'])
