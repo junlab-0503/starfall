@@ -11,11 +11,10 @@ const jong=w=>{const c=w.charCodeAt(w.length-1);return c>=0xAC00&&c<=0xD7A3&&(c-
 const J=(w,p)=>w+(p==='이가'?(jong(w)?'이':'가'):p==='을를'?(jong(w)?'을':'를'):p==='은는'?(jong(w)?'은':'는'):'');
 const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
-function freshMarket(){const m={};ORDER.forEach(id=>m[id]={q:ITEMS[id].T,fat:0});const s={};SKEYS.forEach((k,i)=>s[k]={ph:Math.random()*6.28,x:0,inv:1,rep:0,per:360+i*70});return{m,s}}
-function fresh(){MSC=1;const mk=freshMarket();return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
-  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},rq:[],ofN:0,ofG:0,prologue:false,
-  mkt:mk.m,sec:mk.s,clock:0,day:0,ev:[],nextEv:60,caravan:null,nextCar:1.2,collector:null,nextCol:420,
-  ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,msc:1,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store',sel:null,mkView:'list',filter:null}}
+function fresh(){return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
+  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},rq:[],shop:0,ofN:0,ofG:0,prologue:false,
+  clock:0,day:0,pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,mkSub:'pass',
+  ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store'}}
 /* 시계 조작 방지
    게임 시간 = 기기 시계 + 보정값(CLK.off).
    1) 켜 둔 동안 기기 시계가 실제 흐름(단조 시계)과 다르게 튀면, 그만큼 보정해서 게임 시간은 그대로 흐른다.
@@ -36,7 +35,7 @@ async function syncTime(ms){try{if(!/^https?:$/.test(location.protocol)||/^(loca
   const off=d+age+500-(t0+t1)/2;CLK.srv=off;if(Math.abs(off-CLK.off)>60000){CLK.off=off;clockRebase()}return true}catch(e){return false}}
 let S,H={},BON;
 // 저장 정리: 예전 시제품 저장 지우기, 지금 안 쓰는 필드 · 없어진 광물 · 잘못된 숫자 정리, 옛 이름이 남은 일지·소문 비우기
-const SAVE_VER=2,KEEP_EXTRA=['lastCaravan','lost','moreOpen'];
+const SAVE_VER=3,KEEP_EXTRA=['lost'];
 function cleanSave(d){const f=fresh(),S2={};
   for(const k in f)S2[k]=k in d?d[k]:f[k];KEEP_EXTRA.forEach(k=>{if(k in d)S2[k]=d[k]});
   const num=v=>typeof v==='number'&&isFinite(v);for(const k in f)if(typeof f[k]==='number'&&!num(S2[k]))S2[k]=f[k];
@@ -45,15 +44,17 @@ function cleanSave(d){const f=fresh(),S2={};
   S2.seen=[...new Set((S2.seen||[]).filter(id=>ITEMS[id]))];S2.found=[...new Set((S2.found||[]).filter(i=>RECIPES[i]))];S2.journal=[...new Set((S2.journal||[]).filter(i=>LAYERS[i]))];
   S2.slots=[0,1].map(i=>{const id=(S2.slots||[])[i];return ITEMS[id]?id:null});
   const a=S2.ads||{};S2.ads={boostUntil:num(a.boostUntil)?a.boostUntil:0,day:num(a.day)?a.day:0,gift:num(a.gift)?a.gift:0,boost:num(a.boost)?a.boost:0};
-  const m={};ORDER.forEach(id=>{const q=S2.mkt&&S2.mkt[id];m[id]=q&&num(q.q)?q:{q:ITEMS[id].T,fat:0}});S2.mkt=m;
+  const pass={};for(const i in S2.pass||{}){const h=S2.pass[i];if(LAYERS[i]&&h&&num(h.n)&&h.n>0&&num(h.c))pass[i]={n:h.n|0,c:h.c}}S2.pass=pass;
+  const pm={};for(const i in S2.pm||{}){const P=S2.pm[i];if(LAYERS[i]&&P&&num(P.m))pm[i]={m:clamp(P.m,.5,3),imp:num(P.imp)?P.imp:0}}S2.pm=pm;
+  S2.rum=(Array.isArray(S2.rum)?S2.rum:[]).filter(r=>r&&LAYERS[r.L]&&SOURCES[r.src]&&num(r.t)&&num(r.dur));S2.rumDone=(Array.isArray(S2.rumDone)?S2.rumDone:[]).slice(0,4);
   S2.unlocked=clamp(S2.unlocked|0,1,LAYERS.length);S2.layer=clamp(S2.layer|0,0,S2.unlocked-1);
-  if(!ITEMS[S2.sel])S2.sel=null;if(S2.filter&&!SECT[S2.filter])S2.filter=null;
+  if(!['pass','ore'].includes(S2.mkSub))S2.mkSub='pass';
   const up={};for(const k in S2.up||{})if(UPS[k]&&num(S2.up[k])&&S2.up[k]>0)up[k]=Math.min(S2.up[k]|0,UPS[k].max??999);S2.up=up;
   S2.rq=(Array.isArray(S2.rq)?S2.rq:[]).filter(j=>j&&RECIPES[j.r]&&num(j.n)).map(j=>({r:j.r,n:Math.max(0,j.n|0),t:num(j.t)?j.t:0,loop:!!j.loop}));
-  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;S2.log=(S2.log||[]).slice(0,60);
+  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}S2.log=(S2.log||[]).slice(0,60);
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
-  const raw=localStorage.getItem(SAVE_KEY);if(raw){S=cleanSave(JSON.parse(raw));MSC=S.msc||1;return true}}catch(e){}S=fresh();return false}
+  const raw=localStorage.getItem(SAVE_KEY);if(raw){S=cleanSave(JSON.parse(raw));return true}}catch(e){}S=fresh();return false}
 function save(){if(!CLK.hold){S.lastSeen=gtime();S.maxClock=Math.max(S.maxClock||0,S.lastSeen)}try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
 // 화면 갱신: 같은 내용이면 건드리지 않고, 긴 목록은 바뀐 줄만 바꾼다 (매초 다시 그려도 끊기지 않게)
 const HC=new WeakMap();
@@ -98,8 +99,8 @@ const capOf=w=>Math.floor(300*Math.pow(1.5,w)*BON.wh);
 const cap=()=>capOf(S.wh);
 const boxUsed=()=>Object.values(S.box||{}).reduce((a,b)=>a+b,0);
 // 로봇 보관함: 꺼 둔 동안 캔 광석만 담는다 (한도는 오프라인 시간으로 정해짐)
-// 오프라인: 비운 8시간 = 직접 플레이 1시간 30분치 (언제나 같은 비율). 패키지는 16시간까지
-const OFF_RATIO=1.5/8;
+// 자리 비움 보상: 8시간에 걸쳐 천천히 차서 '켜 두고 1시간 플레이한 만큼'이 되면 멈춘다 (패키지는 2시간치). 밤샘 근무는 차는 속도만 올린다
+const OFF_FILL=8,offCapH=()=>S.noAds?2:1,offEquiv=sec=>Math.min(sec*offEff()/OFF_FILL,offCapH()*3600);
 const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto)/layerHp(S.layer);
 const boxCap=()=>boxCapOf(ul('box'));
 function boxAdd(id,n){S.box=S.box||{};if(n>0)S.box[id]=(S.box[id]||0)+n;return n}

@@ -9,13 +9,13 @@ let resuming=false;
 async function resume(){if(resuming)return;resuming=true;CLK.hold=true;clockRebase();await syncTime(1500);CLK.hold=false;const back=clockCheck();
   const r=back?null:catchUp((gtime()-S.lastSeen)/1000);S.lastSeen=gtime();resuming=false;if(r)welcome(r);renderAll()}
 if(had)resume();else clockCheck();
-function welcome(r){const h=Math.floor(r.sec/3600),m=Math.floor(r.sec%3600/60),ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot=ores.reduce((s,o)=>s+o[1],0);
+function welcome(r){const ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot=ores.reduce((s,o)=>s+o[1],0);
   const rows=[];if(r.rent>0)rows.push(`<span>${ico('goldbar','sm')} 입주자 월세</span><span>+${big(r.rent)}G</span>`);
   ores.slice(0,6).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(n)}</span>`));if(ores.length>6)rows.push(`<span>그 밖의 광석</span><span>×${big(ores.slice(6).reduce((s,o)=>s+o[1],0))}</span>`);
   if(r.sold&&r.sold.n>0)rows.push(`<span>${ico(ul('refiner')?'engine':'mortar','sm')} 넘친 광석 ${big(r.sold.n)}개 ${ul('refiner')?'재련해서 ':''}판매</span><span>+${big(r.sold.g)}G</span>`);
   const mk=Object.entries(r.made||{});mk.slice(0,4).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} 자동 재련 ${ITEMS[id].n}</span><span>×${big(n)}</span>`));
   if(!rows.length)return;
-  story([{k:'다시 왔구나',t:`${h?h+'시간 ':''}${m}분 동안 모인 것`,b:`자리를 비운 사이에도 탑의 입주자들과 드릴 로봇이 일했어요.${r.capped?` (최대 ${offlineH()}시간까지만 쌓여요)`:''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 로봇 보관함에서 받을 수 있어요.':''}</p>`}])}
+  story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 로봇 보관함에서 받을 수 있어요.':''}</p>`}])}
 document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');
 drawPortrait($('tutPor'),{name:'이장 할머니',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'},false);
 setTab(S.tab);sceneResize();newWall();renderAll();

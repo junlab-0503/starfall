@@ -58,7 +58,7 @@ $('layers').addEventListener('click',e=>{const g2_=e.target.closest('[data-go]')
 function renderInv(){const ids=ORDER.filter(id=>cnt(id)>0);$('invCap').textContent=`${big(used())}/${big(cap())}칸`;
   patchList($('inv'),ids,ids.map(id=>[`×${big(cnt(id))}`,`${pf(bid(id))}G`]),(id,P)=>`<div class="irow"><button class="nmb" data-mk="${id}" type="button">${ico(id,'sm')}<span>${ITEMS[id].n}</span></button><span class="dim">${P[0]}</span><span>${P[1]}</span><span class="acts"><button class="px-btn sm" data-sellq="${id}" type="button">판매</button></span></div>`,'<p class="dim">창고가 비어 있어요.</p>',[1,2])}
 function doSell(id,n){const k=n==='all'?cnt(id):+n;const t=sell(id,k);if(t){log(`${ITEMS[id].n} ${k}개 판매: +${big(t)}G`);S.slots=S.slots.map(x=>x&&cnt(x)?x:null)}renderAll()}
-$('inv').addEventListener('click',e=>{const s=e.target.closest('[data-sellq]');if(s){openQty(s.dataset.sellq);return}const m=e.target.closest('[data-mk]');if(m){S.sel=m.dataset.mk;S.mkView='detail';setTab('market')}});
+$('inv').addEventListener('click',e=>{const s=e.target.closest('[data-sellq]');if(s){openQty(s.dataset.sellq);return}const m=e.target.closest('[data-mk]');if(m){S.mkSub='ore';setTab('market')}});
 $('sellRaw').onclick=()=>{let t=0;ORDER.filter(id=>!ITEMS[id].cr&&cnt(id)).forEach(id=>t+=sell(id,cnt(id)));if(t)log(`원석 일괄 판매: +${big(t)}G`,true);S.slots=S.slots.map(x=>x&&cnt(x)?x:null);renderAll()};
 function renderLog(){const el=$('log');if(el)setHTML(el,S.log.slice(0,40).map(l=>`<div>${l}</div>`).join(''))}
 /* 도감·일지·기록 */
@@ -72,63 +72,37 @@ function renderBookTab(){
   const mins=Math.round((gtime()-S.t0)/60000);
   setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['재련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
 $('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([{k:'할아버지의 일지',t:`B${i+1} ${LAYERS[i].n}`,b:`"${JOURNAL[i]}"`}])});
-/* 장터 */
+/* 장터: [지층 출입권] 소문을 읽고 사고팔기 · [광물 거래] 정해진 값 */
 function sparkSvg(arr,w,h,col){if(!arr||arr.length<2)return'';let mn=Math.min(...arr),mx=Math.max(...arr);if(mx-mn<1e-9){mx+=1;mn-=1}
   const pts=arr.map((v,i)=>`${Math.round(i/(arr.length-1)*(w-1))},${Math.round(h-2-(v-mn)/(mx-mn)*(h-4))}`).join(' ');
   return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/></svg>`}
 const pctHtml=v=>{const p=Math.round((v-1)*100);if(p===0)return'<span class="pct dim">평소</span>';return`<span class="pct ${p>0?'good':'bad'}">${p>0?'▲':'▼'}${Math.abs(p)}%</span>`};
-let mkTouch=0;
-function renderMarket(force){if(S.tab!=='market')return;const det=S.mkView==='detail'&&S.sel&&S.seen.includes(S.sel);$('mkMain').hidden=!!det;$('mkDetail').hidden=!det;if(det){if(force===true||Date.now()-mkTouch>2500)renderDetail();return}
-  $('mkSeason').textContent=calText();
-  let nw='';
-  if(S.collector){const c=S.collector;nw+=`<div class="nw col">${ico(c.id,'sm')}<span><span class="who">수집가</span> "${J(ITEMS[c.id].n,'을를')} 찾고 있어요. 개당 ${big(mid(c.id)*c.x*BON.sell)}G에 ${c.n}개까지 사겠어요." <br><button class="px-btn sm" data-col="1" type="button" ${cnt(c.id)?'':'disabled'}>1개 팔기</button> <button class="px-btn sm lamp" data-col="all" type="button" ${cnt(c.id)?'':'disabled'}>가진 만큼</button></span><span class="tm">${Math.ceil(c.t)}초</span></div>`}
-  S.ev.forEach(e=>{if(e.state==='rumor'){const cr=e.cred==null?'<span class="cred dim">(진위 불명)</span>':e.cred?'<span class="cred good">(믿을 만해요)</span>':'<span class="cred bad">(수상해요)</span>';nw+=`<div class="nw"><span class="who">루카</span><span>"${e.text}" ${cr}</span><span class="tm">${Math.ceil(e.t)}초</span></div>`}
-    else nw+=`<div class="nw active"><span class="who">${e.sector?SECT[e.sector].who:'루카'}</span><span>${e.text} ${e.kind==='demand'?(e.x>1?'<span class="good">▲</span>':'<span class="bad">▼</span>'):(e.x<1?'<span class="good">▲</span>':'<span class="bad">▼</span>')}</span><span class="tm">${Math.ceil(e.t)}초</span></div>`});
-  if(S.caravan)nw+=`<div class="nw"><span class="who">루카</span><span>"${S.caravan.from} 상단이 ${S.caravan.at-S.day<.5?'곧':'내일'} 도착해요. ${BON.perfectIntel||S.intel>=2?J(S.caravan.items.map(i=>ITEMS[i].n).join(', '),'을를')+' 잔뜩 싣고 온대요.':'뭘 싣고 오는지는 몰라요.'}"</span></div>`;
-  if(!nw)nw='<div class="nw"><span class="who">루카</span><span>"오늘은 조용하네요. 소식이 들어오면 알려 드릴게요."</span></div>';
-  setHTML($('news'),nw);
-  const ss=seenSectors();
-  setHTML($('stalls'),[...SKEYS].sort((a,b)=>ss.includes(b)-ss.includes(a)).map(k=>{if(!ss.includes(k))return`<div class="stall" style="opacity:.45"><span>???</span><span class="bz dim">아직 거래 없음</span></div>`;const b=busy(k),rl=repLv(k);
-    return`<button class="stall${S.filter===k?' on':''}" data-st="${k}" type="button"><span>${SECT[k].guild}</span><span class="bz ${b==='바쁨'?'up':b==='한산'?'dn':'dim'}">${b}</span><span class="rp">${rl?'단골 '+'★'.repeat(rl):'처음 거래'}</span></button>`}).join(''));
-  const ids=[...new Set(S.seen)].filter(id=>!S.filter||ITEMS[id].s===S.filter).sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
-  // 줄 구조가 같으면 바뀐 칸(개수 · 가격 · 한마디 · 그래프)만 고친다
-  const parts=ids.map(id=>{const r=pr(id),cm=comment(id),col=r>1.02?'#8fd36a':r<.98?'#ff7a6a':'#b29c80';
-    return[`<b>${ITEMS[id].n}</b>${cnt(id)?`<span class="dim">×${big(cnt(id))}</span>`:''}`,`<b>${pf(bid(id))}G</b> ${pctHtml(r)}`,`${cm.who}: ${cm.t}`,sparkSvg((H[id]||[]).slice(-40),56,16,col)]});
-  patchList($('mkList'),ids,parts,(id,P)=>`<button class="mrow" data-sel="${id}" type="button">${ico(id)}<span class="nmx">${P[0]}</span><span class="px">${P[1]}</span><span class="cm">${P[2]}</span><span style="grid-column:3;grid-row:2">${P[3]}</span></button>`,'<p class="dim">광물을 캐면 여기에 시세가 나와요.</p>',[1,2,3,4]);
-}
-$('stalls').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(!b)return;S.filter=S.filter===b.dataset.st?null:b.dataset.st;renderMarket()});
-$('news').addEventListener('click',e=>{const b=e.target.closest('[data-col]');if(!b)return;sellCollector(b.dataset.col==='all'?999:1);renderAll()});
-$('mkList').addEventListener('click',e=>{const r=e.target.closest('[data-sel]');if(r){S.sel=r.dataset.sel;S.mkView='detail';renderMarket(true);document.querySelector('main').scrollTop=0}});
-$('mkBack').onclick=()=>{S.mkView='list';renderMarket()};
-function drawChart(id){const W=120,Hh=46,c=document.createElement('canvas');c.width=W;c.height=Hh;c.className='chart';const t=c.getContext('2d'),a=(H[id]||[]).slice(-90),base=ITEMS[id].p;
-  t.fillStyle='#1b140e';t.fillRect(0,0,W,Hh);if(a.length<2)return c;let mn=Math.min(...a,base*.8),mx=Math.max(...a,base*1.2);const Y=v=>Math.round(Hh-4-(v-mn)/(mx-mn)*(Hh-8));
-  t.fillStyle='#5a4430';for(let x=0;x<W;x+=4)t.fillRect(x,Y(base),2,1);
-  let py=null;a.forEach((v,i)=>{const x=Math.round(i/(a.length-1)*(W-3)),y=Y(v);t.fillStyle=v>=base?'rgba(143,211,106,.18)':'rgba(255,122,106,.18)';t.fillRect(x,Math.min(y,Y(base)),2,Math.abs(y-Y(base))+1);
-    t.fillStyle=v>=base?'#8fd36a':'#ff7a6a';if(py!=null)t.fillRect(x,Math.min(py,y),2,Math.abs(py-y)+1);else t.fillRect(x,y,2,2);py=y});
-  t.fillStyle='#ffe9a8';t.fillRect(W-3,py-1,3,3);return c}
-function renderDetail(){const id=S.sel,it=ITEMS[id],s=SECT[it.s],r=pr(id),m=S.mkt[id],sp=m.q/it.T,cm=comment(id),f=FL[id]||{prod:0,cons:0,gIn:0,gOut:0};
-  const p=Math.round((r-1)*100),feel=p>=10?'평소보다 비싸요 · 팔기 좋을 때':p<=-10?'평소보다 싸요 · 사 두기 좋을 때':'평소 가격이에요';
-  let h=`<div class="dh">${ico(id,'xl')}<div><div class="t">${it.n}</div><div class="dim small">${s.n} · ${s.guild}</div><div class="quotes"><span>팔 때 <b>${pf(bid(id))}G</b></span><span>살 때 <b>${pf(ask(id))}G</b></span></div><div class="small">${pctHtml(r)} ${feel}</div></div></div>`;
-  h+='<div id="chartBox"></div><div class="dim small" style="display:flex;justify-content:space-between"><span>약 12분 전</span><span>점선 = 평소 가격</span><span>지금</span></div>';
-  h+=`<div class="say"><span class="who">${cm.who}</span> "${cm.t}"</div>`;
-  const blocks=clamp(Math.round(sp*5),0,10),rm=recoverMin(id);h+=`<div class="dsec"><h3>장터 재고 · ${sp<.85?'적음':sp>1.15?'많음':'보통'}</h3><div class="gauge">${Array.from({length:10},(_,i)=>`<i class="${i<blocks?'f':''}"></i>`).join('')}</div>${rm?`<div class="small dim" style="margin-top:4px">물량이 빠져 평소 값으로 돌아오기까지 약 ${rm}분</div>`:''}</div>`;
-  const outs=OUTS[id].filter(o=>S.found.some(i=>RECIPES[i].out===o));
-  if(OUTS[id].length)h+=`<div class="dsec"><h3>이걸로 만들 수 있는 것</h3>${outs.map(o=>`<button class="lk" data-go-item="${o}" type="button">${ico(o,'sm')}<span class="grow">${ITEMS[o].n}</span><span>${pf(bid(o))}G</span> ${pctHtml(pr(o))}</button>`).join('')}${OUTS[id].length>outs.length?`<div class="dim small">아직 모르는 레시피 ${OUTS[id].length-outs.length}개</div>`:''}</div>`;
-  const ins=INS[id];if(ins&&S.found.includes(RMAP[key(ins[0],ins[1])])){const cost=ask(ins[0])+ask(ins[1]),ev=bid(id)*(successRate()+greatRate()),pc=ev/cost-1;
-    h+=`<div class="dsec"><h3>만드는 법</h3>${ins.map(x=>`<button class="lk" data-go-item="${x}" type="button">${ico(x,'sm')}<span class="grow">${ITEMS[x].n}</span><span>살 때 ${pf(ask(x))}G</span></button>`).join('')}<div class="say small">재료를 사서 만들어 팔면 <b class="${pc>=0?'good':'bad'}">${pc>=0?'+':''}${Math.round(pc*100)}%</b> ${pc>.15?'· 남는 장사예요':pc<0?'· 지금은 손해예요':''}</div></div>`}
-  const have=cnt(id),mb=maxBuy(id);
-  h+=`<div class="trade"><div class="tr-row"><span class="tl">팔기 <span class="dim">보유 ${big(have)}</span></span><button class="px-btn sm" data-ds="1" type="button" ${have<1?'disabled':''}>1개</button><button class="px-btn sm" data-ds="10" type="button" ${have<10?'disabled':''}>10개</button><button class="px-btn sm lamp" data-ds="all" type="button" ${have<1?'disabled':''}>전부${have?' '+big(quote(id,have,-1))+'G':''}</button></div>
-    <div class="tr-row"><span class="tl">구매하기 <span class="dim">빈칸 ${big(space())}</span></span><button class="px-btn sm" data-db="1" type="button" ${mb<1?'disabled':''}>1개</button><button class="px-btn sm" data-db="10" type="button" ${mb<10?'disabled':''}>10개</button><button class="px-btn sm" data-db="max" type="button" ${mb<1?'disabled':''}>최대 ${big(mb)}개</button></div>${mb<1?`<div class="why-no">${space()<1?'창고가 가득 차서 살 수 없어요. 먼저 팔거나 창고를 넓혀 보세요.':S.gold<ask(id)?`골드가 부족해요. 1개에 ${pf(ask(id))}G가 필요해요.`:'지금은 장터에 남은 물량이 없어요.'}</div>`:mb<10?`<div class="why-no">지금 골드와 창고로는 최대 ${big(mb)}개까지 살 수 있어요.</div>`:''}</div>`;
-  const row=(l,v)=>`<span>${l}</span><span>${v}</span>`;
-  h+=`<details class="more"${S.moreOpen?' open':''}><summary>자세히 보기</summary><div class="fact">${row('장터 재고',`${fmt(m.q)} / 적정 ${fmt(it.T)}`)}${row('광부·수입 공급',`+${f.prod.toFixed(2)}/초`)}${row('손님 구매',`−${f.cons.toFixed(2)}/초`)}${row('제련 길드',`${(f.gIn-f.gOut).toFixed(2)}/초`)}
-    ${row('분야 경기',Math.round((cycle(it.s)-1)*100)+'%')}${row('계절',Math.round((seasonMul(it.s)-1)*100)+'%')}${row('길드 재고 기억',Math.round((need(it.s)-1)*100)+'%')}${row('사건',Math.round((evMul(id,'demand')/evMul(id,'supply')-1)*100)+'%')}${row('대체재·보완재',Math.round((subF(id)*compF(id)-1)*100)+'%')}${row('질림',Math.round(-m.fat*12)+'%')}${row('단골 보너스','+'+repLv(it.s)+'%')}
-    </div><p class="small">가격 = 기본가 × (적정 재고 ÷ 장터 재고)<sup>${it.k}</sup> · 호가 차이 ${Math.round(spreadOf(id)*100)}% · 기본가의 70% 아래로는 안 떨어져요</p></details>`;
-  $('detail').innerHTML=h;$('chartBox').appendChild(drawChart(id))}
-$('detail').addEventListener('pointerdown',()=>{mkTouch=Date.now()});
-$('detail').addEventListener('toggle',e=>{if(e.target.matches('details.more'))S.moreOpen=e.target.open},true);
-$('detail').addEventListener('click',e=>{mkTouch=Date.now();const g_=e.target.closest('[data-go-item]');if(g_){S.sel=g_.dataset.goItem;renderDetail();scrollTo(0,0);return}
-  const s=e.target.closest('[data-ds]');if(s){doSell(S.sel,s.dataset.ds);return}
-  const b=e.target.closest('[data-db]');if(b){const n=b.dataset.db==='max'?maxBuy(S.sel):+b.dataset.db;const r=buy(S.sel,n);if(r.k)log(`${ITEMS[S.sel].n} ${r.k}개 구매: −${big(r.t)}G`);renderAll()}});
+const mm=s=>{s=Math.max(0,Math.ceil(s/60));return s>=60?`${Math.floor(s/60)}시간 ${s%60}분`:`${s}분`};
+function srcRecTxt(n){const r=S.srcRec[n];return r&&r.n?`지금까지 ${r.n}번 중 ${r.h}번 맞음`:'아직 기록 없음'}
+function renderMarket(){if(S.tab!=='market')return;const sub=S.mkSub==='ore'?'ore':'pass';document.querySelectorAll('#mkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.mks===sub));$('mkPass').hidden=sub!=='pass';$('mkOre').hidden=sub!=='ore';
+  if(sub==='pass'){
+    // 소문 게시판
+    let h=S.rum.map(r=>{const left=r.dur-r.t,f=r.t/r.dur;
+      return`<div class="rum"><div class="rh"><b>${r.src}</b> <span class="dim">· ${srcRecTxt(r.src)}</span></div><p>"${rumorSay(r)}"</p>
+        <div class="rtags">${r.echo.length?`<span class="tg">같은 말: ${r.echo.join(', ')}</span>`:''}${r.clue?`<span class="tg good">B${r.L+1} 단서 ${r.clue}개</span>`:''}${r.hint!=null?`<span class="tg ${r.hint?'good':'bad'}">정보원: ${r.hint?'믿을 만해요':'수상해요'}</span>`:''}<span class="tg">B${r.L+1} 출입권 ${pctHtml(passPrice(r.L)/passBase(r.L))}</span></div>
+        <div class="bar"><i style="width:${f*100}%"></i></div><div class="dim small">조사단 발표까지 약 ${mm(left)}</div></div>`}).join('');
+    h+=S.rumDone.map(d=>`<div class="rum done"><div class="rh"><b>${d.src}</b> <span class="${d.truth?'good':'bad'}">${d.truth?'사실이었어요':'헛소문이었어요'}</span></div><p class="dim">"${d.txt}"</p><div class="small">B${d.L+1} 출입권 <span class="${d.ch>=0?'good':'bad'}">${d.ch>=0?'+':''}${Math.round(d.ch*100)}%</span>${d.held?` · 내가 가진 ${d.held}장`:''}</div></div>`).join('');
+    if(!h)h=`<p class="dim small" style="margin:0">아직 도는 소문이 없어요. 장터에 있다 보면 소문이 들려와요.</p>`;
+    setHTML($('rumors'),h);$('rumInfo').textContent=S.rum.length<2?`다음 소문 약 ${mm(S.rumT)} 뒤`:'';
+    // 출입권 목록
+    const L=[...Array(S.unlocked).keys()],mx=passMax(),pv=passValue();$('passInfo').textContent=pv?`가진 출입권 ${big(pv)}G`:`지층마다 ${mx}장까지`;
+    patchList($('passes'),L,L.map(i=>{const v=passPrice(i),hd=S.pass[i],n=passHeld(i),ret=n?v*n/hd.c-1:null,ch=v/passBase(i),cs=ch>1.02?'#8fd36a':ch<.98?'#ff7a6a':'#b29c80';
+      return[`${pf(v)}G ${pctHtml(ch)}`,sparkSvg(H['p'+i]||[],56,16,cs),n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${ret>=0?'+':''}${Math.round(ret*100)}%</span>`:`0/${mx}장`,
+        `배당 1장당 시간당 약 ${pf(passDiv(i)*3600)}G어치 광석`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>팔기</button>`]}),
+      (i,P)=>`<div class="prow"><span class="pn"><b>B${i+1}</b> ${LAYERS[i].n}</span><span class="pv">${P[0]}</span><span class="psp">${P[1]}</span><span class="ph">${P[2]}</span><span class="pd dim">${P[3]}</span><span class="pbtn">${P[4]}</span></div>`,'',[1,2,3,4,5])}
+  else{const ids=ORDER.filter(id=>S.seen.includes(id));
+    patchList($('oreList'),ids,ids.map(id=>[`×${big(cnt(id))}`,`<span class="good">${pf(bid(id))}</span> / <span class="lamp">${pf(ask(id))}</span>G`]),
+      (id,P)=>`<div class="orow">${ico(id,'sm')}<span>${ITEMS[id].n} <span class="dim">${P[0]}</span></span><span class="small">${P[1]}</span><span class="acts"><button class="px-btn sm" data-osell="${id}" type="button">팔기</button><button class="px-btn sm" data-obuy="${id}" type="button">사기</button></span></div>`,'<p class="dim">광물을 캐면 여기에 나와요.</p>',[1,2])}}
+$('mkSeg').addEventListener('click',e=>{const b=e.target.closest('[data-mks]');if(b){S.mkSub=b.dataset.mks;renderMarket()}});
+$('passes').addEventListener('click',e=>{const b=e.target.closest('[data-pb]'),s_=e.target.closest('[data-ps]');
+  if(b){const i=+b.dataset.pb,r=passBuy(i,b.dataset.n==='max'?999:1);if(r.k){sfx('buy');toast(`B${i+1} 출입권 ${r.k}장을 ${big(r.t)}G에 샀어요.`)}renderAll()}
+  if(s_){const i=+s_.dataset.ps,r=passSell(i,999);if(r.k){sfx('coin');toast(`B${i+1} 출입권 ${r.k}장을 ${big(r.t)}G에 팔았어요 (${r.gain>=0?'+':''}${big(r.gain)}G).`)}renderAll()}});
+$('oreList').addEventListener('click',e=>{const s_=e.target.closest('[data-osell]'),b=e.target.closest('[data-obuy]');if(s_)openQty(s_.dataset.osell,'sell');if(b)openQty(b.dataset.obuy,'buy')});
 /* 이야기 창 */
 const STQ=[];
 function story(cards){STQ.push(...cards);if($('story').hidden)nextStory()}
@@ -184,14 +158,16 @@ $('shopOk').onclick=()=>{S.noAds=true;$('shopModal').hidden=true;log('광고 제
 function renderPkg(){const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAds?'구매 완료':'구매하기';$('pkgState').textContent=S.noAds?'적용 중':''}
 
 /* 수량 입력 판매 */
-let QTY=null;
-function openQty(id){if(!cnt(id))return;QTY=id;$('qtyT').innerHTML=`${ico(id)} ${ITEMS[id].n}`;$('qtyIn').max=cnt(id);$('qtyIn').value=cnt(id);updQty();$('qtyModal').hidden=false}
-function qtyVal(){return clamp(Math.floor(+$('qtyIn').value||0),0,cnt(QTY))}
-function updQty(){const n=qtyVal();$('qtySum').textContent=n?`${big(n)}개 판매 · 약 ${big(quote(QTY,n,-1))}G (보유 ${big(cnt(QTY))}개)`:'판매할 수량을 입력해 주세요';$('qtyOk').disabled=!n}
+let QTY=null,QM='sell';
+const qtyMax=()=>QM==='sell'?cnt(QTY):Math.max(0,Math.min(Math.floor(S.gold/ask(QTY)),space()));
+function openQty(id,mode){QM=mode||'sell';QTY=id;const mx=qtyMax();if(!mx){toast(QM==='sell'?'가진 게 없어요.':'골드나 창고 자리가 모자라요.');QTY=null;return}
+  $('qtyT').innerHTML=`${ico(id)} ${ITEMS[id].n}`;$('qtyKick').textContent=QM==='sell'?'판매':'구매';$('qtyOk').textContent=QM==='sell'?'판매하기':'구매하기';$('qtyIn').max=mx;$('qtyIn').value=QM==='sell'?mx:Math.min(mx,10);updQty();$('qtyModal').hidden=false}
+function qtyVal(){return clamp(Math.floor(+$('qtyIn').value||0),0,qtyMax())}
+function updQty(){const n=qtyVal();$('qtySum').textContent=n?(QM==='sell'?`${big(n)}개 판매 · ${big(quote(QTY,n,-1))}G (보유 ${big(cnt(QTY))}개)`:`${big(n)}개 구매 · ${big(quote(QTY,n,1))}G (최대 ${big(qtyMax())}개)`):'수량을 입력해 주세요';$('qtyOk').disabled=!n}
 $('qtyIn').addEventListener('input',updQty);
-$('qtyModal').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const v=b.dataset.q,c=cnt(QTY);$('qtyIn').value=v==='all'?c:v==='half'?Math.max(1,Math.floor(c/2)):clamp(qtyVal()+(+v),1,c);updQty()});
+$('qtyModal').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const v=b.dataset.q,c=qtyMax();$('qtyIn').value=v==='all'?c:v==='half'?Math.max(1,Math.floor(c/2)):clamp(qtyVal()+(+v),1,c);updQty()});
 $('qtyCancel').onclick=()=>{$('qtyModal').hidden=true;QTY=null};
-$('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){doSell(QTY,n)}$('qtyModal').hidden=true;QTY=null};
+$('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){if(QM==='sell')doSell(QTY,n);else{const r=buy(QTY,n);if(r.k){sfx('buy');toast(`${ITEMS[QTY].n} ${r.k}개를 ${big(r.t)}G에 샀어요.`)}renderAll()}}$('qtyModal').hidden=true;QTY=null};
 /* 도감: 광물 설명 */
 const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'재련에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
 function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 찾지 못한 광물이에요. 더 깊이 파 내려가거나 새로운 조합을 시도해 보세요.'}]);return}

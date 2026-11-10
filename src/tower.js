@@ -104,7 +104,7 @@ $('tab-tower').addEventListener('click',e=>{const id=e.target.closest('button')?
 /* 입주자 초상 (48×48): 사람마다 피부 · 머리 모양 · 눈 · 수염 · 소품 · 옷을 다르게 */
 const PSTYLE={
   '바우':{skin:'#e0a878',hs:'short',beard:'stub',brow:'thick',age:1,mouth:'flat',wear:'apron'},
-  '셈 할멈':{skin:'#f0c8a8',hs:'bun',age:2,glasses:1,mouth:'flat',brow:'stern'},
+  '셈':{skin:'#f6d2b0',hs:'long',mouth:'smile',wear:'apron',eye:'#3a2420'},
   '핀':{skin:'#f6d0a8',hs:'messy',freck:1,mouth:'grin',kid:1},
   '무쇠':{skin:'#d89a70',hs:'bald',beard:'full',brow:'thick',mouth:'smile',wear:'apron'},
   '루카':{skin:'#eec098',hs:'short',mouth:'grin',wear:'scarf'},
@@ -174,7 +174,7 @@ function drawPortrait(cvP,t,hide){const W=64,pb=new PB(W,W),st=PSTYLE[t.name]||{
   switch(t.hat){
     case'helmet':{const Y=ramp('#e8b13a');pb.ell(32,20,16,11,(x,y)=>y<21?(x>40?Y[1]:x<24?Y[3]:Y[2]):null);pb.rect(14,20,36,3,Y[1]);pb.rect(15,20,34,1,Y[2]);pb.rect(22,11,4,2,Y[4]);
       pb.ell(32,14,4,3.5,'#5a5a64');pb.ell(32,14,2.6,2.2,'#fff6c8');pb.set(31,13,'#ffffff');break}
-    case'scarf':{const Q=ramp('#9a6aaa');pb.ell(32,20,16.5,12,(x,y)=>y<24?(x>40?Q[1]:x<24?Q[3]:Q[2]):null);pb.rect(16,20,4,13,Q[2]);pb.rect(44,20,4,13,Q[1]);for(let x=19;x<46;x+=5){pb.set(x,15,Q[4]);pb.set(x+2,18,Q[4])}break}
+    case'scarf':{const Q=ramp(t.hatC||'#9a6aaa');pb.ell(32,20,16.5,12,(x,y)=>y<24?(x>40?Q[1]:x<24?Q[3]:Q[2]):null);pb.rect(16,20,4,13,Q[2]);pb.rect(44,20,4,13,Q[1]);for(let x=19;x<46;x+=5){pb.set(x,15,Q[4]);pb.set(x+2,18,Q[4])}break}
     case'goggles':{pb.rect(17,19,30,3,'#4a3a2a');[[22,16],[35,16]].forEach(([x,y])=>{pb.rect(x,y,8,7,'#8a7a5a');pb.rect(x+1,y+1,6,5,'#7cc8ff');pb.rect(x+1,y+1,2,2,'#e8f8ff');pb.set(x+5,y+4,'#5aa8e0')});break}
     case'cap':{const G=ramp('#3f8a5a');pb.ell(33,18,15,9.5,(x,y)=>y<21?(x>41?G[1]:G[2]):null);pb.rect(10,20,18,3,G[1]);pb.rect(11,20,16,1,G[3]);pb.set(33,9,G[4]);pb.line(26,12,32,10,G[3]);break}
     case'hairpin':pb.rect(40,17,5,4,'#c28cf4');pb.set(41,17,'#f4e0ff');pb.set(42,18,'#ffffff');pb.set(44,20,'#8a5ac8');break;

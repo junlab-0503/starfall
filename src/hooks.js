@@ -4,7 +4,7 @@
  w('breakWall',(r,a)=>sfx(a[0]?'breakSoft':'break'));
  const _gain=gain;gain=function(id,n,auto){const isNew=!S.seen.includes(id);const r=_gain(id,n,auto);sfx(isNew||ITEMS[id].p>=ITEMS[LAYERS[S.layer].drops[0][0]].p*3?'rare':'gain');return r};
  w('showResult',(r,a)=>sfx(a[0].kind==='great'?'great':a[0].kind==='ok'?'craft':'fail'));
- w('doSell',()=>sfx('coin'));w('sellCollector',()=>sfx('coin'));
+ w('doSell',()=>sfx('coin'));
  w('buy',r=>{if(r&&r.k)sfx('buy')});
  w('buildFloor',r=>{if(r)sfx('floor')});
  w('unlockLayer',()=>sfx('unlock'));w('collectBox',()=>sfx('gain'));

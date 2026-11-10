@@ -50,5 +50,5 @@ ok(!w2.story&&w2.rent<w2.rps&&/시계/.test(w2.toast),`시계를 되돌린 채 �
 const save2=await p2.evaluate(()=>{const S=__d().S;S.rentAcc=0;S.box={};S.lastSeen=Date.now()-3*3600e3;S.maxClock=S.lastSeen;return JSON.stringify(S)});
 const p3=await ctx.newPage();await p3.addInitScript(s=>{if(!sessionStorage.y){localStorage.setItem('starfall-v1',s);sessionStorage.y=1}},save2);await p2.close();
 await p3.goto(url,{waitUntil:'domcontentloaded'});await p3.waitForTimeout(1500);const w3=await p3.evaluate(()=>({story:$('story').hidden?'':$('storyT').textContent,rent:Math.round(__d().S.rentAcc)}));
-ok(/3시간/.test(w3.story)&&w3.rent>0,`정상 3시간 비움: "${w3.story}" 월세 ${w3.rent}`);
+ok(/자리를 비운/.test(w3.story)&&w3.rent>0,`정상 3시간 비움: "${w3.story}" 월세 ${w3.rent}`);
 console.log('errors',errs);await b.close()})();

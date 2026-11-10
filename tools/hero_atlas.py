@@ -1,10 +1,12 @@
+"""주인공 스프라이트 묶음 만들기: art/source/hero_sheet.webp에서 프레임을 골라 게임 크기로 줄인다.
+사용: 작업 폴더에 sheet.webp, lab.npy, comps.json(프레임 분리 결과)을 두고 python3 hero_atlas.py 3.9"""
 from PIL import Image
 import numpy as np,json,sys
 from collections import Counter
 im=np.asarray(Image.open('sheet.webp').convert('RGBA')).astype(np.float64);lab=np.load('lab.npy')
 comps={c[0]:c for c in json.load(open('comps.json'))}
 F=float(sys.argv[1]) if len(sys.argv)>1 else 3.9
-SEL={'rest':(33,1),'sw0':(34,1),'sw1':(32,1),'sw2':(37,1),'sw3':(38,1),'sw4':(36,1),'sw5':(35,1),
+SEL={'rest':(12,1),'rest2':(11,1),'ready':(33,1),'sw0':(34,1),'sw1':(32,1),'sw2':(37,1),'sw3':(38,1),'sw4':(36,1),'sw5':(35,1),
      'walk0':(13,1),'walk1':(14,1),'walk2':(19,1),'walk3':(15,1),'walk4':(18,1),'walk5':(16,1),
      'joy':(55,0),'yawn':(53,0),'happy':(52,0),'sleep':(64,0)}
 # 공용 팔레트: 원본 해상도의 불투명 픽셀로
@@ -45,6 +47,10 @@ for k,(cid,flip) in SEL.items():
     t=t.crop(t.getbbox());tiles.append((k,t))
 pad=1;Ht=max(t.height for _,t in tiles);Wt=sum(t.width+pad for _,t in tiles);atlas=Image.new('RGBA',(Wt,Ht));x=0;meta={}
 for k,t in tiles:atlas.paste(t,(x,Ht-t.height));meta[k]=[x,Ht-t.height,t.width,t.height];x+=t.width+pad
-atlas.save('hero.png');json.dump(meta,open('hero_meta.json','w'))
+# 기준점: 아래쪽 절반 불투명 픽셀의 가로 가운데값(몸통 기준, 곡괭이 끝 제외)
+A=np.asarray(atlas)
+for k,(x,y,w,h) in list(meta.items()):
+    ys,xs=np.nonzero(A[y+h//2:y+h,x:x+w,3]>0);meta[k]=[x,y,w,h,int(round(np.median(xs))) if len(xs) else w//2]
+atlas.save('hero.png');json.dump(meta,open('hero_meta.json','w'),separators=(',',':'))
 bg=Image.new('RGBA',atlas.size,(46,35,25,255));bg.alpha_composite(atlas);bg.resize((atlas.width*6,atlas.height*6),Image.NEAREST).save('hero_x6.png')
 print(atlas.size,meta['rest'],meta['sw1'],meta['sleep'])
