@@ -24,7 +24,7 @@ ok((await p.textContent('#tutAgain'))==='튜토리얼 다시 보기','설정 버
 // 입주자 카드
 await p.evaluate(()=>{const S=__d().S;S.floors=40;refreshBonus();renderAll()});await p.waitForTimeout(1200);
 await p.screenshot({path:'v83_tower40.png'});
-await p.click('[data-sec="3"]');await p.waitForTimeout(300);const card=await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textContent,x:$('storyX').textContent,por:!$('portrait').hidden}));
+await p.click('[data-sec="3"]');await p.waitForTimeout(300);const card=await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textContent,x:$('storyX').textContent,por:!$('portrait').hidden||!$('portraitArt').hidden}));
 ok(card.por&&/무쇠/.test(card.t)&&card.b.length>5&&/"/.test(card.x),'무쇠 카드: '+card.t+' | '+card.b.slice(0,20)+' | '+card.x.slice(0,40));
 await p.screenshot({path:'v83_tenant.png'});await closeStory();
 await p.click('[data-sec="10"]');await p.waitForTimeout(300);ok(/비어 있는/.test(await p.textContent('#storyT')),'잠긴 구간: '+await p.textContent('#storyB'));await closeStory();

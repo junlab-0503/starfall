@@ -160,7 +160,7 @@ main{padding-top:10px}
 .story{position:fixed;inset:0;z-index:20;background:rgba(6,4,10,.82);display:grid;place-items:center;padding:20px}
 .story-card{background:#241a12;border:3px solid #8a6a3a;box-shadow:0 0 0 3px #0a0705,0 8px 0 #000;padding:18px;max-width:400px;width:100%;text-align:center;animation:tin .25s steps(4)}
 .portrait{width:128px;height:128px;image-rendering:pixelated;border:2px solid var(--line);background:#1a120c;margin:0 auto 8px;display:block}
-.portrait.art{width:120px;height:120px;background:#3a2a20}
+.portrait.art{width:128px;height:128px;background:#3a2a20}
 .portrait[hidden]{display:none}
 .story-kick{font-size:12px;font-family:var(--f11);color:var(--dim)}
 .story h3{font-family:var(--fb);font-weight:400;font-size:24px;font-family:var(--fb);color:var(--star);margin:6px 0 10px}

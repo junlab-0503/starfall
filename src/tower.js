@@ -117,7 +117,11 @@ const PSTYLE={
   '노을':{skin:'#f4d2b0',hs:'long',mouth:'smile',lash:1,eye:'#d86a3a'},
   '아르덴 교수':{skin:'#ecc4a4',hs:'side',beard:'long',age:2,glasses:1,mouth:'flat'},
   '이장 할머니':{skin:'#f0c8a8',hs:'bun',age:2,mouth:'smile'}};
-function drawPortrait(cvP,t,hide){const W=64,pb=new PB(W,W),st=PSTYLE[t.name]||{},SK=st.skin||'#f4c8a0',HR=ramp(t.hair),CR=ramp(t.coat),out='#2a1a18';
+// 직접 그린 초상화(art/portraits, 64×64)가 있으면 그것. 아직 안 들어온 사람은 어둡게 + ?
+const POR_IMG={};
+function artPortrait(cvP,key,hide){const im=POR_IMG[key]||(POR_IMG[key]=Object.assign(new Image(),{src:ART[key]})),go=()=>{cvP.width=cvP.height=64;const c=cvP.getContext('2d');c.imageSmoothingEnabled=false;
+  c.filter=hide?'brightness(.06) saturate(0) blur(1px)':'none';c.drawImage(im,0,0,64,64);c.filter='none';if(hide){c.fillStyle='#b29c80';c.font='bold 18px sans-serif';c.textAlign='center';c.fillText('?',32,40)}};im.complete?go():im.addEventListener('load',go,{once:true})}
+function drawPortrait(cvP,t,hide){if(t.art&&typeof ART!=='undefined'&&ART[t.art])return artPortrait(cvP,t.art,hide);const W=64,pb=new PB(W,W),st=PSTYLE[t.name]||{},SK=st.skin||'#f4c8a0',HR=ramp(t.hair),CR=ramp(t.coat),out='#2a1a18';
   const SR=[shade(SK,-.4),shade(SK,-.12),SK,shade(SK,.16),shade(SK,.38)],hx=32,hy=29,rx=13.2,ry=13.8,eyeC=st.eye||'#3a2830',old=st.age===2;
   const HRd=shade(t.hair,-.35),hairTop=st.hs==='bun'||old?'#dcd6cc':null,R2=hairTop?ramp(hairTop):HR;
   // 몸: 어깨 · 옷 (주름과 단추)
