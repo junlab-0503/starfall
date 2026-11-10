@@ -6,21 +6,14 @@ R=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC=os.path.join(R,'src');FONT=os.path.join(R,'fonts');OUT=os.path.join(R,'dist','starfall.html');TMP=os.path.join(R,'.build');os.makedirs(TMP,exist_ok=True)
 FILES=['data.js','pixel.js','icons.js','state.js','market.js','mine.js','forge.js','tower.js','ui.js','equip.js','sfx.js','tut.js','hooks.js','main.js']
 js=''.join(open(os.path.join(SRC,f),encoding='utf-8').read()+'\n' for f in FILES)
-# 직접 그린 그림: art/portraits/<입주자>.png(탭 카드 초상화), art/hero/hero.png(주인공) → ART.<이름> (data URL)
+# 직접 그린 그림 → ART.<이름> (data URL)
+#   art/portraits/<입주자>.png(탭 카드 초상화), art/hero/hero.png(주인공), art/shop/<가게>.png · bg_<가게>.png(장비 탭 사람 · 배경 → ART.shop_…)
 art={}
-for sub_ in ('portraits','hero'):
+for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_')):
     d_=os.path.join(R,'art',sub_)
     if os.path.isdir(d_):
         for f in sorted(os.listdir(d_)):
-            if f.endswith('.png'):art[os.path.splitext(f)[0]]=base64.b64encode(open(os.path.join(d_,f),'rb').read()).decode()
-# 마을 사람 스프라이트: art/npc/<이름>.png + <이름>.json → ART.npc_<이름>, NPC_META.<이름>
-ND=os.path.join(R,'art','npc');nm={}
-if os.path.isdir(ND):
-    for f in sorted(os.listdir(ND)):
-        st_,ex_=os.path.splitext(f)
-        if ex_=='.png':art['npc_'+st_]=base64.b64encode(open(os.path.join(ND,f),'rb').read()).decode()
-        if ex_=='.json':nm[st_]=open(os.path.join(ND,f),encoding='utf-8').read().strip()
-if nm:js='const NPC_META={'+','.join(f"{k}:{v}" for k,v in nm.items())+'};\n'+js
+            if f.endswith('.png'):art[pre_+os.path.splitext(f)[0]]=base64.b64encode(open(os.path.join(d_,f),'rb').read()).decode()
 HM=os.path.join(R,'art','hero','hero_meta.json')
 if os.path.exists(HM):js='const HERO_META='+open(HM,encoding='utf-8').read().strip()+';\n'+js
 js='const ART={'+','.join(f"{k}:'data:image/png;base64,{v}'" for k,v in art.items())+'};\n'+js
