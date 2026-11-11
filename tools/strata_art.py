@@ -1,6 +1,7 @@
 """채굴 화면 지층 그림(사용자 원본 art/source/strata/) → 게임용 art/strata/
   r<번호>.webp    : 배경 = 안 판 채굴층 바위 한 장(rock_sheet.webp). 가장자리를 이음매 없이 다듬어(경계선 찾아 잘라 붙이기) 그대로 반복
   gold.webp       : 황금 광맥 배경(gold_rock.webp, 금맥이 나타난 동안)
+  dg<번호>.webp   : 굴 띠(tunnel_sheet.webp) — 아래 1-3) 설명
 사용: python3 tools/strata_art.py"""
 from PIL import Image
 import numpy as np
@@ -72,36 +73,94 @@ for n,(x0,y0,x1,y1) in enumerate([(x0,y0,x1,y1) for (y0,y1) in RY for (x0,x1) in
     a=np.asarray(rock.crop((x0+8,y0+8,x1-8,y1-8)));a=seam_wrap(seam_wrap(a,56,1),48,0)
     save(Image.fromarray(a).quantize(64,method=Image.Quantize.MEDIANCUT).convert('RGB'),f'{OUT}r{n}.webp')
 
-# 1-3) 땅 판 흔적(dug_sheet.webp, 13칸): 칸마다 굴(어두운 부분)을 찾아
-#   dg<번호>.webp = 굴(알파 255) + 둘레 6px(알파 200, 바위 가장자리), 나머지 투명
-#   dug_meta.json = 칸마다 [주인공 발 x, 발 y, 숯 발 y, 파는 벽 x](원본 px)
-dug=np.asarray(Image.open(SRC+'dug_sheet.webp').convert('RGB')).astype(float)
-DRY=[(65,298),(313,545),(561,798),(816,1050)];DRX=[(20,359),(378,715),(733,1072),(1087,1426)];meta=[]
+# 1-3) 굴(tunnel_sheet.webp, 사용자 그림 13칸: 칸마다 오른쪽 위 → 왼쪽 아래로 판 굴)
+#   그림의 굴은 오른쪽이 높고(약 80px) 왼쪽 끝이 좁아지는 쐐기 모양이라 그대로 이으면 천장이 톱니처럼 끊김
+#   → 칸마다: 바닥 · 천장 가장자리(바위 띠)는 그림 그대로 옮기고, 그 사이 어두운 굴 안만 늘려 높이 T로 고르게 한 "굴 띠" 한 장
+#   → 게임에서 이 띠를 판 길을 따라 겹쳐 찍으면 한 줄로 쭉 이어진 굴. 왼쪽 끝은 둥근 막장(주인공이 캐는 벽)
+#   dg<번호>.webp = 굴 안(알파 255) + 천장 · 바닥 바위 띠(알파 200), 나머지 투명. 가장자리는 점무늬로 흐리게(바위 배경에 섞이게)
+#   dug_meta.json = 칸마다 [막장 x, 막장 바닥 y, 굴 높이 T](띠 그림 안 px). 바닥 기울기는 게임의 판 길(9/24)과 같음
+SLOPE=9/24;T=84;RIM=20;NOSE=22;LM=24;FADE=34
+BAY=np.array([[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]])/16+1/32
+tun=np.asarray(Image.open(SRC+'tunnel_sheet.webp').convert('RGBA')).astype(float)
+def erode(m,k):return ~dilate(~m,k)
 def dilate(m,k):
     o=m.copy()
     for _ in range(k):
         d=o.copy();d[1:]|=o[:-1];d[:-1]|=o[1:];d[:,1:]|=o[:,:-1];d[:,:-1]|=o[:,1:];o=d
     return o
-for n,(x0,x1,y0,y1) in enumerate([(x0,x1,y0,y1) for (y0,y1) in DRY for (x0,x1) in DRX][:13],1):
-    t=dug[y0:y1,x0:x1];h,w,_=t.shape;L=t@[.3,.59,.11];sm=box(L,5);big=box(L,14)
-    light=t.min(2)>225;sd=np.zeros((h,w),bool);sd[0]=sd[-1]=sd[:,0]=sd[:,-1]=True;inside=~grow(sd,light)
-    dark=(sm<np.percentile(sm[inside],22))&inside
-    reg=big.copy();reg[:,:int(w*.4)]=1e9;reg[:h//4]=1e9;reg[h*3//4:]=1e9;reg[~inside]=1e9;j,i=np.unravel_index(reg.argmin(),reg.shape)
-    s2=np.zeros((h,w),bool);s2[j,i]=True;cave=grow(s2,dark)
-    # 굴 가장자리를 3px 단위로 다듬지 않고 그대로(사용자 그림의 결) · 바탕 흰색 테두리는 빼고
-    rim=dilate(cave,6)&inside
-    ys,xs=np.where(cave);cl=xs.min()
-    fl={x:ys[xs==x].max() for x in range(w) if (xs==x).any()}
-    top={x:ys[xs==x].min() for x in range(w) if (xs==x).any()}
-    # 주인공 자리: 굴 왼쪽 끝에서 20~70px 사이 가장 높은(천장 ~ 바닥) 곳
-    hx=max(range(cl+20,cl+70),key=lambda x:(fl.get(x,0)-top.get(x,0)));fy=fl[hx]
-    cx=hx+56;cy=fl.get(cx,fy)
-    band=(ys>=fy-50)&(ys<=fy);wx=int(xs[band].min())   # 파는 벽: 주인공 높이에서 굴 왼쪽 끝
-    meta.append([int(hx),int(fy),int(cy),wx])
-    # 한 장에: 알파 255 = 굴 안, 200 = 둘레(바위 가장자리), 0 = 투명 → 게임에서 둘로 나눠 씀
-    rgba=np.zeros((h,w,4),np.uint8);rgba[...,:3]=t.astype(np.uint8);rgba[...,3]=np.where(cave,255,np.where(rim,200,0))
-    Image.fromarray(rgba).save(f'{OUT}dg{n}.webp',lossless=True,quality=100,method=6)
-    print('dug',n,'hero',hx,fy,'cat y',cy,'cave h',fy-top[hx])
+al=tun[...,3]>128
+def runs2(v,th,minlen=40):
+    o=[];st=None
+    for i,x in enumerate(list(v>th)+[False]):
+        if x and st is None:st=i
+        if not x and st is not None:
+            if i-st>=minlen:o.append((st,i))
+            st=None
+    return o
+TB=[(x0,y0,x1,y1) for (y0,y1) in runs2(al.mean(1),.05) for (x0,x1) in runs2(al[y0:y1].mean(0),.2)];assert len(TB)==13,TB
+meta=[]
+for n,(x0,y0,x1,y1) in enumerate(TB,1):
+    rgb=tun[y0:y1,x0:x1,:3];m=tun[y0:y1,x0:x1,3]>200;mi=erode(m,5);h,w=m.shape
+    lum=rgb@[.3,.59,.11];s4=box(lum,4);sdv=np.sqrt(np.maximum(box(lum**2,4)-s4**2,0))
+    core=(box(lum,10)<np.percentile(box(lum,10)[m],12))&m
+    cl=np.median(lum[core]);rl=np.percentile(lum[m],60);sdc=np.median(sdv[core])
+    cave=grow(core,(s4<cl+.8*(rl-cl))&(sdv<sdc+5)&m);cave=erode(dilate(cave,3),3)&m   # 매끈하고 어두운 굴 안(바닥 흙 포함)
+    xs=[x for x in range(w) if cave[:,x].any()];top=np.array([np.where(cave[:,x])[0].min() for x in xs]);bot=np.array([np.where(cave[:,x])[0].max() for x in xs]);xs=np.array(xs)
+    k=(xs>60)&(xs<w-40);fb=np.polyfit(xs[k],bot[k],1)
+    topin=np.array([np.where(mi[:,x])[0].min() for x in xs]);k2=k&(top>topin+6);cb=np.polyfit(xs[k2],top[k2],1)
+    fl=lambda x:np.polyval(fb,x);ce=lambda x:np.polyval(cb,x)
+    # 쓸 범위: 굴이 44px 이상 높고, 천장 · 바닥 띠가 그림 안에 들어오는 곳
+    use=[x for x in xs if fl(x)-ce(x)>=44 and ce(x)-RIM>=np.where(mi[:,x])[0].min() and fl(x)+RIM<=np.where(mi[:,x])[0].max()]
+    xa,xb=min(use),max(use);Wd=xb-xa+1+LM;Y0=int(np.ceil(2+T+RIM+SLOPE*(Wd-1)));Hd=Y0+RIM+3
+    out=np.zeros((Hd,Wd,4),np.uint8)
+    for u in range(LM,Wd):
+        x=u-LM+xa;Ft=Y0-SLOPE*u;Ct=Ft-T;fs,cs=fl(x),ce(x)
+        for v in range(max(0,int(Ct-RIM-1)),min(Hd,int(Ft+RIM)+2)):
+            if v>=Ft-6:sy=fs+(v-Ft);band='f'
+            elif v<=Ct+6:sy=cs+(v-Ct);band='c'
+            else:tt=(v-(Ct+6))/((Ft-6)-(Ct+6));sy=(cs+6)+tt*((fs-6)-(cs+6));band='m'
+            sy=int(round(sy))
+            if sy<0 or sy>=h or not mi[sy,x]:continue
+            isc=cave[sy,x] or band=='m'
+            # 막장(왼쪽 끝): 둥근 코 모양 밖은 굴이 아님
+            du=u-LM;vm=(v-(Ct+Ft)/2)/(T/2)
+            if isc and du<NOSE and du<NOSE*(1-np.sqrt(max(0,1-min(1,vm*vm)))):continue
+            out[v,u,:3]=rgb[sy,x].astype(np.uint8);out[v,u,3]=255 if isc else 200
+    # 바위 띠 바깥 끝 · 막장 쪽 끝 · 오른쪽 끝은 바위 틈(어두운 줄)을 따라 자름 → 배경 바위와 자연스럽게 맞물림(점무늬 없이)
+    L2=out[...,:3].astype(float)@[.3,.59,.11];L2[out[...,3]==0]=999
+    def seam(cost):   # cost[i, j]: i번째 줄에서 j번째 자리의 비용 → 한 칸씩 최대 1만 움직이는 가장 어두운 길
+        C=cost.copy();P=np.zeros(C.shape,int)
+        for i in range(1,len(C)):
+            for j in range(C.shape[1]):
+                lo,hi=max(0,j-1),min(C.shape[1],j+2);k=lo+int(np.argmin(C[i-1,lo:hi]));C[i,j]+=C[i-1,k];P[i,j]=k
+        j=int(np.argmin(C[-1]));path=[0]*len(C)
+        for i in range(len(C)-1,-1,-1):path[i]=j;j=P[i,j]
+        return path
+    DD=list(range(RIM-12,RIM+1))
+    for side in('c','f'):
+        us=list(range(LM,Wd));cost=np.zeros((len(us),len(DD)))
+        for a_,u in enumerate(us):
+            Ft=Y0-SLOPE*u;Ct=Ft-T
+            for b_,dd in enumerate(DD):
+                v=int(round(Ct-dd if side=='c' else Ft+dd));cost[a_,b_]=L2[v,u] if 0<=v<Hd else 999
+        cut=seam(cost)
+        for a_,u in enumerate(us):
+            Ft=Y0-SLOPE*u;Ct=Ft-T
+            for dd in range(DD[cut[a_]]+1,RIM+2):
+                v=int(round(Ct-dd if side=='c' else Ft+dd))
+                if 0<=v<Hd:out[v,u,3]=0
+    rows=[v for v in range(Hd) if out[v,LM:,3].any()]
+    for lo,hi,keep_right in((LM,LM+12,True),(Wd-FADE,Wd,False)):
+        cost=np.array([[L2[v,u] for u in range(lo,hi)] for v in rows]);cut=seam(cost)
+        for i,v in enumerate(rows):
+            c=lo+cut[i]
+            if keep_right:
+                for u in range(LM,c):
+                    if out[v,u,3]==200:out[v,u,3]=0      # 막장 쪽: 바위 띠만(굴 안은 그대로)
+            else:out[v,c+1:,3]=0
+    Image.fromarray(out).save(f'{OUT}dg{n}.webp',lossless=True,quality=100,method=6)
+    meta.append([LM,int(round(Y0-SLOPE*LM))+5,T])   # 굴 띠를 5px 위로 → 발이 바닥 흙에 살짝 묻히게
+    print('tunnel',n,'src x',xa,xb,'slope floor %.3f ceil %.3f'%(-fb[0],-cb[0]),'strip',Wd,Hd)
 import json;json.dump(meta,open(OUT+'dug_meta.json','w'))
 
 # 2) 황금 광맥: 안 판 금맥 바위(gold_rock.webp) → 다른 지층 바위와 비슷한 크기로 줄이고 이음매 없이 → gold.webp

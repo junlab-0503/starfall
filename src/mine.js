@@ -3,10 +3,10 @@
  암벽에 박힌 광석이 다음에 나올 광물이다. */
 const cv=$('scene'),g=cv.getContext('2d'),SCENE_G=g;
 let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
-const STX=24,STY=9; // 굴 한 칸의 가로/세로 이동
+const STX=24,STY=9,SL=STY/STX,REACH=34; // 굴 한 칸의 가로/세로 이동, 바닥 기울기, 주인공 발 → 곡괭이가 막장에 닿는 거리(화면 px)
 const SWH={w:360,h:500};   // 채굴 화면 크기(떠오르는 글씨 자리 계산용)
 function sceneResize(){fitScene();const el=cv.parentElement,r={width:el.clientWidth,height:el.clientHeight};if(!r.width)return;SWH.w=r.width;SWH.h=r.height;   // 테두리 안쪽 크기(캔버스가 늘어나 번지지 않게)
-  SC=Math.max(2,Math.round(r.width/180));cv.width=Math.round(r.width);cv.height=Math.round(r.height);IW=cv.width/SC;IH=cv.height/SC;g.imageSmoothingEnabled=false}   // 캔버스 = 화면 크기 그대로(모서리 장식이 딱 붙게)
+  SC=2;cv.width=Math.round(r.width);cv.height=Math.round(r.height);IW=cv.width/SC;IH=cv.height/SC;g.imageSmoothingEnabled=false}   // 캔버스 = 화면 크기 그대로(모서리 장식이 딱 붙게)
 addEventListener('resize',()=>{IW=0});
 function fitScene(){}
 if(window.ResizeObserver)new ResizeObserver(()=>{IW=0}).observe($('sceneWrap'));
@@ -64,7 +64,7 @@ function autoSellRoom(){const ids=ORDER.filter(id=>cnt(id)>0&&ITEMS[id].L).sort(
 function applyDmg(d,auto){
   S.hp-=d;const w=charW(),wx=w.x-10,wy=w.y-14;
   const T=PICK_TIERS[pickTier()][3],L=LOOK[S.layer];
-  if(!auto){for(let i=0;i<6;i++)PARTS.push({x:wx,y:wy+(Math.random()-.5)*6,vx:-20+Math.random()*50,vy:-40-Math.random()*40,life:.5,c:Math.random()<.5?L.spec[0]:L.rock,sz:1});tierFx(T,wx,wy)}
+  if(!auto){for(let i=0;i<6;i++)PARTS.push({x:wx,y:wy+(Math.random()-.5)*6,vx:-10+Math.random()*60,vy:-40-Math.random()*40,life:.9,c:Math.random()<.5?L.spec[0]:L.rock,sz:i<2?2:1,grav:1});tierFx(T,wx,wy);A.shake=Math.max(A.shake,1)}
   else for(let i=0;i<2;i++)PARTS.push({x:wx+2,y:w.y-4,vx:Math.random()*40,vy:-30-Math.random()*30,life:.35,c:'#ffe9a8',sz:1});
   if(S.hp<=0)breakWall(auto);
 }
@@ -82,7 +82,7 @@ function breakWall(auto){
   if(td){S.hp=hp;S.tutBrk++;got[td]=td==='stone'?2:1}
   else if(!got.stone||!auto)while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1+(Math.random()<extraP(ITEMS[id].s)?1:0)}
   const w=charW();
-  for(let i=0;i<14;i++)PARTS.push({x:w.x-14+Math.random()*8,y:w.y-24+Math.random()*22,vx:(Math.random()-.8)*80,vy:-40-Math.random()*60,life:.8,c:Math.random()<.4?ITEMS[S.next||'stone'].c:LOOK[L].rock,sz:2,grav:1});
+  for(let i=0;i<14;i++)PARTS.push({x:w.x-14+Math.random()*8,y:w.y-24+Math.random()*22,vx:(Math.random()-.8)*80,vy:-40-Math.random()*60,life:1.3,c:Math.random()<.4?ITEMS[S.next||'stone'].c:LOOK[L].rock,sz:2,grav:1});
   // 황금 광맥이 나타난 동안엔 광석 대신 골드만(골드는 탭 · 드릴이 veinGold로 캠)
   if(veinOn()){for(let i=0;i<10;i++)PARTS.push({x:w.x-12+Math.random()*8,y:w.y-20+Math.random()*16,vx:(Math.random()-.8)*70,vy:-50-Math.random()*50,life:.8,c:'#ffd23f',sz:2,grav:1,star:Math.random()<.4})}
   else for(const id in got)gain(id,got[id],auto);
@@ -110,64 +110,77 @@ function update(dt){
   // 자동 드릴
   // 시작 화면 · 광맥 입구 장면이 떠 있는 동안엔 드릴도 기다림
   if(S.auto>0&&S.autoOn&&$('titleScr').hidden&&$('entry').hidden){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(1/400,false)}}
-  PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt});PARTS=PARTS.filter(p=>p.life>0);
+  PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt;
+    if(p.grav){const fl=w.y+(w.x+6-p.x)*SL-1;if(p.y>fl){p.y=fl;if(p.vy>50){p.vy*=-.3;p.vx*=.6}else{p.vy=0;p.vx*=.7}}}});   // 돌 조각은 굴 바닥에 떨어져 튕기고 잠깐 쌓임PARTS=PARTS.filter(p=>p.life>0);
   FLY.forEach(f=>f.t+=dt);FLY=FLY.filter(f=>f.t<.6);
   stepFloats(dt);
 }
 /* 배경 캐시: 바위 무늬 + 판 굴 흔적을 화면보다 조금 큰 캔버스 한 장에 그려 두고, 카메라가 움직이는 동안엔 그 한 장만 옮겨 붙인다.
    다시 그리는 때: 한 칸 더 팠을 때 · 지층/황금 광맥/화면 크기가 바뀔 때 · 카메라가 여백(BGM)을 벗어날 때. 그림 · 위치는 예전과 픽셀 단위로 같음 */
 const BGC={c:null,x:null,k:'',ax:0,ay:0},BGM=96;
-function bgCache(L,st,gv,d,DM,K,CW,CH){
+function bgCache(L,st,gv,d,DM,K,CW,CH,bite){
   let ox=Math.round((BGC.ax-camX)*K),oy=Math.round((BGC.ay-camY)*K);
-  const key=[L,d,gv?1:0,CW,CH,K].join(),ok=BGC.k===key&&Math.abs(ox)<=BGM-K-2&&Math.abs(oy)<=BGM-2;
+  const key=[L,d,gv?1:0,CW,CH,K,bite].join(),ok=BGC.k===key&&Math.abs(ox)<=BGM-K-2&&Math.abs(oy)<=BGM-2;
   if(!ok){const W=CW+2*BGM,H=CH+2*BGM;if(!BGC.c){[BGC.c,BGC.x]=cvs(W,H)}else if(BGC.c.width!==W||BGC.c.height!==H){BGC.c.width=W;BGC.c.height=H;BGC.x.imageSmoothingEnabled=false}
     const x=BGC.x,ax=Math.floor(camX),ay=Math.floor(camY);BGC.ax=ax;BGC.ay=ay;BGC.k=key;ox=Math.round((ax-camX)*K);oy=Math.round((ay-camY)*K);
     x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,W,H);
     // 배경: 안 판 바위(카메라와 같이 움직임). 황금 광맥이 나타난 동안은 금맥 바위
     const im=gv?gv.c:st.rockC,tw=im.width,th=im.height,pox=(((-ax*K+BGM)%tw)+tw)%tw,poy=(((-ay*K+BGM)%th)+th)%th;
     x.save();x.translate(pox,poy);x.fillStyle=x.createPattern(im,'repeat');x.fillRect(-pox,-poy,W,H);x.restore();
-    // 판 자리: 지금 파는 칸(머리)과 4칸마다 남은 굴 흔적. 둘레(dg)를 먼저 모두 그리고 굴 안(dc)을 위에 모두 그려 이어진 굴로. 황금 광맥 동안엔 굴 안만
-    if(st.dg){const sx=i=>(-i*STX+6-ax)*K-DM[0]+BGM,sy=i=>(i*STY-ay)*K-DM[1]+BGM,TW=st.dg.width,TH=st.dg.height,list=[];
-      for(let i=d-((d%4+4)%4||4);i>=d-48&&i>=0;i-=4){const px=sx(i),py=sy(i);if(px>W||py+TH<0)break;if(px+TW<0||py>H)continue;list.push([px,py])}
+    // 판 굴: 굴 띠(사용자 그림을 고른 높이로 편 것)를 판 길을 따라 3칸마다 + 지금 파는 칸(막장)에 찍음.
+    // 바위 띠까지(dg) 먼저 모두, 굴 안(dc)을 위에 모두 → 한 줄로 이어진 굴. 막장 띠의 왼쪽 끝(둥근 벽)이 주인공 곡괭이 앞. 황금 광맥 동안엔 굴 안만
+    // bite: 지금 바위를 캔 만큼 막장이 조금씩 파고듦(굴 안만 왼쪽 아래로 밀어 한 번 더)
+    if(st.dg){const RS=Math.round(REACH*SL),sx=i=>(-i*STX+6-ax)*K-REACH-DM[0]+BGM,sy=i=>(i*STY-ay)*K+RS-DM[1]+BGM,TW=st.dg.width,TH=st.dg.height,list=[];
+      for(let i=d-((d%3+3)%3||3);i>=d-48&&i>=0;i-=3){const px=sx(i),py=sy(i);if(px>W||py+TH<0)break;if(px+TW<0||py>H)continue;list.push([px,py])}
       list.reverse();list.push([sx(d),sy(d)]);
-      if(!gv)list.forEach(([px,py])=>x.drawImage(st.dg,px,py));list.forEach(([px,py])=>x.drawImage(st.dc,px,py))}}
+      if(!gv)list.forEach(([px,py])=>x.drawImage(st.dg,px,py));list.forEach(([px,py])=>x.drawImage(st.dc,px,py));
+      if(bite)x.drawImage(st.dc,sx(d)-bite,sy(d)+Math.round(bite*SL))}}
   return{c:BGC.c,ox:ox-BGM,oy:oy-BGM}}
+// 바위를 캔 만큼 막장이 파고드는 정도(화면 px, 0 · 4 · 8 · 12)
+function digBite(L){return Math.min(3,Math.floor(clamp(1-S.hp/layerHp(L),0,1)*4))*4}
+// 발밑 그림자(화면 좌표, 가운데 x · 바닥 y · 폭)
+function shadow(cx,y,w){g.fillStyle='rgba(8,4,2,.38)';g.fillRect(Math.round(cx-w/2)+2,y-2,w-4,1);g.fillRect(Math.round(cx-w/2),y-1,w,2);g.fillRect(Math.round(cx-w/2)+2,y+1,w-4,1)}
 function draw(t){
   const L=S.layer,lk=LOOK[L],d=digOf(L);
   const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;
   const K=SC,CW=cv.width,CH=cv.height,st=strata(L);g.setTransform(1,0,0,1,sh*K,0);
-  // 땅 판 흔적(사용자 그림 dg/dc): 칸마다 굴 + 둘레. DUG_META[L] = [주인공 발 x, 발 y, 숯 발 y, 파는 벽 x](그림 안 px)
-  const w=charW(),DM=(typeof DUG_META!=='undefined'&&DUG_META[L])||[36,0,0,0],heroS=Math.round((w.x+6-camX)*K),fyS=Math.round((w.y-camY)*K),fxS=heroS-(DM[0]-DM[3]),fx=fxS/K,fy=fyS/K,kk=K/2;   // fxS · fyS: 파는 벽 · 바닥(화면 픽셀), kk: 스프라이트 배율
+  // 굴 띠(사용자 그림 dg/dc). DUG_META[L] = [막장 x, 막장 바닥 y, 굴 높이](띠 그림 안 px)
+  // 주인공은 막장 바로 앞(곡괭이가 닿는 거리 REACH)에 서고, 캔 만큼(bite) 막장과 함께 조금씩 앞으로
+  const w=charW(),DM=(typeof DUG_META!=='undefined'&&DUG_META[L])||[24,120,84],bite=digBite(L),
+    hS0=Math.round((w.x+6-camX)*K),fS0=Math.round((w.y-camY)*K),heroS=hS0-bite,fyS=fS0+Math.round(bite*SL),
+    faceS=heroS-REACH,ffS=fyS+Math.round(REACH*SL),fx=faceS/K,fy=ffS/K,kk=K/2;   // heroS · fyS: 주인공 발, faceS · ffS: 막장 · 막장 바닥(화면 px), kk: 스프라이트 배율
   if(st){
     // 배경(바위 + 판 굴)은 미리 그려 둔 한 장을 붙이기만 함 → 매 프레임 큰 그림 수십 장을 다시 그리지 않음(렉 줄이기)
-    const gv=veinOn()&&goldStrata(),bc=bgCache(L,st,gv,d,DM,K,CW,CH);g.drawImage(bc.c,bc.ox,bc.oy);
+    const gv=veinOn()&&goldStrata(),bc=bgCache(L,st,gv,d,DM,K,CW,CH,bite);g.drawImage(bc.c,bc.ox,bc.oy);
   }else{g.fillStyle=LOOK[L].dark;g.fillRect(0,0,CW,CH)}
   g.setTransform(K,0,0,K,sh*K,0);
-  // 파는 벽에 박힌 광석 · 금(벽 왼쪽 바위)
+  // 막장에 박힌 다음 광석 · 금(막장 왼쪽 바위)
   const R=ramp(ITEMS[S.next||'stone'].c);
   BLOBS.forEach(b=>{const cx=fx+b[0],cy=fy+b[1],r=b[2];for(let yy=-3;yy<=3;yy++)for(let xx=-3;xx<=3;xx++){const dd=Math.hypot(xx,yy*1.1);if(dd>r)continue;g.fillStyle=dd>r-.9?R[0]:(xx+yy<-1?R[4]:xx+yy<1?R[3]:R[2]);g.fillRect(Math.round(cx+xx),Math.round(cy+yy),1,1)}});
   if(((t*1.3)%2)<.25){const b=BLOBS[0];g.fillStyle='#fff';g.fillRect(Math.round(fx+b[0]-1),Math.round(fy+b[1]-2),1,1)}
   const dmg=clamp(1-S.hp/layerHp(L),0,1);if(dmg>0){g.fillStyle='rgba(0,0,0,.75)';CRACKS.forEach((c,k)=>{const n=Math.floor(dmg*c.length*1.2-(k%2));for(let j=0;j<Math.min(n,c.length);j++)g.fillRect(Math.round(fx+c[j][0]),Math.round(fy+c[j][1]),1,1)})}
-  // 숯: 주인공 뒤 한 칸 위(계단 하나 위). 선물 상자는 숯 옆
+  // 숯: 주인공(과 드릴 로봇) 뒤 굴 바닥(오르막). 선물 상자는 숯 옆. 발밑 그림자로 바닥에 붙어 있게
   g.setTransform(1,0,0,1,sh*K,0);
-  {const catF=full()||S.autoOn&&S.auto>0&&Math.sin(t*.3)>.6?'sleep':(Math.sin(t*2)>.7?'tail':'sit'),cs=spr('cat_'+catF),cx=heroS+56,cy=fyS+(DM[2]-DM[1]);
+  {const catF=full()||S.autoOn&&S.auto>0&&Math.sin(t*.3)>.6?'sleep':(Math.sin(t*2)>.7?'tail':'sit'),cs=spr('cat_'+catF),cx=hS0+(S.auto>0?104:52),cy=fS0-Math.round((S.auto>0?104:52)*SL);
+    shadow(cx,cy,20);
     if(cs){const cw=Math.round(cs.width*kk),ch=Math.round(cs.height*kk);g.drawImage(cs,cx-Math.round(cw/2),cy-ch+kk*2,cw,ch)}
     const gf=spr('gift');if(gf&&giftReady()){const bw=Math.round(gf.width*kk),bh=Math.round(gf.height*kk),bb=(Math.floor(t*3)%2)*2;g.drawImage(gf,cx+Math.round(14*kk),cy-bh-bb+kk*2,bw,bh)}}
   g.setTransform(K,0,0,K,sh*K,0);
   if(boostOn()&&Math.random()<.5)PARTS.push({x:w.x-4+Math.random()*24,y:w.y-30+Math.random()*24,vx:0,vy:-20,life:.6,c:'#ffe9a8',sz:1,star:Math.random()<.3});
-  // 드릴 로봇: 주인공보다 먼저(뒤에), 드릴 끝이 벽에 닿게
+  // 드릴 로봇: 주인공 바로 뒤 굴 바닥(주인공이 막장 앞, 로봇은 뒤따라오며 같이 캠)
   if(S.auto>0){const st2=!S.autoOn?'off':full()?'full':'on',ph=st2==='off'?1:Math.floor(A.botPh)%3+1,bs=spr(`robot_${st2}${ph}`);
-    if(bs){g.setTransform(1,0,0,1,sh*K,0);const bw=Math.round(bs.width*kk),bh=Math.round(bs.height*kk),body=Math.round(54*kk);g.drawImage(bs,fxS-Math.round(6*kk)-(bw-body),fyS-bh+kk*2,bw,bh);g.setTransform(K,0,0,K,sh*K,0)}
+    if(bs){g.setTransform(1,0,0,1,sh*K,0);const bw=Math.round(bs.width*kk),bh=Math.round(bs.height*kk),body=Math.round(54*kk),rx=heroS+18,ry=fyS-Math.round((18+bw/2)*SL)+2;shadow(rx+Math.round(bw*.55),ry,Math.round(body*.8));g.drawImage(bs,rx,ry-bh+kk*2,bw,bh);g.setTransform(K,0,0,K,sh*K,0)}
     if(st2==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
   // 주인공: 직접 그린 스프라이트(art/hero)
-  const sit=full()&&A.sw<0,fxw=Math.round(w.x+6-camX),fyw=Math.round(w.y-camY);
+  const sit=full()&&A.sw<0,fxw=Math.round(w.x+6-camX)-bite/K,fyw=Math.round(w.y-camY)+Math.round(bite*SL)/K;
+  g.setTransform(1,0,0,1,sh*K,0);shadow(heroS-2,fyS,24);g.setTransform(K,0,0,K,sh*K,0);
   if(HERO.img){const k=heroFrameKey(sit,t),[sx,sy,sw,sh,fx]=HERO_META[k],hs=HERO_META._s||1,bob=k==='rest'&&Math.sin(A.bobT*2.2)>.6?1:0;
     g.drawImage(HERO.img,sx,sy,sw,sh,fxw-fx/hs,fyw-sh/hs+1+bob,sw/hs,sh/hs);   // 2배 도트를 절반 크기로 → 화면 1px = 그림 1px
     if(sit){const z=(t*.8)%1;g.fillStyle=`rgba(232,224,255,${(1-z).toFixed(2)})`;const zx=fxw+8+z*4,zy=fyw-18-z*10;g.fillRect(zx,zy,3,1);g.fillRect(zx+1,zy+1,1,1);g.fillRect(zx,zy+2,3,1)}}
   // 입자
   PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리
-  const lx=Math.round(w.x-3-camX),ly=Math.round(w.y-28-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
+  const lx=Math.round(fxw-9),ly=Math.round(fyw-28),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
   // 떠다니는 먼지
   DUST.forEach(d=>{const x=Math.round(((d.x+t*d.v*6)%IW+IW)%IW),y=Math.round(((d.y-t*d.v*3)%IH+IH)%IH);const dd=Math.hypot(x-lx,y-ly);if(dd<IW*.35){g.globalAlpha=(1-dd/(IW*.35))*.7;g.fillStyle='#fff3d0';g.fillRect(x,y,1,1)}});g.globalAlpha=1;
   // 날아가는 광석 → 창고
