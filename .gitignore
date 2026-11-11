@@ -7,3 +7,4 @@ bal_it*.json
 bal8_it*.json
 calib*.log
 !art/**/*.png
+exports/*.zip
