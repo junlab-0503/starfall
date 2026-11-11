@@ -1,7 +1,7 @@
 /* ═════════ 채굴 장면 (옆에서 본 굴) ═════════
  저해상도 캔버스에 그리고 픽셀 그대로 키운다. 주인공은 왼쪽 암벽을 파고, 굴은 오른쪽 위에서부터 계단처럼 이어진다.
  암벽에 박힌 광석이 다음에 나올 광물이다. */
-const cv=$('scene'),g=cv.getContext('2d');
+const cv=$('scene'),g=cv.getContext('2d'),SCENE_G=g;
 let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
 const STX=24,STY=9; // 굴 한 칸의 가로/세로 이동
 function sceneResize(){fitScene();const el=cv.parentElement,r={width:el.clientWidth,height:el.clientHeight};if(!r.width)return;   // 테두리 안쪽 크기(캔버스가 늘어나 번지지 않게)
@@ -136,7 +136,7 @@ function draw(t){
   // 숯
   const cx=Math.round(w.x+20-camX),cy=Math.round(w.y-STY*0-camY);const catF=full()||S.autoOn&&S.auto>0&&Math.sin(t*.3)>.6?'sleep':(Math.sin(t*2)>.7?'tail':'sit');
   const cs=catSprite(catF);g.drawImage(cs,cx-2,cy-cs.height+1);
-  if(giftReady()){const bx=cx+16,by=cy-7,bb=Math.floor(t*3)%2;g.fillStyle='#c0402a';g.fillRect(bx,by-bb,8,6);g.fillStyle='#ffd23f';g.fillRect(bx+3,by-bb,2,6);g.fillRect(bx,by+2-bb,8,1);g.fillStyle='#ffe9a8';g.fillRect(bx+2,by-2-bb,1,2);g.fillRect(bx+5,by-2-bb,1,2);g.fillStyle='#2a1610';g.fillRect(bx,by+6-bb,8,1)}
+  if(giftReady())floorGift(g,cx+16,cy-7-Math.floor(t*3)%2);
   if(boostOn()&&Math.random()<.5)PARTS.push({x:w.x-4+Math.random()*24,y:w.y-30+Math.random()*24,vx:0,vy:-20,life:.6,c:'#ffe9a8',sz:1,star:Math.random()<.3});
   // 드릴 로봇: 주인공보다 먼저(뒤에), 바닥에 붙여 작게
   if(S.auto>0){const st=!S.autoOn?'off':full()?'full':'on',bs=botSprite(st,Math.floor(A.botPh)%3);const bx=Math.round(w.x-STX/2-2-camX),by=Math.round(w.y-camY-bs.height+2);g.drawImage(bs,bx,by);
@@ -160,10 +160,14 @@ function draw(t){
   g.setTransform(1,0,0,1,0,0);
 }
 const WOOD=['#24140a','#4a2c16','#6e4424','#94603a','#b8844e'];
-function tunnelDetail(L,d,K,st,t){const RR=ramp(st?st.rock:LOOK[L].rock),O='#120a06',cells=[];
+function tunnelDetail(L,d,K,st,t){const RR=ramp(st?st.rock:LOOK[L].rock),cells=[];
   for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;cells.push([i,(x-STX/2)*K,(y-33)*K,y*K])}
   const cw=STX*K,ch=33*K,sy=STY*K;
-  cells.forEach(([i,x0,c0,f0])=>{const R=rng(i*7919+L*31),w=i===d?cw+K:cw;
+  cells.forEach(([i,x0,c0,f0])=>tdCell(g,RR,i,L,d,x0,c0,f0,cw,ch,sy));
+  cells.forEach(([i,x0,c0,f0])=>{if(i%4===1&&i<d)tdSupport(g,x0,c0,f0,cw,ch)});    // 버팀목: 4칸마다
+  cells.forEach(([i,x0,c0,f0])=>{if(i%6===3&&i<d)tdLamp(g,x0,c0,cw,i,t)})}       // 등불: 6칸마다
+// 굴 한 칸(가로 cw · 세로 ch, 화면 픽셀): 천장 그림자 · 매달린 바위 · 발판(밝은 윗면 + 자갈) · 짙은 윤곽 · 계단 턱(sy)
+function tdCell(g,RR,i,L,d,x0,c0,f0,cw,ch,sy){const O='#120a06',R=rng(i*7919+L*31),w=i===d?cw+cw/STX:cw;
     // 천장: 그림자 두 단 + 매달린 바위(3px 단위)
     g.fillStyle='rgba(0,0,0,.42)';g.fillRect(x0,c0,w,6);g.fillStyle='rgba(0,0,0,.2)';g.fillRect(x0,c0+6,w,6);
     for(let k=0;k<w;k+=3){const h=R()<.35?0:2+((R()*3)|0)*2;if(!h)continue;g.fillStyle=RR[1];g.fillRect(x0+k,c0,3,h);g.fillStyle=RR[0];g.fillRect(x0+k,c0+h,3,2)}
@@ -173,17 +177,21 @@ function tunnelDetail(L,d,K,st,t){const RR=ramp(st?st.rock:LOOK[L].rock),O='#120
     // 윤곽: 천장 위 · 발판 아래 · 계단 턱
     g.fillStyle=O;g.fillRect(x0,c0-2,w,2);g.fillRect(x0,f0,w,2);
     const xb=x0+cw;if(i>d-30){g.fillRect(xb-2,c0-sy-2,2,sy+2);g.fillRect(xb,f0-sy,2,sy+2)}
-    if(i===d){g.fillRect(x0-2,c0-2,2,ch+4)}});
-  // 버팀목(4칸마다): 기둥 두 개 + 들보 + 쇠못
-  cells.forEach(([i,x0,c0,f0])=>{if(i%4!==1||i>=d)return;const p=(px)=>{g.fillStyle=WOOD[0];g.fillRect(px-2,c0,10,ch);g.fillStyle=WOOD[2];g.fillRect(px,c0,6,ch);g.fillStyle=WOOD[3];g.fillRect(px,c0,2,ch);g.fillStyle=WOOD[1];for(let yy=c0+10;yy<f0-8;yy+=14)g.fillRect(px+2,yy,4,2)};
-    p(x0+4);p(x0+cw-10);g.fillStyle=WOOD[0];g.fillRect(x0,c0-2,cw,12);g.fillStyle=WOOD[3];g.fillRect(x0+2,c0,cw-4,8);g.fillStyle=WOOD[4];g.fillRect(x0+2,c0,cw-4,2);g.fillStyle=WOOD[2];g.fillRect(x0+2,c0+6,cw-4,2);
-    g.fillStyle='#9aa0a8';[x0+6,x0+cw-8].forEach(bx=>{g.fillRect(bx,c0+3,2,2)})});
-  // 등불(6칸마다): 사슬 + 등 + 은은한 빛
-  cells.forEach(([i,x0,c0,f0])=>{if(i%6!==3||i>=d)return;const lx=x0+cw/2-4,ly=c0+14,fl=.85+.15*Math.sin(t*7+i);
-    const gr=g.createRadialGradient(lx+4,ly+8,2,lx+4,ly+8,34);gr.addColorStop(0,`rgba(255,200,110,${(.32*fl).toFixed(2)})`);gr.addColorStop(1,'rgba(255,200,110,0)');g.fillStyle=gr;g.fillRect(lx-30,ly-26,68,68);
+    if(i===d){g.fillRect(x0-2,c0-2,2,ch+4)}}
+// 버팀목: 나무 기둥 두 개 + 들보 + 쇠못
+// 나무 기둥 하나(가로 10px: 짙은 윤곽 2 + 나무 6 + 윤곽 2, 왼쪽 2px는 밝은 결, 14px마다 옹이)
+function tdPost(g,px,c0,f0,ch){g.fillStyle=WOOD[0];g.fillRect(px-2,c0,10,ch);g.fillStyle=WOOD[2];g.fillRect(px,c0,6,ch);g.fillStyle=WOOD[3];g.fillRect(px,c0,2,ch);g.fillStyle=WOOD[1];for(let yy=c0+10;yy<f0-8;yy+=14)g.fillRect(px+2,yy,4,2)}
+function tdSupport(g,x0,c0,f0,cw,ch){
+    tdPost(g,x0+4,c0,f0,ch);tdPost(g,x0+cw-10,c0,f0,ch);g.fillStyle=WOOD[0];g.fillRect(x0,c0-2,cw,12);g.fillStyle=WOOD[3];g.fillRect(x0+2,c0,cw-4,8);g.fillStyle=WOOD[4];g.fillRect(x0+2,c0,cw-4,2);g.fillStyle=WOOD[2];g.fillRect(x0+2,c0+6,cw-4,2);
+    g.fillStyle='#9aa0a8';[x0+6,x0+cw-8].forEach(bx=>{g.fillRect(bx,c0+3,2,2)})}
+// 등불: 사슬 + 등 + 은은한 빛
+function tdLamp(g,x0,c0,cw,i,t,noGlow){const O='#120a06',lx=x0+cw/2-4,ly=c0+14,fl=.85+.15*Math.sin(t*7+i);
+    if(!noGlow){const gr=g.createRadialGradient(lx+4,ly+8,2,lx+4,ly+8,34);gr.addColorStop(0,`rgba(255,200,110,${(.32*fl).toFixed(2)})`);gr.addColorStop(1,'rgba(255,200,110,0)');g.fillStyle=gr;g.fillRect(lx-30,ly-26,68,68)}
     g.fillStyle='#3a3a40';for(let yy=c0;yy<ly;yy+=4)g.fillRect(lx+3,yy,2,2);g.fillStyle=O;g.fillRect(lx-1,ly-1,10,14);g.fillStyle='#5a3a1e';g.fillRect(lx,ly,8,2);g.fillRect(lx,ly+10,8,2);
-    g.fillStyle='#ffd36a';g.fillRect(lx+1,ly+2,6,8);g.fillStyle='#fff6c8';g.fillRect(lx+3,ly+4,2,4)})}
-function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);
+    g.fillStyle='#ffd36a';g.fillRect(lx+1,ly+2,6,8);g.fillStyle='#fff6c8';g.fillRect(lx+3,ly+4,2,4)}
+// 숯 옆 선물 상자(월드 8×9px)
+function floorGift(g,bx,by){g.fillStyle='#c0402a';g.fillRect(bx,by,8,6);g.fillStyle='#ffd23f';g.fillRect(bx+3,by,2,6);g.fillRect(bx,by+2,8,1);g.fillStyle='#ffe9a8';g.fillRect(bx+2,by-2,1,2);g.fillRect(bx+5,by-2,1,2);g.fillStyle='#2a1610';g.fillRect(bx,by+6,8,1)}
+function decoCell(type,i,x,y,t,gg){const g=gg||SCENE_G,R=rng(i*97+S.layer*7);   // gg: 다른 캔버스에 그릴 때(그림 뽑기)
   if(type==='stalactite'&&R()<.6){g.fillStyle='#d8d4c0';const sx=x-8+Math.floor(R()*16);g.fillRect(sx,y-31,2,3);g.fillRect(sx,y-28,1,2)}
   if(type==='crystal'&&R()<.5){const sx=x-10+Math.floor(R()*20),c=['#c28cf4','#eeeae2'][R()<.5?0:1],a=.6+.4*Math.sin(t*2+i);g.globalAlpha=a;g.fillStyle=c;g.fillRect(sx,y-36,2,3);g.fillRect(sx+1,y-38,1,2);g.globalAlpha=1}
   if(type==='drip'&&R()<.5){const sx=x-8+Math.floor(R()*16),ph=(t*.8+R())%1;g.fillStyle='#7fc4e8';g.fillRect(sx,y-31+Math.floor(ph*30),1,2)}
