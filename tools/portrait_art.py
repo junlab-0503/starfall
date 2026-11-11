@@ -19,6 +19,7 @@ for y0 in rows:
     band=~bg[y0+40:y0+200];boxes+=[(x0,y0) for x0 in runs(band.mean(0),.5)]
 assert len(boxes)==13,boxes
 N=128
+RECOLOR=False   # 사용자 요청: 원래 양피지 배경 그대로
 def grow(seed,allow):
     cur=seed&allow
     while True:
@@ -37,7 +38,7 @@ def newbg(h,w):
 for k,(x0,y0) in zip(KEYS,boxes):
     src=a[y0+19:y0+243,x0+19:x0+243].astype(float)   # 액자 안쪽 그림(정사각, 안쪽 장식선은 빼고)
     ok=np.sqrt(((src-np.array([220,157,95.]))**2).sum(2))<40;sd=np.zeros_like(ok);sd[0]=True;sd[:150,0]=True;sd[:150,-1]=True
-    m=grow(sd,ok);src[m]=newbg(*m.shape)[m]          # 양피지 → 게임 색 배경
+    if RECOLOR:m=grow(sd,ok);src[m]=newbg(*m.shape)[m]          # (끔) 양피지 → 게임 색 배경
     h,w,_=src.shape
     pq=Image.fromarray(src.astype(np.uint8)).quantize(48,method=Image.Quantize.MEDIANCUT)
     pal=np.array(pq.getpalette()[:48*3]).reshape(-1,3).astype(float);idx=np.asarray(pq);luma=pal@[.3,.59,.11]

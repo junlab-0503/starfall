@@ -13,7 +13,7 @@ const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function fresh(){return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
   found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},rq:[],shop:0,ofN:0,ofG:0,prologue:false,
-  clock:0,day:0,pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,mkSub:'pass',
+  clock:0,day:0,pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store'}}
 /* 시계 조작 방지
    게임 시간 = 기기 시계 + 보정값(CLK.off).
@@ -35,7 +35,7 @@ async function syncTime(ms){try{if(!/^https?:$/.test(location.protocol)||/^(loca
   const off=d+age+500-(t0+t1)/2;CLK.srv=off;if(Math.abs(off-CLK.off)>60000){CLK.off=off;clockRebase()}return true}catch(e){return false}}
 let S,BON;
 // 저장 정리: 예전 시제품 저장 지우기, 지금 안 쓰는 필드 · 없어진 광물 · 잘못된 숫자 정리, 옛 이름이 남은 일지·소문 비우기
-const SAVE_VER=3,KEEP_EXTRA=['lost'];
+const SAVE_VER=4,KEEP_EXTRA=['lost'];
 function cleanSave(d){const f=fresh(),S2={};
   for(const k in f)S2[k]=k in d?d[k]:f[k];KEEP_EXTRA.forEach(k=>{if(k in d)S2[k]=d[k]});
   const num=v=>typeof v==='number'&&isFinite(v);for(const k in f)if(typeof f[k]==='number'&&!num(S2[k]))S2[k]=f[k];
@@ -52,7 +52,7 @@ function cleanSave(d){const f=fresh(),S2={};
   if(!['pass','ore'].includes(S2.mkSub))S2.mkSub='pass';
   const up={};for(const k in S2.up||{})if(UPS[k]&&num(S2.up[k])&&S2.up[k]>0)up[k]=Math.min(S2.up[k]|0,UPS[k].max??999);S2.up=up;
   S2.rq=(Array.isArray(S2.rq)?S2.rq:[]).filter(j=>j&&RECIPES[j.r]&&num(j.n)).map(j=>({r:j.r,n:Math.max(0,j.n|0),t:num(j.t)?j.t:0,loop:!!j.loop}));
-  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}S2.log=(S2.log||[]).slice(0,60);
+  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.rq=[];S2.slots=[null,null]}   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움S2.log=(S2.log||[]).slice(0,60);
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
   const raw=localStorage.getItem(SAVE_KEY);if(raw){S=cleanSave(JSON.parse(raw));return true}}catch(e){}S=fresh();return false}
@@ -112,6 +112,6 @@ const successRate=()=>Math.min(.97,.78+Math.min(S.furnace,5)*.04+BON.success);
 const greatRate=()=>Math.min(.35,.06+Math.min(S.furnace,5)*.01+BON.great+ul('great')*.01);
 const pickTier=()=>{let t=0;PICK_TIERS.forEach((p,i)=>{if(S.pick>=p[0])t=i});return t};
 const layerHp=i=>LAYERS[i].hp*BON.rockHp;
-// 서린의 입주 효과(BON.rare): 그 지층 고유 광석 중 드문 것(가중치 25 미만)이 더 잘 나옴
-const dropW=L=>LAYERS[L].drops.map(([id,w])=>[id,ITEMS[id].L===L+1&&w<25?w*BON.rare:w]);
+// 서린의 입주 효과(BON.rare): 그 지층 고유 광석 중 더 귀한 것(값이 비싼 쪽)이 더 잘 나옴
+const dropW=L=>{const own=LAYERS[L].drops.filter(([id])=>ITEMS[id].L===L+1),gem=own.length?own.reduce((a,b)=>ITEMS[a[0]].p>ITEMS[b[0]].p?a:b)[0]:null;return LAYERS[L].drops.map(([id,w])=>[id,id===gem?w*BON.rare:w])};
 function rollDrop(L){const d=dropW(L);let t=d.reduce((s,x)=>s+x[1],0),r=Math.random()*t;for(const x of d){if((r-=x[1])<0)return x[0]}return d[0][0]}

@@ -1,15 +1,11 @@
 """채굴 화면 지층 그림(사용자 원본 art/source/strata/) → 게임용 art/strata/
   r<번호>.webp    : 배경 = 안 판 채굴층 바위 한 장(rock_sheet.webp). 가장자리를 이음매 없이 다듬어(경계선 찾아 잘라 붙이기) 그대로 반복
-  m<번호>_d.webp  : 굴 안쪽 벽 = 판 버전(mid_sheet.webp)의 어두운 계단 안쪽에서 가장 큰 부분
-  d<번호>_t.webp  : 장식 천장 조각(deco_sheet.webp 왼쪽 그림) → 화면 왼쪽 위
-  d<번호>_b.webp  : 장식 바닥 조각(deco_sheet.webp 오른쪽 그림) → 화면 오른쪽 아래
   gold.webp       : 황금 광맥 배경(gold_rock.webp, 금맥이 나타난 동안)
 사용: python3 tools/strata_art.py"""
 from PIL import Image
 import numpy as np
 from collections import Counter
 SRC='art/source/strata/';OUT='art/strata/'
-DECO_SCALE=.6     # 장식 크기(원본 대비). 화면에 1:1로 그림
 def grow(seed,allow):
     cur=seed&allow
     while True:
@@ -76,7 +72,7 @@ for n,(x0,y0,x1,y1) in enumerate([(x0,y0,x1,y1) for (y0,y1) in RY for (x0,x1) in
     a=np.asarray(rock.crop((x0+8,y0+8,x1-8,y1-8)));a=seam_wrap(seam_wrap(a,56,1),48,0)
     save(Image.fromarray(a).quantize(64,method=Image.Quantize.MEDIANCUT).convert('RGB'),f'{OUT}r{n}.webp')
 
-# 2) 굴 안쪽: 판 버전의 어두운 계단 안쪽
+# 1-2) 굴 안쪽(판 자리): 판 버전(mid_sheet.webp)의 어두운 계단 안쪽에서 가장 큰 부분 → m<번호>_d.webp
 mid=Image.open(SRC+'mid_sheet.webp').convert('RGB')
 XS=[(21,360),(378,717),(735,1072),(1091,1429)];YS=[(89,294),(342,547),(595,801),(848,1054)]
 for n,b in enumerate([(x0,y0,x1,y1) for (y0,y1) in YS for (x0,x1) in XS][:13],1):
@@ -85,22 +81,10 @@ for n,b in enumerate([(x0,y0,x1,y1) for (y0,y1) in YS for (x0,x1) in XS][:13],1)
     tx,ty,tw,th=maxrect(box(tun,4)>.999)
     save(art.crop((tx,ty,tx+tw,ty+th)).quantize(32,method=Image.Quantize.MEDIANCUT).convert('RGB'),f'{OUT}m{n}_d.webp')
 
-# 3) 장식: 왼쪽 = 이름표 + 천장 조각, 오른쪽 = 바닥 조각. 왼쪽 단 B01~B07, 오른쪽 단 B08~B13
-deco=np.asarray(Image.open(SRC+'deco_sheet.webp').convert('RGBA'));op=deco[...,3]>100
-for (cx0,cx1),(fx0,fx1),first in (((42,459),(490,728),1),((780,1203),(1245,1500),8)):
-    rows=runs(op[:,cx0:cx1].mean(1),.002,6)
-    for k,(y0,y1) in enumerate(rows):
-        n=first+k
-        cr=runs(op[y0:y1,cx0:cx1+4].mean(0),0,3);x0=cx0+cr[1][0];x1=cx0+cr[-1][1]        # 첫 덩어리 = 이름표 → 건너뜀
-        fr=runs(op[:,fx0:fx1].mean(1),.002,6);fy0,fy1=min(fr,key=lambda r:abs((r[0]+r[1])/2-(y0+y1)/2))
-        for part,(a0,a1,b0,b1) in (('t',(x0,x1,y0,y1)),('b',(fx0,fx1,fy0,fy1))):
-            sub=deco[b0:b1,a0:a1];m=sub[...,3]>100;ys,xs=np.where(m);sub=sub[ys.min():ys.max()+1,xs.min():xs.max()+1]
-            H,W=sub.shape[:2];res=pixelate(sub,round(W*DECO_SCALE),round(H*DECO_SCALE))
-            save(Image.fromarray(res),f'{OUT}d{n}_{part}.webp');print(n,part,res.shape[1],res.shape[0])
-
-# 4) 황금 광맥: 안 판 금맥 바위(gold_rock.webp) → 다른 지층 바위와 비슷한 크기로 줄이고 이음매 없이 → gold.webp
+# 2) 황금 광맥: 안 판 금맥 바위(gold_rock.webp) → 다른 지층 바위와 비슷한 크기로 줄이고 이음매 없이 → gold.webp
 gr=np.asarray(Image.open(SRC+'gold_rock.webp').convert('RGBA'));ys,xs=np.where(gr[...,3]>200)
 y0,y1,x0,x1=ys.min()+70,ys.max()-70,xs.min()+70,xs.max()-70;sub=gr[y0:y1,x0:x1]
 H,W=sub.shape[:2];f=3.0;res=pixelate(sub,round(W/f),round(H/f))[...,:3]
 res=seam_wrap(seam_wrap(res,40,1),32,0)
 save(Image.fromarray(res).quantize(64,method=Image.Quantize.MEDIANCUT).convert('RGB'),f'{OUT}gold.webp');print('gold',res.shape[1],res.shape[0])
+

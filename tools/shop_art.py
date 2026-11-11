@@ -61,4 +61,4 @@ def backgrounds():
         g=a@[.3,.59,.11];a=g[...,None]+(a-g[...,None])*.8;a=a*.76;a[...,0]*=1.04*tint[0];a[...,1]*=tint[1];a[...,2]*=.9*tint[2]
         sm=Image.fromarray(a.clip(0,255).astype(np.uint8)).quantize(64,method=Image.Quantize.MEDIANCUT)
         sm.save(OUT+'bg_'+k+'.png',optimize=True);print('bg',k,sm.size,'mid',mw)
-people();backgrounds()
+backgrounds()   # 사람은 이제 tools/sprite_art.py(새 그림 shop_emoji.webp)에서 만듦. 옛 사람 그림이 필요하면 people()

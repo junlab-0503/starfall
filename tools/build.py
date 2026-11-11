@@ -10,7 +10,7 @@ js=''.join(open(os.path.join(SRC,f),encoding='utf-8').read()+'\n' for f in FILES
 #   art/portraits/<입주자>.png(탭 카드 초상화), art/hero/hero.png(주인공), art/shop/<가게>.png · bg_<가게>.png(장비 탭 사람 · 배경 → ART.shop_…),
 #   art/strata/*.webp(채굴 화면 지층 → ART.strata_…), art/scene/*.webp(시작 화면 · 광맥 입구 → ART.scene_…)
 art={}
-for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_'),('strata','strata_'),('scene','scene_')):
+for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_'),('strata','strata_'),('scene','scene_'),('sprites','spr_'),('ui','ui_')):
     d_=os.path.join(R,'art',sub_)
     if os.path.isdir(d_):
         for f in sorted(os.listdir(d_)):

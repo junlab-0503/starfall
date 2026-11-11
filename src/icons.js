@@ -123,19 +123,12 @@ const ICON_DEF={
   stone:c=>ICON_SH.rock(c),
   clay:c=>{c.add(T3(mRock(c.seed,{rings:5,segs:9,j:.07,flat:.45}),{sx:1.05,sy:.62,sz:.9,y:-.2}),MAT.rock(c.it.c,{sp:.5,ex:5,dk:.06,lt:.03}));
     c.add(T3(mRock(c.seed+2,{rings:4,segs:7,j:.08,flat:.4}),{s:.38,x:.75,y:-.45,z:.4}),MAT.rock(c.it.c,{sp:.5,ex:5,dk:.06,lt:.03}))},
-  kaolin:c=>ICON_DEF.clay(c),
-  flint:c=>{c.add(T3(mRock(c.seed,{rings:3,segs:6,j:.28,flat:.5}),{sx:1.1,sy:.75,sz:.8,ry:.4}),MAT.rock(c.it.c,{sp:.9,ex:9,hi:'#c8d2e8',tex:(x,y,i,col,R)=>(Math.floor(Math.hypot(x-10*c.u,y-9*c.u)/(2.2*c.u))%2?R[Math.min(4,i+1)]:col)}))},
   obsidian:c=>{const m=MAT.glass(c.it.c,{ex:24,tex:(x,y,i,col,R)=>(Math.floor((x+y*1.4)/(3*c.u))%3===0&&i<4?R[i+1]:col)});
     c.add(T3(mPrism(5,.44,1.15,{rt:.3,tip:.5,tipB:.3}),{rz:-.55,ry:.4,y:-.45,x:.1}),m);c.add(T3(mPrism(4,.26,.55,{tip:.35,tipB:.15}),{rz:.7,x:-.55,y:-.55,z:.3}),m)},
-  granite:c=>ICON_SH.rock(c,c.it.c,{tex:(x,y,i,col,R)=>{const h=H32(x,y,5);return h<.12?'#2a2428':h<.2?'#f6ece4':h<.3?'#e09a8a':h<.36?R[Math.max(0,i-1)]:col}}),
   limestone:c=>{c.add(T3(mRock(c.seed,{rings:3,segs:5,j:.12,flat:.55}),{sx:1.1,sy:.82,sz:.9,ry:.6}),MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>(y/c.u|0)%5===0?R[Math.max(0,i-1)]:H32(x,y)<.05?R[Math.max(0,i-1)]:col}))},
-  basalt:c=>{const m=MAT.flat(c.it.c,{b:.2,tex:(x,y,i,col,R)=>H32(x,y)<.08?R[Math.max(0,i-1)]:col});[[-.42,.12,1.05],[.42,.18,.82],[0,-.42,1.3],[.05,.6,.7]].forEach(([x,z,h],k)=>c.add(T3(mPrism(6,.42,h,{rot:.3}),{x,z,y:-.75}),m))},
   coal:c=>{const m=MAT.rock(c.it.c,{sp:1,ex:6,hi:'#b8c8e8',dk:.05,lt:.05});c.add(T3(mRock(c.seed,{rings:3,segs:6,j:.3,flat:.5}),{sx:.9,sy:.75,sz:.8,x:-.18,y:-.05}),m);c.add(T3(mRock(c.seed+3,{rings:3,segs:5,j:.3,flat:.5}),{s:.5,x:.62,y:-.4,z:.35}),m)},
   slag:c=>{c.add(T3(mRock(c.seed,{rings:4,segs:7,j:.22,flat:.5}),{sx:1,sy:.72,sz:.85}),MAT.rock(c.it.c,{sp:.6,ex:8,tex:(x,y,i,col,R)=>{const cx=Math.floor(x/(4*c.u)),cy=Math.floor(y/(4*c.u)),h=H32(cx,cy,2);return h<.35&&Math.hypot(x/(4*c.u)-cx-.5,y/(4*c.u)-cy-.5)<.28?'#1a1612':col}}))},
   /* ── 결정·입방 ── */
-  halite:c=>{const m=MAT.glass(c.it.c,{ex:10,sp:.7,b:.3});[[0,0,.6,0],[-.55,.3,.45,.5],[.5,.35,.4,.9]].forEach(([x,z,s,r],k)=>c.add(T3(mBox(s*1.4,s*1.4,s*1.4),{ry:r+.3,x,z,y:-.7+(k?0:.05)}),m))},
-  calcite:c=>{const m=MAT.glass(c.it.c,{ex:12,sp:.8,b:.2});c.add(T3(mBox(1.15,1.05,.9),{sh:.42,ry:.5,y:-.6,x:-.2}),m);c.add(T3(mBox(.5,.45,.4),{sh:.3,ry:.3,x:.7,y:-.62,z:.4}),m)},
-  pyrite:c=>{const m=MAT.metal(c.it.c,{tex:(x,y,i,col,R)=>((x+y)/c.u|0)%3===0&&i>0?R[i-1]:col});[[-.15,0,.75,.4,.1],[.55,.3,.5,1.1,-.05],[-.6,.45,.42,.7,0]].forEach(([x,z,s,r,yy])=>c.add(T3(mBox(s*1.2,s*1.2,s*1.2),{ry:r,rx:.15,x,z,y:-.7+yy}),m))},
   quartz:c=>ICON_SH.cluster(c,[[0,0,.27,1.05,0],[-.4,.1,.22,.75,.45],[.38,.15,.2,.65,-.5],[.12,.42,.15,.45,-.2],[-.15,-.3,.17,.55,.15]]),
   amethyst:c=>ICON_SH.cluster(c,[[0,.05,.3,.75,0],[-.42,.15,.27,.55,.45],[.42,.15,.26,.5,-.45],[-.12,.45,.22,.4,.2],[.2,-.3,.24,.6,-.12]]),
   emerald:c=>ICON_SH.cluster(c,[[.05,0,.3,1.05,-.1,0,6,0],[-.45,.15,.25,.7,.42,0,6,0],[.48,.2,.22,.6,-.5,0,6,0],[-.1,.45,.17,.42,.15,0,6,0]]),
@@ -143,36 +136,23 @@ const ICON_DEF={
   sapphire:c=>ICON_SH.cluster(c,[[0,0,.28,.75,0,0,6,.45,.2],[-.45,.2,.22,.55,.45,0,6,.35,.16],[.45,.2,.2,.5,-.45,0,6,.3,.15]]),
   diamond:c=>{c.add(T3(mRock(c.seed,{rings:3,segs:7,j:.22,flat:.3}),{sx:1.12,sy:.4,sz:.85,y:-.62}),MAT.rock(c.it.h||'#2a2a30',{dk:.18}));const m=MAT.gem(c.it.c,{b:.4,jit:1.6,R:['#5a6a80','#8aa0b8','#c8d8e8','#eef6ff','#ffffff']});
     [[0,-.05,.1,.55,.3],[-.62,-.3,.35,.34,.6],[.62,-.32,.32,.3,-.2]].forEach(([x,y,z,r,a])=>c.add(T3(mPrism(4,r,.01,{tip:r*1.05,tipB:r*1.05}),{ry:a,rz:a*.5,x,y,z}),m));c.fx.push(pb=>{for(let i=0;i<6;i++){const x=(8+H32(i,1)*16)*c.u,y=(8+H32(i,2)*12)*c.u;if(pb.get(x|0,y|0))pb.set(x,y,['#ff9ac8','#9affd8','#9ad0ff','#fff09a'][i%4])}})},
-  darkcrystal:c=>{c.gemo={sp:1.3,ex:12};ICON_SH.cluster(c,[[0,0,.26,1.15,0],[-.42,.12,.22,.8,.4],[.4,.18,.2,.7,-.45],[.12,.45,.15,.5,-.15]])},
-  sulfur:c=>{c.add(T3(mRock(c.seed,{rings:3,segs:7,j:.22,flat:.3}),{sx:1.1,sy:.45,sz:.85,y:-.5}),MAT.rock('#7a7468',{}));const m=MAT.gem(c.it.c,{jit:.8,sp:.6});
-    [[0,0,.26,.45],[-.45,.15,.2,.35],[.42,.1,.22,.38],[-.1,.45,.17,.3],[.3,-.3,.15,.28],[-.35,-.25,.14,.25]].forEach(([x,z,r,t],k)=>c.add(T3(mPrism(4,r,.08,{tip:t,tipB:t*.6}),{ry:k,rz:(k%3-1)*.35,x,z,y:-.35}),m))},
-  olivine:c=>{[[-.45,-.1,.4],[.35,-.15,.42],[0,.35,.36],[-.1,-.5,.3],[.62,.35,.28],[-.65,.4,.26],[.25,.6,.24]].forEach(([x,y,s],k)=>c.add(T3(mRock(c.seed+k,{rings:3,segs:6,j:.15,flat:1}),{s,x,y:y*.8-.1,z:-y*.3}),MAT.gem(shade(c.it.c,(k%3-1)*.12),{jit:.6,sp:.8})))},
   garnet:c=>{ICON_SH.rock(c,'#8a8478',{pebble:false,tex:(x,y,i,col,R)=>H32(x,y,4)<.08?'#d8d0e0':col});[[-.35,.35,.55,.36],[.42,.45,.4,.3],[.05,-.1,.85,.26]].forEach(([x,y,z,s],k)=>c.add(T3(mRock(c.seed+k*5,{rings:3,segs:6,j:0,flat:1}),{s,x,y,z,ry:k}),MAT.gem(c.it.c,{jit:1})))},
   lapis:c=>ICON_SH.rock(c,c.it.c,{tex:(x,y,i,col,R)=>{const h=H32(x,y,6);return h<.07?'#ffd84d':h<.1?'#fff6b0':Math.abs(((x*.6+y)/c.u)%11-5)<.6?'#dfe6f0':h<.2?R[Math.max(0,i-1)]:col}}),
-  fossil:c=>{c.add(T3(mRock(c.seed,{rings:4,segs:9,j:.06,flat:.4}),{sx:1.05,sy:.42,sz:1,rx:1.05,y:-.05}),MAT.rock(c.it.c,{dk:.06,lt:.04,jit:.3}));
-    c.fx0.push(pb=>{const cx=16*c.u,cy=16.5*c.u;let a=0,r=9;for(let i=0;i<150;i++){a+=.1;r*=.991;const x=cx+Math.cos(a)*r*c.u,y=cy+Math.sin(a)*r*.86*c.u;if(pb.get(x|0,y|0))pb.set(x,y,shade(c.it.c,-.5));if(i%5===0){const x2=cx+Math.cos(a)*(r-2)*c.u,y2=cy+Math.sin(a)*(r-2)*.86*c.u;if(pb.get(x2|0,y2|0))pb.set(x2,y2,shade(c.it.c,-.32))}}})},
   /* ── 광석 ── */
   stariron:c=>{ICON_SH.rock(c,c.it.h,{pebble:false,tex:(x,y,i,col,R)=>{const v=Math.abs(Math.sin(x*.55/c.u+y*.3/c.u)+Math.sin(y*.5/c.u-x*.2/c.u));return v<.22?'#bfe8ff':v<.4?'#5a8ad8':H32(x,y)<.06?'#ffffff':col}});ICON_SH.glow(c,'rgba(150,210,255,A)',2);SPARK_IN(c,[[11,10,2],[22,16]])},
   meteoriron:c=>{c.add(T3(mRock(c.seed,{rings:4,segs:7,j:.22,flat:.5}),{sx:1.05,sy:.8,sz:.9}),MAT.metal(c.it.c,{sp:.7,ex:10,tex:(x,y,i,col,R)=>{const cx=Math.floor(x/(5*c.u)),cy=Math.floor(y/(5*c.u));return Math.hypot(x/(5*c.u)-cx-.5,y/(5*c.u)-cy-.5)<.3&&H32(cx,cy)<.6?R[Math.max(0,i-1)]:col}}))},
   voidstone:c=>{c.add(T3(mRock(c.seed,{rings:4,segs:8,j:.12,flat:.5}),{sx:1.02,sy:.82,sz:.92}),{R:['#05061a','#0b1238','#16205a','#2a3a88','#4a62c8'],sp:.5,ex:8,hi:'#8aa8ff',tex:(x,y,i,col)=>{const h=H32(x,y,9);return h<.035?'#ffffff':h<.06?'#ffe9a8':h>.93?'#5a3a9a':col}});ICON_SH.glow(c,'rgba(90,110,230,A)',2)},
   abysspearl:c=>{c.add(T3(mRock(c.seed,{rings:3,segs:8,j:.15,flat:.3}),{sx:1.05,sy:.4,sz:.85,y:-.55}),MAT.rock('#6a6070',{}));const pm=s=>({R:['#8a90a8','#b8c0d6',c.it.c,'#f4f8ff','#ffffff'],sp:1,ex:8,hi:'#fff0f8',tex:(x,y,i,col)=>H32(x,y,8)<.06&&i<4?['#ffd6ec','#d6f0ff'][x&1]:col});
     [[-.38,-.05,.42,.42],[.38,.0,.38,.38],[0,.0,-.3,.4]].forEach(([x,y,z,s])=>c.add(T3(mLathe(sphereProf(1,7),12),{s,x,y,z}),pm(s)))},
-  opal:c=>{ICON_SH.rock(c,'#8a6a4a',{pebble:false,tex:(x,y,i,col)=>{const v=Math.sin(x*.7/c.u)+Math.cos(y*.6/c.u+x*.2/c.u);return v>1.1?['#ff8ac8','#8affd0','#8ac8ff','#ffe08a','#c09aff'][(H32(x>>1,y>>1)*5)|0]:col}})},
   /* ── 별의 물질 ── */
   starshard:c=>{const m={R:['#8a5a1a','#d29a3a','#ffd36a','#fff0b8','#ffffff'],sp:1,ex:20,jit:1.3};c.add(T3(mPrism(6,.42,.95,{tip:.62,tipB:.5,rt:.36}),{rz:-.55,ry:.7,y:-.42,x:.08}),m);
     c.add(T3(mPrism(5,.22,.35,{tip:.35,tipB:.2}),{rz:.75,ry:.3,x:-.62,y:-.62,z:.3}),m);c.add(T3(mPrism(5,.18,.3,{tip:.3,tipB:.15}),{rz:-1.2,x:.72,y:-.72,z:.35}),m);
     ICON_SH.glow(c,'rgba(255,225,140,A)',3);SPARK_IN(c,[[17,14,3],[7,8,1],[26,8,1]])},
   stardust:c=>{c.add(T3(mLathe([[.5,-.95],[.62,-.8],[.64,.2],[.4,.4],[.32,.55]],12),{y:-.02}),{...MAT.glass('#e8f0ff',{ex:18}),tex:(x,y,i,col,R)=>{if(y/c.u<15.5)return col;const h=H32(x,y,3);return h<.18?'#ffffff':h<.45?'#ffd86a':h<.7?'#ffc040':'#e8a030'}});
     c.add(T3(mLathe([[.34,.5],[.36,.85]],10),{y:-.02}),MAT.rock('#a87a4a',{}));ICON_SH.glow(c,'rgba(255,236,170,A)',2);SPARK_IN(c,[[8,9,2],[25,12,1],[23,4,1],[6,21,1]])},
-  starember:c=>{c.add(T3(mRock(c.seed,{rings:4,segs:7,j:.22,flat:.5}),{sx:1.02,sy:.8,sz:.9}),{R:['#1a0c0a','#2e1612','#4a2018','#6a3020','#8a4428'],tex:(x,y,i,col)=>{const v=Math.abs(Math.sin(x*.62/c.u+Math.sin(y*.4/c.u)*2)+Math.cos(y*.7/c.u-x*.15/c.u));return v<.16?'#fff2b0':v<.34?'#ffb84a':v<.5?'#e2581e':col}});ICON_SH.glow(c,'rgba(255,140,60,A)',2)},
   /* ── 재련: 돌·건축 ── */
   brick:c=>{c.add(T3(mBox(1.5,.95,1.05),{ry:-.55,y:-.62}),MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>H32(x,y,2)<.1?R[Math.max(0,i-1)]:(H32(x>>1,y,4)<.05?R[Math.min(4,i+1)]:col)}))},
   tile:c=>{const m=MAT.rock(c.it.c,{dk:.12,lt:.05});[[-.48,-.72,0],[.5,-.72,.05],[0,-.18,.02]].forEach(([x,y,z])=>c.add(T3(mBox(.92,.5,.62),{ry:-.5,x,y,z}),m))},
-  basalttile:c=>{const m=MAT.rock(c.it.c,{b:.3,dk:.06});[[0,-.72,.2],[.05,-.48,-.15],[-.05,-.24,.45]].forEach(([x,y,r])=>c.add(T3(mPrism(6,.92,.2,{rot:r}),{x,y,sx:1,sz:.95}),m))},
-  whetstone:c=>{c.add(T3(mBox(1.75,.38,.75),{ry:-.5,y:-.58}),MAT.rock('#5a5a66',{}));c.add(T3(mBox(1.75,.34,.75),{ry:-.5,y:-.2}),MAT.rock('#b8a890',{dk:.08,lt:.04}))},
-  pillar:c=>{const m=MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>{const h=H32(x,y,5);return h<.08?'#3a3034':h<.14?'#f4e8e0':col}});c.add(T3(mPrism(8,.72,.26,{rot:.2}),{y:-1.02}),m);c.add(T3(mPrism(8,.46,1.45,{rot:.2}),{y:-.78}),m);c.add(T3(mPrism(8,.72,.26,{rot:.2}),{y:.66}),m)},
-  porcelain:c=>c.add(T3(mLathe([[.32,-.95],[.62,-.78],[.86,-.4],[.9,0],[.78,.4],[.5,.62],[.34,.68],[.36,.84]],14),{y:.05}),{R:['#6a7088','#a4aabc','#d6d8dc','#f4f1e8','#ffffff'],sp:.9,ex:14}),
-  bluechina:c=>{c.add(T3(mLathe([[.3,-.95],[.42,-.8],[.72,-.45],[.8,-.05],[.62,.32],[.3,.55],[.26,.75],[.36,.9]],14),{y:.02}),MAT.glass(c.it.c,{sp:.8,ex:10,tex:(x,y,i,col)=>{const yy=y/c.u;return(yy>13&&yy<15)||(yy>23.5&&yy<25)?'#2f57c8':(yy>16&&yy<22&&H32(x>>1,y>>1,7)<.3)?'#4a74d8':col}}))},
   /* ── 재련: 금속 ── */
   bronze:c=>ICON_SH.ingot(c),
   steel:c=>ICON_SH.ingot(c),
@@ -183,54 +163,28 @@ const ICON_DEF={
   crysteel:c=>{ICON_SH.ingot(c,{tex:(x,y,i,col,R)=>((x-y)/c.u|0)%5===0&&i<4?R[i+1]:col})},
   voidalloy:c=>{ICON_SH.ingot(c,{tex:(x,y,i,col)=>H32(x,y,9)<.05?'#ffffff':col})},
   starsteel:c=>{ICON_SH.ingot(c);ICON_SH.glow(c,'rgba(190,225,255,A)',2);SPARK_IN(c,[[10,13,2]])},
-  meteorbar:c=>ICON_SH.ingot(c,{tex:(x,y,i,col,R)=>(((x+y)/c.u|0)%4===0||((x-y)/c.u|0)%5===0)&&i>0?R[i-1]:col}),
   wire:c=>{c.add(T3(mLathe([[.95,-.85],[.95,-.68],[.55,-.68],[.55,.5],[.95,.5],[.95,.67]],14),{y:.05,rx:.1}),MAT.rock('#8a5a34',{dk:.05}));
     c.add(T3(mLathe([[.82,-.66],[.86,-.4],[.86,.2],[.82,.48]],14),{y:.05,rx:.1}),MAT.metal(c.it.c,{zb:.01,tex:(x,y,i,col,R)=>(y/c.u|0)%2===0&&i>0?R[i-1]:col}))},
-  goldwire:c=>{ICON_DEF.wire(c);c.fx0.push(pb=>{for(let i=0;i<9;i++){const x=(24+i*.7)*c.u,y=(16+Math.sin(i*.8)*3+i*1.2)*c.u;pb.set(x,y,shade(c.it.c,.2))}})},
   gear:c=>c.fx0.push(pb=>gear2D(pb,c.u,{cx:15.5,cy:15,R:13.5,col:c.it.c,T:3})),
-  engine:c=>{c.fx0.push(pb=>{gear2D(pb,c.u,{cx:22.5,cy:9.5,R:8,n:7,col:'#b8ccd8',T:2,spokes:0,rot:.3});gear2D(pb,c.u,{cx:13,cy:18,R:12,col:c.it.c,T:3})});
-    c.fx.push(pb=>{const C='#e8ecf4',D='#6a6e7a';[[24,27],[25,27],[26,27],[25,26],[25,28]].forEach(([x,y])=>pb.set(x*c.u,y*c.u,C));[[22,25],[23,26],[28,25],[27,26],[22,29],[23,28],[28,29],[27,28]].forEach(([x,y])=>pb.set(x*c.u,y*c.u,D))})},
-  drillbit:c=>{c.add(T3(mLathe([[0,-1.2],[.2,-.92],[.38,-.35],[.44,.15],[.44,.32],[.2,.38],[.2,.95]],12),{rz:-.75,x:.1,y:.05}),MAT.metal(c.it.c,{tex:(x,y,i,col,R)=>(((x*.9-y)/c.u|0)%4===0)&&i>0?R[i-1]:col}));SPARK_IN(c,[[25,25,2]])},
-  charge:c=>{const m=MAT.rock(c.it.c,{sp:.4,ex:6,dk:.04,lt:.02});[[-.45,.1],[.45,.1],[0,-.25]].forEach(([x,z])=>c.add(T3(mPrism(10,.36,1.45),{x,z,y:-.85,rx:.05}),m));
-    c.add(T3(mPrism(14,1.05,.22,{}),{y:-.2,sx:1,sz:.72}),MAT.rock('#3b332a',{zb:-.01}));c.fx.push(pb=>{for(let i=0;i<8;i++)pb.set((16+i*.8)*c.u,(5-i*.4+Math.sin(i)*.8)*c.u,'#8a7a5a');fxSpark(pb,23*c.u,2*c.u,1,'#fff6c8','#ffd34d')})},
   /* ── 재련: 가루·통·병 ── */
   coke:c=>{const m=MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>H32(x>>1,y>>1,3)<.22?'#24201c':col});c.add(T3(mRock(c.seed,{rings:3,segs:6,j:.3,flat:.5}),{sx:.85,sy:.7,sz:.8,x:-.25}),m);c.add(T3(mRock(c.seed+4,{rings:3,segs:6,j:.3,flat:.5}),{s:.55,x:.55,y:-.32,z:.3}),m)},
   lime:c=>{const m=MAT.rock(c.it.c,{dk:.1,lt:.02,b:-.2});[[-.4,-.25,.0,.5],[.42,-.3,.1,.44],[0,.05,-.35,.48],[.05,-.55,.45,.32]].forEach(([x,y,z,s],k)=>c.add(T3(mRock(c.seed+k*3,{rings:3,segs:6,j:.22,flat:.6}),{s,x,y,z}),m))},
   polish:c=>ICON_SH.powder(c,c.it.c,'#c8c0d8'),
-  powder:c=>{c.add(T3(mLathe([[.62,-.95],[.78,-.6],[.82,0],[.78,.55],[.62,.85]],12),{y:.05}),MAT.rock('#8a5a34',{tex:(x,y,i,col,R)=>{const yy=y/c.u;return(yy>9&&yy<11)||(yy>21&&yy<23)?'#4a4448':col}}));
-    c.fx0.push(pb=>{for(let i=0;i<14;i++){const x=(21+H32(i,4)*8)*c.u,y=(26+H32(i,5)*3)*c.u;pb.set(x,y,'#2a2624')}})},
-  mortar:c=>{c.add(T3(mLathe([[.66,-.95],[.92,.45]],14),{y:-.05}),MAT.rock('#8a5a34',{tex:(x,y,i,col,R)=>{const yy=y/c.u;return(yy>12&&yy<14)||(yy>23&&yy<25)?'#6a6a74':col}}));c.add(T3(mLathe([[.88,0],[.6,.14],[0,.2]],14),{y:.38}),MAT.rock(c.it.c,{dk:.08}))},
   ultramarine:c=>{c.add(T3(mLathe([[.7,-.9],[.78,-.75],[.78,.2],[.6,.4],[.58,.52]],12),{}),MAT.glass(c.it.c,{ex:16,b:-.2,tex:(x,y,i,col,R)=>H32(x,y,2)<.12?R[Math.max(0,i-1)]:col}));c.add(T3(mLathe([[.6,.5],[.64,.85]],12),{}),MAT.rock('#a87a4a',{}))},
-  astralink:c=>{c.add(T3(mLathe([[.85,-.9],[.92,-.55],[.88,-.1],[.4,.2],[.28,.45],[.32,.62]],12),{}),{...MAT.glass(c.it.c,{ex:16}),tex:(x,y,i,col)=>H32(x,y,4)<.06?'#ffffff':col});c.add(T3(mLathe([[.22,.6],[.24,.92]],8),{}),MAT.rock('#4a3a6a',{}));ICON_SH.glow(c,'rgba(201,184,255,A)',2);SPARK_IN(c,[[12,20,1],[19,24,1]])},
   /* ── 재련: 렌즈·유리 ── */
-  lens:c=>{c.add(T3(mBox(.22,1.05,.22),{rz:.75,x:.62,y:-.95,z:.2}),MAT.rock('#8a5a34',{}));c.add(T3(mPrism(18,.8,.14),{rx:-1.15,ry:.2,x:-.2,y:.18}),MAT.metal('#d6aa52',{ex:12}));
-    c.add(T3(mPrism(18,.62,.16),{rx:-1.15,ry:.2,x:-.2,y:.2,z:.02}),{...MAT.glass('#a8dcf0',{ex:14,b:.2}),zb:.05,noEdge:true});c.fx.push(pb=>{pb.line(8*c.u,11*c.u,11*c.u,7*c.u,'#ffffff');pb.line(10*c.u,14*c.u,15*c.u,8*c.u,'rgba(255,255,255,.7)')})},
-  shadowlens:c=>{c.add(T3(mPrism(18,.92,.16),{rx:-1.15,ry:.2,y:-.05}),MAT.metal('#b8c0d0',{ex:12}));c.add(T3(mPrism(18,.74,.18),{rx:-1.15,ry:.2,y:-.03,z:.02}),{...MAT.glass(c.it.c,{ex:14}),zb:.05});ICON_SH.glow(c,'rgba(140,90,210,A)',2)},
   glass:c=>{c.add(T3(mBox(1.5,1.6,.14),{ry:-.6,rz:.08,y:-.85}),MAT.glass(c.it.c,{b:.2,tex:(x,y,i,col)=>{const v=(x+y)/c.u;return(v>26&&v<27.5)||(v>30&&v<31)?'#ffffff':col}}))},
-  lavaglass:c=>{c.add(T3(mRock(c.seed,{rings:3,segs:6,j:.25,flat:.5}),{sx:1.05,sy:.85,sz:.85}),{...MAT.glass(c.it.c,{ex:12,b:.3}),tex:(x,y,i,col)=>H32(x,y,3)<.05?'#fff0c8':col});ICON_SH.glow(c,'rgba(255,122,61,A)',1)},
-  starglass:c=>{c.add(T3(mBox(1.5,1.6,.14),{ry:-.6,rz:.08,y:-.85}),MAT.glass(c.it.c,{b:.3,tex:(x,y,i,col)=>{const h=H32(x,y,5);return h<.06?'#ffffff':h<.1?'#ffd86a':col}}));ICON_SH.glow(c,'rgba(255,236,170,A)',2);SPARK_IN(c,[[13,13,2]])},
   /* ── 재련: 보석 ── */
-  pquartz:c=>{const m=MAT.gem(c.it.c,{b:.5,R:['#6a7488','#a0acc0','#d4dce8','#f2f6fc','#ffffff']});c.add(T3(mPrism(6,.36,.85,{tip:.5}),{rz:.15,x:-.2,y:-1}),m);c.add(T3(mPrism(6,.26,.55,{tip:.38}),{rz:-.45,x:.48,y:-.95,z:.2}),m);SPARK_IN(c,[[12,7,2]])},
   resonant:c=>{c.add(T3(mPrism(6,.38,.95,{tip:.5}),{rz:.18,x:-.25,y:-.95}),MAT.gem(c.it.c,{}));c.fx.push(pb=>{[[4,0],[7,.7]].forEach(([r,o])=>{for(let a=-.9;a<=.9;a+=.12){pb.set((21+o+Math.cos(a)*r)*c.u,(16+Math.sin(a)*r)*c.u,'rgba(220,190,255,.85)')}})})},
-  cutame:c=>ICON_SH.gem(c,'pear'),
   cutemerald:c=>ICON_SH.gem(c,'step',{out:OCT(.72,.9,.24)}),
   cutruby:c=>ICON_SH.gem(c,'oval',{spin:1.3}),
   cutsapph:c=>ICON_SH.gem(c,'cushion'),
   cutdiamond:c=>{c.gemo={b:.4,jit:2,R:['#4a5a78','#8aa0c0','#cfe0f0','#f0f8ff','#ffffff']};ICON_SH.gem(c,'round');c.fx.push(pb=>{for(let i=0;i<7;i++){const x=(9+H32(i,1)*14)*c.u,y=(8+H32(i,2)*16)*c.u;if(pb.get(x|0,y|0))pb.set(x,y,['#ff9ac8','#9affd8','#9ad0ff','#fff09a'][i%4])}})},
-  peridot:c=>ICON_SH.gem(c,'step',{out:OCT(.85,.85,.3),s:1}),
   cutgarnet:c=>ICON_SH.gem(c,'round',{s:.96}),
-  crown:c=>{ICON_SH.gem(c,'cushion',{s:1.14});SPARK_IN(c,[[25,21,1]])},
-  emberheart:c=>{c.gemo={tex:(x,y,i,col)=>H32(x,y,2)<.1?'#fff0a0':col};ICON_SH.gem(c,'oval',{spin:1.2});ICON_SH.glow(c,'rgba(255,180,90,A)',1)},
   moonstone:c=>{ICON_SH.cabo(c,{tex:(x,y,i,col)=>{const d=Math.hypot(x-12*c.u,y-14*c.u)/c.u;return d<4.5?'#a8c8ff':d<6.5&&i>1?'#d6e4ff':col}});ICON_SH.glow(c,'rgba(170,200,255,A)',1)},
-  cutopal:c=>ICON_SH.cabo(c,{tex:(x,y,i,col)=>{const v=Math.sin(x*.8/c.u)+Math.cos(y*.7/c.u+x*.3/c.u);return v>.7?['#ff8ac8','#8affd0','#8ac8ff','#ffe08a','#c09aff'][(H32(x>>1,y>>1)*5)|0]:col}}),
-  carving:c=>{c.fx0.push(pb=>{for(let a=3.5;a<=5.95;a+=.05)pb.set((16+Math.cos(a)*9)*c.u,(14+Math.sin(a)*9)*c.u,'#6a4a2a')});c.add(T3(mLathe([[1,0],[.98,.12],[.6,.2],[0,.22]],16),{rx:1.15,s:.7,y:-.3}),MAT.rock(c.it.c,{dk:.04,jit:.2}));
-    c.fx.push(pb=>{const cx=16*c.u,cy=20.5*c.u;let a=0,r=6.2;for(let i=0;i<95;i++){a+=.14;r*=.985;const x=cx+Math.cos(a)*r*c.u,y=cy+Math.sin(a)*r*.85*c.u;if(pb.get(x|0,y|0))pb.set(x,y,shade(c.it.c,-.48))}})},
   /* ── 구슬·등불 ── */
   starcore:c=>{c.add(T3(mLathe(sphereProf(1,7),14),{s:.72,y:-.05}),{R:['#2a5aa8','#4a8ae0',c.it.c,'#c8ecff','#ffffff'],sp:.9,ex:10,b:.4});ICON_SH.glow(c,'rgba(124,200,255,A)',3);SPARK_IN(c,[[16,16,3]])},
-  lavaheart:c=>{c.add(T3(mLathe(sphereProf(1,7),14),{s:.74,y:-.05}),{R:['#1a0c0a','#3a1610','#5a2216','#7a3420','#a04a2a'],tex:(x,y,i,col)=>{const v=Math.abs(Math.sin(x*.7/c.u+Math.sin(y*.5/c.u)*2)+Math.cos(y*.8/c.u));return v<.2?'#fff2b0':v<.42?'#ffa040':v<.6?'#e2501e':col}});ICON_SH.glow(c,'rgba(255,110,40,A)',2)},
   philo:c=>{c.gemo={b:.1,jit:1.6,R:['#3a0410','#7a0c24','#c81a3e','#ff4a6e','#ffd0d8']};ICON_SH.gem(c,'round',{s:1.12});ICON_SH.glow(c,'rgba(255,61,106,A)',3);SPARK_IN(c,[[24,8,2]])},
-  abysslamp:c=>{const dm=MAT.metal('#4a4a5a',{ex:10});c.add(T3(mLathe([[.55,-1],[.6,-.8],[.45,-.72]],10),{}),dm);c.add(T3(mLathe([[.42,-.74],[.46,-.2],[.42,.38]],10),{zb:-.02}),{R:['#3a6aa8','#5a9ad8',c.it.c,'#d6f0ff','#ffffff'],b:.6,tex:(x,y,i,col)=>{const d=Math.hypot(x-16*c.u,y-18*c.u)/c.u;return d<2.2?'#ffffff':d<3.8?'#d6f0ff':col}});
-    c.add(T3(mLathe([[.45,.36],[.58,.48],[.2,.7],[.1,.78]],10),{}),dm);c.fx.push(pb=>{for(let a=Math.PI;a<=Math.PI*2;a+=.15)pb.set((16+Math.cos(a)*4)*c.u,(5+Math.sin(a)*3)*c.u,'#6a6a7a')});ICON_SH.glow(c,'rgba(160,216,255,A)',3)}
+
 };
 function drawIcon(id,N){const it=ITEMS[id],u=N/32,pb=new PB(N,N),list=[],c={id,it,u,seed:strSeed(id),rn:rng(strSeed(id)),list,fx:[],fx0:[],gemo:null,add:(M,m)=>{list.push({...M,m})}};
   (ICON_DEF[id]||ICON_SH[it.sh]||(cc=>ICON_SH.rock(cc)))(c,undefined);

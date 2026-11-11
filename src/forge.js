@@ -26,25 +26,29 @@ function renderForge(){
 }
 function renderBook(){
   $('bookCount').textContent=`${S.found.length} / ${RECIPES.length}`;$('bookCount2').textContent=`도감 ${S.found.length}/${RECIPES.length}`;
-  setHTML($('book'),RECIPES.map((r,i)=>{if(S.found.includes(i))return`<div class="rec">${ico(r.out)}<span>${ITEMS[r.a].n} + ${ITEMS[r.b].n} → <b>${ITEMS[r.out].n}</b><span class="tier">B${r.L}</span><br><span class="dim">${pf(bid(r.out))}G</span></span><span class="rec-btns"><button class="px-btn sm" data-fill="${i}" type="button">넣기</button><button class="px-btn sm" data-rq="${i}" type="button">맡기기</button></span></div>`;
+  setHTML($('book'),RECIPES.map((r,i)=>{if(S.found.includes(i))return`<div class="rec">${ico(r.out)}<span>${ITEMS[r.a].n} + ${ITEMS[r.b].n} → <b>${ITEMS[r.out].n}</b><span class="tier">B${r.L}</span><br><span class="dim">${pf(bid(r.out))}G</span></span><span class="rec-btns"><button class="px-btn sm" data-fill="${i}" type="button">넣기</button>${rqOpen()?`<button class="px-btn sm" data-rq="${i}" type="button">맡기기</button>`:''}</span></div>`;
     if(r.L>S.unlocked)return`<div class="rec unk"><span class="ico sm" style="opacity:.2"></span><span>? + ? · 더 깊은 곳의 비밀<span class="tier">B${r.L}</span></span><span></span></div>`;
     return`<div class="rec unk">${'<i class="ico sm ic-'+r.out+'" style="filter:brightness(0) opacity(.35)"></i>'}<span>? + ? · ${r.hint}<span class="tier">B${r.L}</span></span><span></span></div>`}).join(''));
 }
 $('book').addEventListener('click',e=>{const b=e.target.closest('[data-fill]');if(!b)return;const r=RECIPES[+b.dataset.fill];S.slots=[r.a,r.b];renderForge();$('forgePanel').scrollIntoView({behavior:'smooth',block:'start'})});
 
-/* 자동 재련: 레시피를 미르에게 맡기면 시간이 지나며 알아서 재련한다 (칸 수 · 속도는 미르의 용광로에서 강화) */
+/* 자동 재련소: 레시피를 맡기면 시간이 지나며 알아서 재련한다. 연금술사 미르가 탑에 들어와야 열림(칸 수 · 속도는 미르의 용광로에서 강화) */
+const rqOpen=()=>tenantIn('미르');
 const rqCan=j=>{const r=RECIPES[j.r];return r.a===r.b?cnt(r.a)>=2:cnt(r.a)>=1&&cnt(r.b)>=1};
 function smeltRecipe(idx){const r=RECIPES[idx];if(!rqCan({r:idx}))return null;add(r.a,-1);add(r.b,-1);S.crafts++;const x=Math.random();
   if(x<greatRate()){add(r.out,2);return 2}if(x<successRate()){add(r.out,1);return 1}add('slag',1);return 0}
-function rqRun(sec){const made={},T=rqTime(ul('qspeed'));S.rq=S.rq||[];
+function rqRun(sec){const made={},T=rqTime(ul('qspeed'));S.rq=S.rq||[];if(!rqOpen())return made;
   S.rq.slice(0,rqSlots()).forEach(j=>{j.t+=sec;let g=0;while(j.t>=T&&(j.loop||j.n>0)&&g++<100000){if(!rqCan(j)){j.t=T;break}j.t-=T;const k=smeltRecipe(j.r);if(k){const o=RECIPES[j.r].out;made[o]=(made[o]||0)+k}if(!j.loop)j.n--}});
   const before=S.rq.length;S.rq=S.rq.filter(j=>j.loop||j.n>0);if(Object.keys(made).length||S.rq.length!==before)invDirty=true;return made}
-function rqAdd(idx){if(!S.found.includes(idx)){toast('먼저 직접 한 번 재련해서 레시피를 알아내야 맡길 수 있어요.');return}const r=RECIPES[idx],avail=r.a===r.b?Math.floor(cnt(r.a)/2):Math.min(cnt(r.a),cnt(r.b)),ex=S.rq.find(j=>j.r===idx);
+function rqAdd(idx){if(!rqOpen()){toast(`자동 재련소는 탑 ${SECTIONS[tenantSec('미르')].to}층을 쌓으면 열려요.`);return}if(!S.found.includes(idx)){toast('먼저 직접 한 번 재련해서 레시피를 알아내야 맡길 수 있어요.');return}const r=RECIPES[idx],avail=r.a===r.b?Math.floor(cnt(r.a)/2):Math.min(cnt(r.a),cnt(r.b)),ex=S.rq.find(j=>j.r===idx);
   if(ex){if(!ex.loop)ex.n+=avail;toast(ex.loop?`${ITEMS[r.out].n}은(는) 이미 계속 재련 중이에요.`:`${ITEMS[r.out].n} ${avail}개를 더 맡겼어요.`)}
-  else{if(S.rq.length>=rqSlots()){toast('자동 재련 칸이 모두 찼어요. 장비 → 미르의 용광로에서 칸을 늘릴 수 있어요.');return}
-    S.rq.push({r:idx,n:avail,t:0,loop:avail===0});toast(avail?`미르에게 ${ITEMS[r.out].n} ${avail}개를 맡겼어요.`:`재료가 들어오는 대로 ${ITEMS[r.out].n}을(를) 계속 재련해요.`)}
+  else{if(S.rq.length>=rqSlots()){toast('자동 재련소 칸이 모두 찼어요. 장비 → 용광로에서 칸을 늘릴 수 있어요.');return}
+    S.rq.push({r:idx,n:avail,t:0,loop:avail===0});toast(avail?`자동 재련소에 ${ITEMS[r.out].n} ${avail}개를 맡겼어요.`:`재료가 들어오는 대로 ${ITEMS[r.out].n}을(를) 계속 재련해요.`)}
   sfx('click');renderForge()}
-function renderRQ(){const T=rqTime(ul('qspeed')),n=rqSlots();$('rqInfo').textContent=`${S.rq.length}/${n}칸 · 한 번에 ${pf(T)}초`;
+function renderRQ(){const op=rqOpen();$('rqPanel').classList.toggle('locked',!op);$('smeltQ').hidden=!op;
+  if(!op){$('rqInfo').textContent='잠김';$('rqDesc').textContent=`탑 ${SECTIONS[tenantSec('미르')].to}층을 쌓아 연금술사가 돌아오면 열려요. 레시피를 맡기면 자리를 비운 동안에도 알아서 재련해요.`;setHTML($('rq'),'');return}
+  $('rqDesc').textContent='레시피를 맡겨 두면 시간이 지나며 알아서 재련해요. 자리를 비운 동안에도 계속돼요.';
+  const T=rqTime(ul('qspeed')),n=rqSlots();$('rqInfo').textContent=`${S.rq.length}/${n}칸 · 한 번에 ${pf(T)}초`;
   let h=S.rq.slice(0,n).map((j,i)=>{const r=RECIPES[j.r],wait=!rqCan(j);return`<div class="rqj${wait?' wait':''}">${ico(r.out)}<div><b>${ITEMS[r.out].n}</b> <span class="dim small">${ITEMS[r.a].n} + ${ITEMS[r.b].n}</span><br><span class="small">${j.loop?'재료가 들어오는 대로 계속':`남은 ${big(j.n)}개`}${wait?' · <span class="bad">재료 기다리는 중</span>':''}</span><div class="bar"><i data-rqb="${i}"></i></div></div>
     <div class="rq-btns"><button class="px-btn sm${j.loop?' lamp':''}" data-rql="${i}" type="button">계속</button><button class="px-btn sm" data-rqx="${i}" type="button">취소</button></div></div>`}).join('');
   for(let i=S.rq.length;i<n;i++)h+=`<div class="rqj empty dim small">빈 칸 · 재료를 넣고 [맡기기]를 누르거나, 레시피 도감에서 [맡기기]</div>`;

@@ -9,155 +9,90 @@ const SECT={
 // sh: 아이콘 형태, h: 모암 색, L: 나오는 지층(원석)
 const ITEMS={
   stone:{n:'돌',p:2,c:'#8f877b',s:'build',sh:'chunk',L:1},
-  clay:{n:'점토',p:3,c:'#b8744a',s:'build',sh:'clay',L:1},
+  clay:{n:'점토',p:5,c:'#b8744a',s:'build',sh:'clay',L:2},
   copper:{n:'구리 광석',p:8,c:'#e0803d',s:'metal',sh:'ore',h:'#6f665c',L:1},
-  kaolin:{n:'고령토',p:6,c:'#ece6da',s:'build',sh:'clay',L:2},
   tin:{n:'주석 광석',p:14,c:'#dfe4e6',s:'metal',sh:'ore',h:'#4f4a46',L:2},
-  flint:{n:'부싯돌',p:10,c:'#55555f',s:'build',sh:'shard',L:2},
   iron:{n:'철광석',p:20,c:'#b3bdc7',s:'metal',sh:'ore',h:'#5b4a42',L:3},
   coal:{n:'석탄',p:12,c:'#3d3936',s:'fuel',sh:'coal',L:3},
-  granite:{n:'화강암',p:16,c:'#c9ad9e',s:'build',sh:'speck',L:3},
   limestone:{n:'석회석',p:25,c:'#e8e2cc',s:'build',sh:'chunk',L:4},
   silver:{n:'은 광석',p:60,c:'#eef4fa',s:'metal',sh:'ore',h:'#55606b',L:4},
-  calcite:{n:'방해석',p:40,c:'#f5e3bd',s:'gem',sh:'cube',L:4},
   quartz:{n:'석영',p:45,c:'#eeeae2',s:'gem',sh:'cluster',h:'#4a4652',L:5},
   amethyst:{n:'자수정 원석',p:90,c:'#9a64d6',s:'gem',sh:'cluster',h:'#3f3a48',L:5},
-  halite:{n:'암염',p:30,c:'#f2c9c0',s:'fuel',sh:'cube',L:5},
   lapis:{n:'청금석',p:140,c:'#2f57c8',s:'gem',sh:'speck',L:6},
   cobalt:{n:'코발트 광석',p:120,c:'#4a7cf0',s:'metal',sh:'ore',h:'#3b3a44',L:6},
-  fossil:{n:'조개 화석',p:100,c:'#dccaa6',s:'build',sh:'fossil',L:6},
   gold:{n:'금 광석',p:260,c:'#ffd23f',s:'metal',sh:'ore',h:'#5a4a3a',L:7},
-  pyrite:{n:'황철석',p:90,c:'#d9b84a',s:'metal',sh:'cube',L:7},
   emerald:{n:'에메랄드 원석',p:320,c:'#2fc46e',s:'gem',sh:'cluster',h:'#3a4038',L:7},
   obsidian:{n:'흑요석',p:280,c:'#3e3058',s:'build',sh:'shard',L:8},
-  sulfur:{n:'유황',p:180,c:'#ead63c',s:'fuel',sh:'lump',L:8},
   ruby:{n:'루비 원석',p:450,c:'#e02a48',s:'gem',sh:'cluster',h:'#3a2a2a',L:8},
   sapphire:{n:'사파이어 원석',p:650,c:'#2f66e0',s:'gem',sh:'cluster',h:'#30303c',L:9},
   platinum:{n:'백금 광석',p:800,c:'#e6edf0',s:'metal',sh:'ore',h:'#3e3a3a',L:9},
-  basalt:{n:'현무암',p:260,c:'#4a4c52',s:'build',sh:'chunk',L:9},
-  olivine:{n:'감람석',p:700,c:'#9ccf3c',s:'gem',sh:'lump',L:10},
   diamond:{n:'다이아몬드 원석',p:2000,c:'#e8f6ff',s:'gem',sh:'cluster',h:'#2a2a30',L:10},
   garnet:{n:'석류석 원석',p:900,c:'#a3243a',s:'gem',sh:'lump',L:10},
   voidstone:{n:'그믐돌',p:1500,c:'#4a62c8',s:'arcane',sh:'void',L:11},
   abysspearl:{n:'동굴 진주',p:3200,c:'#dce6f2',s:'gem',sh:'pearl',L:11},
-  darkcrystal:{n:'흑수정',p:2200,c:'#5b34a0',s:'arcane',sh:'cluster',h:'#14121c',L:11},
   meteoriron:{n:'운철',p:3000,c:'#7a7f8a',s:'metal',sh:'meteor',L:12},
   stariron:{n:'별빛 광석',p:5000,c:'#bfe0f6',s:'metal',sh:'ore',h:'#1f2440',L:12},
-  opal:{n:'오팔 원석',p:4200,c:'#eaf2ff',s:'gem',sh:'opal',L:12},
   starshard:{n:'별의 파편',p:15000,c:'#ffe9a8',s:'arcane',sh:'star',L:13},
   stardust:{n:'별가루',p:7000,c:'#fff3c4',s:'arcane',sh:'dust',L:13},
-  starember:{n:'홍염석',p:11000,c:'#ffb35c',s:'arcane',sh:'ember',L:13},
   slag:{n:'광재',p:1,c:'#5b5149',s:'build',sh:'slag'},
   // 재련품
   brick:{n:'다듬은 돌',p:7,c:'#a69b8a',s:'build',sh:'block'},
   tile:{n:'벽돌',p:10,c:'#bd5a3a',s:'build',sh:'block'},
   wire:{n:'구리선',p:24,c:'#e0853f',s:'metal',sh:'wire'},
   bronze:{n:'청동',p:45,c:'#c0904a',s:'metal',sh:'ingot'},
-  porcelain:{n:'백자',p:30,c:'#f4f1e8',s:'build',sh:'vase'},
-  whetstone:{n:'숫돌',p:22,c:'#70707c',s:'build',sh:'slab'},
   steel:{n:'강철',p:60,c:'#bcc7d0',s:'metal',sh:'ingot'},
   coke:{n:'코크스',p:34,c:'#5c554f',s:'fuel',sh:'powder'},
   gear:{n:'톱니바퀴',p:130,c:'#d6aa52',s:'metal',sh:'gear'},
-  pillar:{n:'돌기둥',p:55,c:'#cdb4a6',s:'build',sh:'pillar'},
   lime:{n:'생석회',p:95,c:'#f4f0e4',s:'fuel',sh:'powder'},
   silverbar:{n:'은괴',p:150,c:'#e9f0f5',s:'metal',sh:'ingot'},
-  mortar:{n:'회반죽',p:130,c:'#ddd6c4',s:'build',sh:'jar'},
-  lens:{n:'돋보기',p:120,c:'#f6ecd2',s:'gem',sh:'lens'},
-  pquartz:{n:'맑은 석영',p:125,c:'#f6f3ee',s:'gem',sh:'cut'},
   resonant:{n:'울림 수정',p:260,c:'#c28cf4',s:'gem',sh:'cut'},
   glass:{n:'유리판',p:150,c:'#9ad7d6',s:'build',sh:'glass'},
   polish:{n:'연마 가루',p:120,c:'#ead9d0',s:'fuel',sh:'powder'},
-  cutame:{n:'자수정',p:340,c:'#9a5ae0',s:'gem',sh:'cut'},
   ultramarine:{n:'군청 물감',p:420,c:'#2f57c8',s:'fuel',sh:'jar'},
-  bluechina:{n:'청화백자',p:380,c:'#eef2fa',s:'build',sh:'vase',acc:'#2f57c8'},
-  carving:{n:'화석 장신구',p:300,c:'#e4d2ad',s:'build',sh:'fossil'},
   goldbar:{n:'금괴',p:700,c:'#ffd23f',s:'metal',sh:'ingot'},
-  goldwire:{n:'금실',p:900,c:'#ffd84d',s:'metal',sh:'wire'},
   cutemerald:{n:'에메랄드',p:800,c:'#2fc46e',s:'gem',sh:'cut'},
-  powder:{n:'화약',p:420,c:'#57534d',s:'fuel',sh:'powder'},
   obsalloy:{n:'흑요강',p:520,c:'#7158a8',s:'metal',sh:'ingot'},
   cutruby:{n:'루비',p:1000,c:'#e42a4a',s:'gem',sh:'cut'},
-  lavaglass:{n:'용암 유리',p:620,c:'#ff7a3d',s:'build',sh:'glass'},
   cutsapph:{n:'사파이어',p:1400,c:'#2f66e0',s:'gem',sh:'cut'},
   platbar:{n:'백금괴',p:1700,c:'#e6edf0',s:'metal',sh:'ingot'},
-  basalttile:{n:'현무암 타일',p:700,c:'#4c4e55',s:'build',sh:'block'},
   crysteel:{n:'수정강',p:650,c:'#a2e2e8',s:'metal',sh:'ingot'},
   cutdiamond:{n:'다이아몬드',p:4200,c:'#eaf8ff',s:'gem',sh:'cut'},
-  peridot:{n:'페리도트',p:1500,c:'#a3d63c',s:'gem',sh:'cut'},
   cutgarnet:{n:'석류석',p:1900,c:'#b0283f',s:'gem',sh:'cut'},
-  drillbit:{n:'다이아 드릴날',p:3600,c:'#d2ecf7',s:'metal',sh:'drillbit'},
-  charge:{n:'폭약',p:1100,c:'#b8432f',s:'fuel',sh:'charge'},
-  engine:{n:'태엽 장치',p:1600,c:'#dbb45c',s:'metal',sh:'engine'},
-  abysslamp:{n:'그믐 등불',p:5500,c:'#9fd8ff',s:'arcane',sh:'lantern'},
   moonstone:{n:'월장석',p:5000,c:'#c4d8ff',s:'gem',sh:'cut'},
   voidalloy:{n:'그믐강',p:4800,c:'#5d70cc',s:'metal',sh:'ingot'},
-  shadowlens:{n:'흑수정 렌즈',p:4500,c:'#6b3fa8',s:'arcane',sh:'lens'},
   starsteel:{n:'별빛강',p:8000,c:'#d2e8ff',s:'metal',sh:'ingot'},
-  meteorbar:{n:'운철괴',p:5200,c:'#80858f',s:'metal',sh:'ingot'},
-  cutopal:{n:'오팔',p:7500,c:'#f0f4ff',s:'gem',sh:'opal'},
   starcore:{n:'별의 씨앗',p:9000,c:'#7cc8ff',s:'arcane',sh:'orb'},
-  lavaheart:{n:'용암 구슬',p:3000,c:'#ff5a1f',s:'arcane',sh:'orb'},
-  crown:{n:'황옥',p:6000,c:'#e8bb4a',s:'gem',sh:'crown'},
-  starglass:{n:'별빛 유리',p:26000,c:'#fff1b8',s:'arcane',sh:'glass'},
-  astralink:{n:'별빛 잉크',p:12000,c:'#c9b8ff',s:'arcane',sh:'jar'},
-  emberheart:{n:'태양석',p:22000,c:'#ffb35c',s:'arcane',sh:'orb'},
   philo:{n:'현자의 원석',p:60000,c:'#ff3d6a',s:'arcane',sh:'orb'}
 };
 const ORDER=Object.keys(ITEMS);
 const RECIPES=[
   ['stone','stone','brick','같은 돌 두 개를 꾹 눌러 보자'],
-  ['clay','stone','tile','점토를 돌 위에 구워 보자'],
   ['copper','copper','wire','구리 광석 두 개를 길게 뽑아 보자'],
+  ['clay','stone','tile','점토를 돌 위에 구워 보자'],
   ['copper','tin','bronze','붉은 금속과 흰 금속을 섞어 보자'],
-  ['kaolin','clay','porcelain','하얀 흙과 붉은 흙'],
-  ['flint','stone','whetstone','부싯돌을 돌에 갈아 보자'],
   ['iron','coal','steel','철을 석탄 불에 달궈 보자'],
   ['coal','coal','coke','석탄을 석탄으로 굽기'],
   ['bronze','iron','gear','청동과 철로 무언가 돌아가는 것을'],
-  ['granite','brick','pillar','화강암과 다듬은 돌을 쌓아 보자'],
   ['limestone','coke','lime','석회석을 아주 뜨겁게'],
   ['silver','coke','silverbar','은 광석을 뜨거운 불로'],
-  ['lime','clay','mortar','하얀 가루와 점토를 섞어'],
-  ['calcite','whetstone','lens','투명한 돌을 숫돌에 갈아'],
-  ['quartz','quartz','pquartz','석영 두 개, 같은 것끼리'],
-  ['quartz','amethyst','resonant','결정층의 두 보석이 함께 울린다'],
   ['quartz','coke','glass','투명한 결정을 녹여 보자'],
-  ['halite','quartz','polish','소금과 석영을 곱게 갈아'],
-  ['amethyst','polish','cutame','보랏빛 원석을 연마 가루로'],
-  ['lapis','polish','ultramarine','푸른 돌을 곱게 갈면'],
-  ['cobalt','porcelain','bluechina','푸른 금속으로 백자에 그림을'],
-  ['fossil','whetstone','carving','오래된 조개를 정성껏 다듬어'],
+  ['quartz','quartz','polish','석영 두 개를 맞대고 곱게 갈아'],
+  ['quartz','amethyst','resonant','결정층의 두 보석이 함께 울린다'],
+  ['lapis','polish','ultramarine','푸른 돌을 연마 가루로 곱게'],
+  ['cobalt','resonant','crysteel','푸른 금속에 울림 수정을'],
   ['gold','coke','goldbar','금 광석을 뜨거운 불로'],
-  ['goldbar','wire','goldwire','금괴와 구리선을 함께 뽑아'],
   ['emerald','polish','cutemerald','초록 원석을 연마 가루로'],
-  ['sulfur','coke','powder','노란 돌과 구운 연료'],
-  ['obsidian','steel','obsalloy','화산 유리와 단단한 합금'],
+  ['obsidian','steel','obsalloy','화산 유리와 단단한 강철'],
   ['ruby','polish','cutruby','붉은 원석을 연마 가루로'],
-  ['obsidian','glass','lavaglass','화산 유리와 만든 유리'],
-  ['sapphire','polish','cutsapph','푸른 원석을 연마 가루로'],
   ['platinum','coke','platbar','백금 광석을 뜨거운 불로'],
-  ['basalt','mortar','basalttile','검은 돌을 회반죽으로 붙여'],
-  ['steel','resonant','crysteel','강철에 울림 수정을'],
+  ['sapphire','polish','cutsapph','푸른 원석을 연마 가루로'],
   ['diamond','polish','cutdiamond','가장 단단한 원석을 연마 가루로'],
-  ['olivine','polish','peridot','올리브빛 돌을 연마 가루로'],
   ['garnet','polish','cutgarnet','석류빛 돌을 연마 가루로'],
-  ['diamond','steel','drillbit','가장 단단한 돌을 강철 끝에'],
-  ['powder','steel','charge','화약을 강철 통에 담아'],
-  ['gear','crysteel','engine','톱니바퀴와 수정강을 맞물려'],
-  ['abysspearl','lavaglass','abysslamp','동굴 진주를 용암 유리에 담아'],
-  ['abysspearl','resonant','moonstone','동굴 진주와 울림 수정'],
   ['voidstone','platbar','voidalloy','그믐돌을 백금에 녹여'],
-  ['darkcrystal','lens','shadowlens','어두운 수정을 렌즈로'],
-  ['stariron','steel','starsteel','하늘의 쇠와 땅의 강철'],
-  ['meteoriron','coke','meteorbar','떨어진 쇳덩이를 녹여'],
-  ['opal','polish','cutopal','무지갯빛 돌을 연마 가루로'],
-  ['voidstone','stariron','starcore','그믐돌과 별빛 광석이 만나면'],
-  ['obsalloy','resonant','lavaheart','흑요강과 울림 수정'],
-  ['cutruby','cutsapph','crown','붉은 보석과 푸른 보석'],
-  ['starshard','lavaglass','starglass','별의 파편을 용암 유리에'],
-  ['stardust','ultramarine','astralink','별가루를 군청 물감에'],
-  ['starember','lavaheart','emberheart','홍염석을 용암 구슬에'],
-  ['starcore','emberheart','philo','별의 씨앗과 태양석']
+  ['abysspearl','resonant','moonstone','동굴 진주와 울림 수정'],
+  ['meteoriron','steel','starsteel','떨어진 별의 쇠와 땅의 강철'],
+  ['stariron','voidstone','starcore','별빛 광석과 그믐돌이 만나면'],
+  ['starcore','stardust','philo','별의 씨앗에 별가루를']
 ].map(([a,b,out,hint])=>({a,b,out,hint}));
 const key=(a,b)=>[a,b].sort().join('+');
 const RMAP={};RECIPES.forEach((r,i)=>RMAP[key(r.a,r.b)]=i);
@@ -170,21 +105,21 @@ ORDER.forEach(id=>{ITEMS[id].cr=!!INS[id];itemLayer(id)});
 RECIPES.forEach(r=>r.L=itemLayer(r.out));
 
 const LAYERS=[
-  {n:'표토층',d:12,hp:5,drops:[['stone',55],['clay',27],['copper',18]],req:null},
-  {n:'점토 퇴적층',d:60,hp:12,drops:[['kaolin',31],['flint',26],['tin',18],['stone',10],['copper',8],['clay',7]],req:{g:250,items:{wire:2}}},
-  {n:'암반층',d:140,hp:25,drops:[['coal',30],['iron',26],['granite',20],['tin',7],['stone',7],['copper',5],['clay',5]],req:{g:1500,items:{bronze:3,porcelain:2}}},
-  {n:'석회 동굴',d:300,hp:45,drops:[['limestone',33],['calcite',26],['silver',17],['coal',6],['copper',6],['tin',6],['flint',6]],req:{g:6000,items:{steel:4,gear:2}}},
-  {n:'결정층',d:620,hp:80,drops:[['quartz',35],['halite',21],['amethyst',18],['limestone',4],['iron',8],['stone',7],['coal',7]],req:{g:20000,items:{silverbar:3,lime:3}}},
-  {n:'지하 수맥',d:1000,hp:130,drops:[['fossil',30],['cobalt',27],['lapis',18],['halite',8],['coal',8],['limestone',5],['flint',4]],req:{g:60000,items:{resonant:3,glass:4}}},
-  {n:'금맥층',d:1400,hp:210,drops:[['pyrite',32],['gold',25],['emerald',17],['fossil',4],['quartz',7],['coal',7],['amethyst',5],['halite',4]],req:{g:160000,items:{bluechina:3,ultramarine:2}}},
-  {n:'용암층',d:1900,hp:330,drops:[['obsidian',31],['sulfur',28],['ruby',15],['pyrite',4],['kaolin',5],['clay',5],['halite',5],['quartz',5]],req:{g:420000,items:{goldbar:3,cutemerald:2}}},
-  {n:'화산 유리층',d:2800,hp:520,drops:[['basalt',34],['platinum',23],['sapphire',17],['obsidian',4],['coal',7],['pyrite',5],['copper',5],['gold',5]],req:{g:1.1e6,items:{obsalloy:3,powder:4}}},
-  {n:'맨틀 상층',d:4000,hp:800,drops:[['olivine',33],['garnet',26],['diamond',14],['basalt',4],['coal',8],['quartz',5],['obsidian',5],['iron',4]],req:{g:2.8e6,items:{platbar:3,crysteel:3}}},
-  {n:'심연층',d:5400,hp:1250,drops:[['voidstone',34],['darkcrystal',26],['abysspearl',14],['olivine',4],['coal',9],['limestone',5],['quartz',5],['clay',4]],req:{g:7e6,items:{cutdiamond:2,engine:2}}},
-  {n:'별의 무덤',d:7500,hp:1900,drops:[['meteoriron',35],['opal',24],['stariron',17],['voidstone',5],['coal',5],['iron',5],['quartz',5],['halite',4]],req:{g:1.8e7,items:{moonstone:2,voidalloy:3}}},
-  {n:'별의 심장',d:9999,hp:3000,drops:[['stardust',34],['starember',26],['starshard',15],['stariron',7],['coal',7],['quartz',4],['abysspearl',4],['voidstone',4]],req:{g:4.5e7,items:{starcore:2,starsteel:3}}}
+  {n:'표토층',d:12,hp:5,drops:[['stone',62],['copper',38]],req:null},
+  {n:'점토 퇴적층',d:60,hp:12,drops:[['clay',44],['tin',32],['stone',14],['copper',10]],req:{g:250,items:{wire:2}}},
+  {n:'암반층',d:140,hp:25,drops:[['coal',41],['iron',33],['clay',8],['stone',8],['copper',5],['tin',4]],req:{g:1500,items:{bronze:3,tile:2}}},
+  {n:'석회 동굴',d:300,hp:45,drops:[['limestone',43],['silver',31],['iron',8],['copper',8],['tin',5],['coal',4]],req:{g:6000,items:{steel:4,gear:2}}},
+  {n:'결정층',d:620,hp:80,drops:[['quartz',45],['amethyst',30],['limestone',4],['stone',9],['iron',7],['coal',6]],req:{g:20000,items:{silverbar:3,lime:3}}},
+  {n:'지하 수맥',d:1000,hp:130,drops:[['cobalt',42],['lapis',33],['quartz',8],['coal',8],['limestone',4],['silver',4]],req:{g:60000,items:{resonant:3,glass:4}}},
+  {n:'금맥층',d:1400,hp:210,drops:[['gold',40],['emerald',32],['cobalt',4],['quartz',9],['coal',8],['amethyst',4],['lapis',4]],req:{g:160000,items:{crysteel:3,ultramarine:2}}},
+  {n:'용암층',d:1900,hp:330,drops:[['obsidian',43],['ruby',31],['gold',4],['coal',7],['quartz',6],['limestone',5],['amethyst',4]],req:{g:420000,items:{goldbar:3,cutemerald:2}}},
+  {n:'화산 유리층',d:2800,hp:520,drops:[['platinum',41],['sapphire',32],['obsidian',4],['copper',9],['coal',5],['quartz',5],['gold',4]],req:{g:1.1e6,items:{obsalloy:3,cutruby:2}}},
+  {n:'맨틀 상층',d:4000,hp:800,drops:[['garnet',42],['diamond',31],['platinum',4],['coal',8],['quartz',7],['iron',4],['obsidian',4]],req:{g:2.8e6,items:{platbar:3,cutsapph:2}}},
+  {n:'심연층',d:5400,hp:1250,drops:[['voidstone',43],['abysspearl',31],['garnet',4],['quartz',7],['coal',6],['amethyst',5],['platinum',4]],req:{g:7e6,items:{cutdiamond:2,cutgarnet:2}}},
+  {n:'별의 무덤',d:7500,hp:1900,drops:[['meteoriron',42],['stariron',33],['voidstone',5],['quartz',5],['iron',5],['coal',5],['diamond',4]],req:{g:1.8e7,items:{voidalloy:3,moonstone:2}}},
+  {n:'별의 심장',d:9999,hp:3000,drops:[['stardust',45],['starshard',30],['meteoriron',6],['coal',6],['quartz',4],['amethyst',4],['voidstone',4]],req:{g:4.5e7,items:{starcore:2,starsteel:3}}}
 ];
-// 지층마다 나오는 광석(가중치 합 100): 그 지층 고유 광석 3종이 약 3/4, 위 지층 광석 3~5종이 약 1/4.
+// 지층마다 나오는 광석(가중치 합 100): 그 지층 고유 광석 2종이 약 3/4, 위 지층 광석 2~5종이 약 1/4.
 // 위 지층 광석은 이 지층에 있는 동안 개척 · 탑에 많이 필요한 것(재료를 거슬러 올라가 계산) + 바로 위 지층 광석 하나
 const RAW=ORDER.filter(id=>ITEMS[id].L).sort((a,b)=>ITEMS[a].L-ITEMS[b].L||ITEMS[a].p-ITEMS[b].p);
 // 지층 색 (암벽, 굴 안쪽, 지층 띠, 어둠, 장식)
@@ -206,22 +141,22 @@ const LOOK=[
 
 // 탑 13구간 + 무한. mats: [재료, 기본 수량]. 1층(대장간 터)은 튜토리얼에서 바로 쌓는 층 → 무쇠가 돌아와 대장간을 연다
 const SECTIONS=[
-  {n:'대장간 터',to:1,g:300,mats:[['stone',6],['brick',2]],t:{name:'무쇠',art:'musoe',d:'별빛골 대장간의 주인. 허허 웃으며 하루 종일 쇠를 두드린다.',says:["허허, 쇠는 두드릴수록 정직해지는 법이오.", "재련에 실패했다고 기죽지 마시오. 대장간 망치도 처음엔 다 헛손질이었소!", "영감님 망치가 아직 대장간 벽에 걸려 있소. 언제든 와서 보구려."],role:'대장장이',bonus:'재련 성공률 +5% · 금속 판매가 +10%',line:'별빛골 강철 소리가 다시 들리는군. 연합 녀석들도 곧 돌아올 거요.',hair:'#2a2a2a',hat:'beard',coat:'#8a3a2a'}},
-  {n:'석조 기단',to:6,g:25,mats:[['brick',20],['tile',20],['wire',10]],t:{name:'셈',art:'sem',d:'광석 한 알도 허투루 두지 않는 깐깐한 창고지기. 장부는 늘 머릿속에 있다.',says:["창고가 차면 팔든지 늘리든지 해야지. 바닥에 굴리는 건 안 돼.", "어제 들어온 게 몇 개인지 난 다 알아. 장부 볼 필요도 없지.", "할아버지는 정리를 영 못 하셨는데, 넌 좀 낫구나."],role:'창고지기',bonus:'창고 용량 +50%',line:'광석이 바닥에 굴러다니는 꼴은 못 봐. 오늘부터 창고는 내가 맡지.',hair:'#6a4232',hat:'scarf',hatC:'#efe4cc',coat:'#8a5a3a'}},
-  {n:'청동 회랑',to:10,g:160,mats:[['bronze',20],['porcelain',10],['whetstone',20]],t:{name:'핀',art:'pin',d:'고장 난 건 뭐든 뜯어보는 꼬마 기계공. 드릴 로봇이 제일 친한 친구다.',says:["드릴 로봇 소리 들었어요? 오늘은 기분이 좋은가 봐요!", "나사 하나만 더 조이면 더 빨라질 것 같은데… 해 봐도 돼요?", "커서 할아버지 같은 광부 할 거예요. 아니, 기계공! 둘 다요!"],role:'꼬마 기계공',bonus:'자동 드릴 +25%',line:'우와, 저 드릴 로봇 제가 고쳐도 돼요? 훨씬 빨라지게 할 수 있어요!',hair:'#e0853f',hat:'goggles',coat:'#4d7a9a'}},
-  {n:'강철 골조',to:15,g:800,mats:[['steel',20],['gear',10],['pillar',10]],t:{name:'바우',art:'bau',d:'별빛골에서 가장 오래 곡괭이를 잡은 광부. 무뚝뚝해 보여도 정이 많다.',says:["곡괭이는 힘으로 휘두르는 게 아니여. 바위 결을 읽는 거지.", "영감님도 꼭 그 자리에서 땀을 닦았구먼. 쉬엄쉬엄 혀.", "깊이 내려갈수록 바위가 고집이 세지니께, 연장부터 챙기는 거여."],role:'광부 반장',bonus:'탭 위력 +10%',line:'제련소에 불이 켜졌다길래 와 봤수다. 영감님 손주라고? …눈매가 꼭 닮았구먼.',hair:'#3a2a1e',hat:'helmet',coat:'#7a5a3a'}},
-  {n:'은빛 온실',to:21,g:3000,mats:[['silverbar',10],['lime',20],['mortar',10],['lens',10]],t:{name:'루카',art:'luka',d:'여러 마을을 떠도는 상인. 값이 오르내리는 냄새를 누구보다 먼저 맡는다.',says:["싸게 사서 비싸게 판다! 말은 쉽죠? 타이밍이 전부예요.", "상단이 오면 값이 확 떨어져요. 그때가 살 때고요!", "이 마을엔 제가 다시 짐을 풀 이유가 생겼어요. 당신 덕분에요!"],role:'떠돌이 상인',bonus:'판매가 +5%',line:'냄새가 나요, 돈 냄새! 이 마을 다시 뜹니다. 제 감은 틀린 적이 없거든요.',hair:'#8a5a2a',hat:'cap',coat:'#3f8a5a'}},
-  {n:'수정 첨탑',to:28,g:9000,mats:[['resonant',10],['glass',20],['cutame',10],['pquartz',10]],t:{name:'미르',art:'mir',d:'말끝을 흐리는 조용한 연금술사. 재련품에 섞인 별의 기운을 느낄 수 있다.',says:["…섞이는 순간이 제일 아름다워요. 둘이 하나가 되는 순간.", "실패도 기록해 두세요. …다음 성공의 재료니까요.", "이 냄새… 별의 기운이 조금씩 짙어지고 있어요."],role:'연금술사',bonus:'대성공 +5% · 연료·화학 판매가 +10%',line:'당신이 만든 재련품, 흥미롭군요. 별의 기운이 섞여 있어요.',hair:'#e8e8f0',hat:'hood',coat:'#4a3a6a'}},
-  {n:'청화 회랑',to:35,g:25000,mats:[['bluechina',10],['ultramarine',10],['carving',10]],t:{name:'서린',art:'serin',d:'할아버지와 오래 편지를 주고받던 지질학자. 지층 이야기만 나오면 눈이 반짝인다.',says:["지층은 책 같아요. 한 장씩 넘길 때마다 다른 시대가 나오죠.", "희귀한 광물은 바위가 오래 버틴 흔적이에요. 소중히 다뤄 주세요.", "편지에 이런 문장이 있었어요. \"깊은 곳일수록 별이 가깝다.\""],role:'지질학자',bonus:'희귀 광물 확률 +20%',line:'당신 할아버지와 편지를 주고받았어요. 마지막 편지에 이 깊이가 적혀 있었죠.',hair:'#2a1e1a',hat:'glasses',coat:'#5a7a6a'}},
-  {n:'황금 전당',to:43,g:60000,mats:[['goldbar',10],['goldwire',10],['cutemerald',10],['pyrite',30]],t:{name:'하멜 경',art:'hamel',d:'왕실에서 보낸 대리인. 격식을 차리지만 별빛골의 보석에는 진심이다.',says:["왕실은 좋은 물건에 값을 아끼지 않습니다. 품질만 보증된다면요.", "이 마을의 금빛은 수도에서도 소문이 자자합니다.", "실례지만, 그 보석은 아직 팔지 않으셨겠지요?"],role:'왕실 대리인',bonus:'판매가 +10%',line:'왕실은 별빛골의 부활을 주시하고 있습니다. 왕관에 박을 보석이 필요하거든요.',hair:'#b0b0b0',hat:'tophat',coat:'#2a3a7a'}},
-  {n:'용암 성소',to:52,g:150000,mats:[['powder',10],['obsalloy',10],['lavaglass',10],['cutruby',10]],t:{name:'도담',art:'dodam',d:'바위를 보면 일단 터뜨리고 보는 발파꾼. 웃음소리가 폭음보다 크다.',says:["쾅! 하고 나면 속이 다 시원하죠. 바위도 그럴걸요?", "안전 거리는 열 걸음! 아니, 스무 걸음이요. 하하!", "단단한 바위일수록 터질 때 소리가 예뻐요."],role:'발파꾼',bonus:'바위 강도 −15%',line:'단단한 바위? 그런 건 없어요. 화약이 부족할 뿐이죠!',hair:'#c0402a',hat:'bandana',coat:'#6a5a3a'}},
-  {n:'백금 기관실',to:62,g:380000,mats:[['platbar',10],['crysteel',10],['basalttile',20],['cutsapph',10]],t:{name:'강철',art:'gangcheol',d:'말수는 적고 손은 빠른 기관사. 기계 소리만 듣고도 고장 난 곳을 찾는다.',says:["소리가 고르면 기계도 편한 거다. 지금은… 괜찮군.", "기름칠은 미루지 마라. 기계는 서운한 걸 기억하거든.", "꼬마 핀이 또 뭘 뜯었더군. 제법이야."],role:'기관사',bonus:'자동 드릴 +50%',line:'드릴 소리가 엉망이야. 내가 손봐 주지.',hair:'#4a4a4a',hat:'goggles',coat:'#3a4a5a'}},
-  {n:'다이아 전망대',to:75,g:900000,mats:[['cutdiamond',10],['engine',10],['charge',10],['peridot',10],['cutgarnet',10],['drillbit',10]],t:{name:'엘라',art:'ella',d:'40년 동안 수정을 닦아 온 보석상. 빛만 보고도 원석의 결을 안다.',says:["좋은 보석은 서두르지 않아요. 제값을 알아보는 사람을 기다리죠.", "이 빛 좀 보세요. 깎기 전부터 이미 웃고 있잖아요.", "할아버지께서 처음 가져오신 수정, 아직도 제 진열장에 있어요."],role:'보석상',bonus:'광물 사는 값 할인 · 보석 판매가 +10%',line:'수정이 다시 빛난다는 소문… 사실이었네요. 40년 만이에요.',hair:'#f0d8a0',hat:'hairpin',coat:'#9a5ae0'}},
-  {n:'달빛 첨탑',to:88,g:2200000,mats:[['moonstone',10],['abysslamp',10],['voidalloy',10],['shadowlens',10]],t:{name:'노을',art:'noeul',d:'밤하늘을 읽는 점성술사. 떠도는 소문 중 무엇이 참인지 별에게 묻는다.',says:["오늘 밤 별들이 조금 수다스러워요. 좋은 소식이 오려나 봐요.", "소문은 바람 같아요. 별은 그중에 진짜를 알려 주죠.", "빈자리가 점점 따뜻해지고 있어요. 등불별이 돌아올 준비를 하나 봐요."],role:'점성술사',bonus:'소문 감정이 거의 틀리지 않음',line:'등불별이 있던 자리가 비어 있어요. 하지만 하늘은 아직 그 자리를 기억해요.',hair:'#e88a5a',hat:'wizard',coat:'#2a2a5a'}},
-  {n:'별의 첨탑',to:99,g:5000000,mats:[['starsteel',10],['meteorbar',10],['cutopal',10],['starcore',10]],t:{name:'아르덴 교수',art:'arden',d:'왕립 학회를 이끄는 노학자. 떨어진 별을 되돌린다는 이야기를 직접 보러 왔다.',says:["학문이란 미친 소리를 끝까지 확인해 보는 일이라네.", "별의 파편이 열 개라… 계산은 맞소. 남은 건 용기뿐이지.", "자네 할아버지의 일지, 학회 서고에 꽂아 두고 싶을 정도라네."],role:'왕립 학회장',bonus:'모든 보너스 +10% · 별의 물질 판매가 +10%',line:'떨어진 별을 다시 올려 보내겠다니. 미친 소리지만… 나는 그걸 보러 왔소.',hair:'#f0f0f0',hat:'beard',coat:'#5a2a3a'}}
+  {n:'대장간 터',to:1,g:300,mats:[['stone',6],['brick',2]],t:{name:'무쇠',art:'musoe',d:"빨간 두건의 젊은 대장장이. 망치 소리보다 웃음소리가 크고, 쇠 앞에선 누구보다 진지하다.",says:["쇠는 거짓말 안 해. 두드린 만큼 단단해지거든!", "망치 잡는 손에 굳은살 박이면 그때부터 진짜 대장장이지.", "영감님 곡괭이? 그거 내가 처음 벼려 본 날이었어. 어찌나 혼났던지, 하하!", "불 세기는 귀로 듣는 거야. 쉭— 하면 아직, 쿵— 하면 지금!", "곡괭이 날 상했으면 바로 가져와. 무뎌진 날로 바위 치면 손목만 나간다고.", "오늘은 몇 번 휘둘렀어? 난 벌써 천 번 넘었다!", "탑 1층이 내 대장간 자리라니, 이거 영광인데?", "쇠 냄새 좋지? 난 이 냄새 맡아야 잠이 와.", "실패한 재련도 버리지 마. 광재도 언젠간 쓸모가 있어!", "배고프면 말해. 화로에 감자 구워 놨거든."],role:'대장장이',bonus:'재련 성공률 +5% · 금속 판매가 +10%',line:"하하! 대장간에 불 들어간다! 별빛골 망치 소리, 오늘부터 다시 울린다고!",hair:'#2a2a2a',hat:'beard',coat:'#8a3a2a'}},
+  {n:'석조 기단',to:6,g:25,mats:[['brick',20],['tile',20],['wire',10]],t:{name:'셈',art:'sem',d:"광석 한 알, 동전 한 닢도 허투루 두지 않는 창고지기. 장부는 머릿속에 다 들어 있다.",says:["어제 들어온 게 몇 개였더라… 아, 삼백열두 개. 맞지?", "바닥에 굴러다니는 광석은 못 봐. 돈이 굴러다니는 거랑 똑같거든.", "창고가 차면 팔든지 늘리든지. 쌓아 두는 건 답이 아니야.", "싸게 산 건 기억해 두고, 비싸게 판 건 자랑해도 돼.", "칸 하나 늘리는 데 드는 돈? 아깝지 않아. 썩히는 게 더 아깝지.", "숫자는 정직해. 사람이 헷갈릴 뿐이지.", "영감님 장부도 내가 정리했었어. 글씨가 엉망이라 고생했지.", "오늘 판 것, 산 것, 남은 것. 자기 전에 한 번씩 세어 봐.", "먼지 털어 둔 칸에 새 광석 들어오는 기분, 알아?", "덤? 덤은 장부에 없어."],role:'창고지기',bonus:'창고 용량 +50%',line:"창고 열쇠는 내가 맡지. 들어오는 것도, 나가는 것도 전부 장부에 적어 둘 거야.",hair:'#6a4232',hat:'scarf',hatC:'#efe4cc',coat:'#8a5a3a'}},
+  {n:'청동 회랑',to:10,g:160,mats:[['bronze',20],['wire',20],['gear',6]],t:{name:'핀',art:'pin',d:"고글을 이마에 얹은 꼬마 기계공. 고장 난 건 일단 뜯어보고, 드릴 로봇을 친구처럼 아낀다.",says:["드릴 로봇 소리 들었어요? 오늘은 기분이 좋은가 봐요!", "나사 하나만 더 조이면 더 빨라질 것 같은데… 아, 이미 다 조였구나.", "로봇한테 이름 지어 줬어요? 저는 '덜컹이'라고 불러요!", "기름칠은 일주일에 한 번! 안 그러면 삐걱삐걱 울어요.", "보관함 꽉 차면 로봇이 시무룩해져요. 자주 비워 주세요!", "고글은 멋으로 쓰는 거 아니에요. 불꽃이 진짜 튄다고요!", "할아버지 기계 안쪽에 쪽지가 있었어요. '천천히, 그래도 멈추지 말고'래요.", "밤새 고치다 보면 해 뜨는 줄도 몰라요. 헤헤.", "부품이 남았는데… 괜찮겠죠? 돌아가니까요!", "언젠간 하늘 나는 드릴도 만들 거예요!"],role:'꼬마 기계공',bonus:'자동 드릴 +25%',line:"할아버지 채굴 기계, 제가 고쳐 놨어요! 이제 덜컹덜컹 말고 위이잉— 하고 돌아갈 거예요!",hair:'#e0853f',hat:'goggles',coat:'#4d7a9a'}},
+  {n:'강철 골조',to:15,g:800,mats:[['steel',20],['gear',10],['brick',30]],t:{name:'바우',art:'bau',d:"헬멧에 등불을 단 늙은 광부 반장. 말은 무뚝뚝해도 굴 속 사정은 손바닥 보듯 훤하다.",says:["곡괭이는 힘으로 휘두르는 게 아니여. 바위 결을 읽는 거지.", "영감도 꼭 그 자리에서 땀을 닦았구먼.", "굴은 조용할 때가 젤 무서운 겨. 소리가 나면 오히려 안심이여.", "등불 꺼지면 움직이지 말어. 그거 하나만 지키면 살어.", "요새 젊은 것들은 쉬엄쉬엄을 몰러. 쉬어야 오래 캐는 겨.", "허리 펴고, 숨 고르고, 한 번 더. 그게 다여.", "돌 냄새 맡아 봐. 비 오기 전엔 냄새가 달라지는 겨.", "내가 캔 돌로 이 마을 반은 지었을 겨. 허허.", "밥은 먹고 캐는 겨? 빈속에 곡괭이 들면 다쳐.", "별? 난 별은 몰러. 그래도 영감 말은 믿었제."],role:'광부 반장',bonus:'탭 위력 +10%',line:"허, 영감 손주가 여기까지 왔구먼. 곡괭이 쥐는 법은 내가 다시 갈쳐 줄 거여.",hair:'#3a2a1e',hat:'helmet',coat:'#7a5a3a'}},
+  {n:'은빛 온실',to:21,g:3000,mats:[['silverbar',10],['lime',20],['glass',10]],t:{name:'루카',art:'luka',d:"초록 베레모를 쓴 떠돌이 상인. 값이 오르내리는 냄새를 누구보다 먼저 맡고, 웃는 얼굴로 흥정한다.",says:["싸게 사서 비싸게 판다! 말은 쉽죠? 타이밍이 전부예요.", "소문은 공짜지만, 맞는 소문은 비싸답니다~", "손님 눈빛 보니 오늘 크게 벌겠는데요?", "전 서른 개 마을을 돌았지만, 이렇게 반짝이는 땅은 처음이에요.", "누가 한 말인지 꼭 보세요. 술집 손님 말은… 반만 믿으시고요.", "깃털 모자요? 행운의 깃털이에요. 아직까진 효과 만점!", "오늘 발표 나는 소문 있죠? 두근두근하지 않아요?", "상인은 웃어야 해요. 손해 본 날엔 더 크게요!", "출입권은 사 두고 잊어버리는 사람이 이기더라고요. 반쯤은요.", "언젠간 별빛골 이름으로 상단을 꾸릴 거예요!"],role:'떠돌이 상인',bonus:'판매가 +5%',line:"드디어 별빛골에 가게를 열었네요! 정보도, 출입권도, 흥정도 전부 루카에게 맡기세요~",hair:'#8a5a2a',hat:'cap',coat:'#3f8a5a'}},
+  {n:'수정 첨탑',to:28,g:9000,mats:[['resonant',10],['glass',20],['polish',20]],t:{name:'미르',art:'mir',d:"보라색 두건을 쓴 조용한 연금술사. 말끝을 흐리지만, 재련품에 섞인 별의 기운을 누구보다 잘 느낀다.",says:["…섞이는 순간이 제일 아름다워요. 정말로요.", "불꽃 색이 바뀌면… 별이 웃는 거예요. 아마도요.", "재료는 대답을 해요. …귀를 기울이면요.", "실패한 광재에도… 작은 별빛이 남아 있어요.", "밤에 용광로를 보면… 마음이 조용해져요.", "…서두르면 금이 가요. 쇠도, 사람도.", "할아버지는… 불 앞에서 노래를 흥얼거리셨대요. 저도… 가끔 따라 해요.", "이 가루는… 아직 이름이 없어요. 제가 붙여도 될까요?", "…뜨거운 건 무섭지 않아요. 식어 버리는 게 무섭죠.", "별의 기운이… 오늘은 좀 진하네요."],role:'연금술사',bonus:'대성공 +5% · 연료·화학 판매가 +10%',line:"…용광로, 제가 돌볼게요. 불은… 거짓말을 하지 않으니까요.",hair:'#e8e8f0',hat:'hood',coat:'#4a3a6a'}},
+  {n:'청화 회랑',to:35,g:25000,mats:[['ultramarine',10],['crysteel',10],['lime',20]],t:{name:'서린',art:'serin',d:"동그란 안경의 지질학자. 할아버지와 오래 편지를 주고받았고, 지층 이야기만 나오면 눈이 반짝인다.",says:["지층은 책 같아요. 한 장씩 넘길 때마다 다른 시대가 나오죠.", "이 줄무늬 보이세요? 수만 년 전 홍수의 흔적이에요. 흥미롭죠?", "할아버지 편지엔 늘 돌 그림이 있었어요. 글보다 그림이 더 정확했죠.", "깊이 1미터마다 온도가 조금씩 올라가요. 그러니 별의 심장은 아주 뜨겁겠죠.", "드문 광석은 드문 곳에 있어요. 당연한 말 같지만, 그게 핵심이에요.", "표본 하나만 가져다주실래요? 연구에 꼭 필요해서요.", "가설은 틀려도 괜찮아요. 틀린 걸 확인하는 것도 발견이니까요.", "안경이 또 흙투성이네요. 현장 연구의 훈장이죠.", "이 마을 지층은 교과서에 실려야 해요. 진심이에요.", "오늘 기록: 날씨 맑음, 기분 맑음, 지층 아주 맑음!"],role:'지질학자',bonus:'희귀 광물 확률 +20%',line:"드디어 직접 보네요! 편지로만 듣던 그 지층들… 조사 노트를 몇 권 더 사 둬야겠어요.",hair:'#2a1e1a',hat:'glasses',coat:'#5a7a6a'}},
+  {n:'황금 전당',to:43,g:60000,mats:[['goldbar',10],['cutemerald',10],['wire',40]],t:{name:'하멜 경',art:'hamel',d:"깃털 모자를 쓴 왕실의 대리인. 격식을 차리지만, 별빛골의 보석에는 누구보다 진심이다.",says:["왕실은 좋은 물건에 값을 아끼지 않소. 품질만 보증된다면 말이오.", "예의는 말보다 행동에 담기는 법이오.", "금은 빛나야 하고, 약속은 지켜져야 하오. 둘 다 무거운 법이지.", "폐하께서 별빛골의 소식을 직접 물으셨소. 영광스러운 일이오.", "이 깃털이요? 대대로 내려온 것이오. 바람에도 굽히지 않지.", "서두르지 마시오. 귀족의 거래는 차 한 잔과 함께 시작되오.", "훌륭하오. 그대의 손에서 나온 금괴라면 왕궁에 들여도 손색이 없겠소.", "소문에 흔들리지 마시오. 확인된 사실만이 품격을 지키오.", "이 마을 사람들은 정이 많소. 수도에선 보기 드문 미덕이지.", "하늘에 별이 다시 걸리는 날, 왕국 전체가 축배를 들 것이오."],role:'왕실 대리인',bonus:'판매가 +10%',line:"왕실의 이름으로 인사드리오. 이 탑의 보석은 왕국의 자랑이 될 것이오.",hair:'#b0b0b0',hat:'tophat',coat:'#2a3a7a'}},
+  {n:'용암 성소',to:52,g:150000,mats:[['obsalloy',10],['cutruby',10],['glass',30]],t:{name:'도담',art:'dodam',d:"빨간 머리의 발파꾼. 바위를 보면 일단 터뜨리고 보고, 웃음소리가 폭음보다 크다.",says:["쾅! 하고 나면 속이 다 시원하지. 바위도 그럴걸?", "안전 거리는 열 걸음! 아니, 스무 걸음! 아니 그냥 멀리!", "반창고? 훈장이야, 훈장! 크하하!", "심지 길이만 잘 재면 무서울 거 하나 없어.", "어제 터뜨린 바위 안에서 반짝이는 게 나왔다니까? 진짜야!", "귀마개는 꼭 해. 나처럼 되기 싫으면… 응? 뭐라고?", "조용한 날엔 손이 근질근질해. 어디 터뜨릴 데 없나?", "폭약은 요리랑 같아. 양 조절이 생명이지!", "바위가 단단할수록 더 신나! 크하하하!", "하나, 둘, 셋— 귀 막아!"],role:'발파꾼',bonus:'바위 강도 −15%',line:"크하하! 드디어 내 차례다! 막힌 바위는 전부 나한테 맡겨, 쾅! 하고 끝내 줄게!",hair:'#c0402a',hat:'bandana',coat:'#6a5a3a'}},
+  {n:'백금 기관실',to:62,g:380000,mats:[['platbar',10],['cutsapph',10],['crysteel',10]],t:{name:'강철',art:'gangcheol',d:"은빛 머리에 고글을 쓴 과묵한 기관사. 기계 소리만 듣고도 어디가 아픈지 안다.",says:["소리가 고르면 기계도 편한 거다. 지금은… 괜찮군.", "기름. 볼트. 인내. 그거면 된다.", "말은 적게. 손은 빨리.", "쉬는 기계는 없다. 쉬는 사람이 있을 뿐.", "…핀 녀석, 손은 빠르다. 나사를 남기는 게 흠이지.", "엔진이 울면 들어 줘라. 다 이유가 있다.", "밤의 기관실은 조용하다. 그게 좋다.", "고장 난 건 고치면 된다. 사람도 그렇다.", "…수고했다.", "열이 오르면 식혀라. 기계도, 머리도."],role:'기관사',bonus:'자동 드릴 +50%',line:"…기관실, 내가 맡는다. 소리가 고르면 된다.",hair:'#4a4a4a',hat:'goggles',coat:'#3a4a5a'}},
+  {n:'다이아 전망대',to:75,g:900000,mats:[['cutdiamond',10],['cutgarnet',10],['steel',40]],t:{name:'엘라',art:'ella',d:"보석의 결을 빛만 보고 알아보는 우아한 보석상. 서두르는 법이 없고, 좋은 돌 앞에선 소녀처럼 웃는다.",says:["좋은 보석은 서두르지 않아요. 제값을 알아보는 사람을 기다리죠.", "이 빛 좀 봐요. 원석일 때부터 이미 웃고 있었답니다.", "연마는 깎는 게 아니라, 숨은 빛을 꺼내 주는 일이에요.", "손끝이 차가운 날엔 보석도 예민해져요. 오늘은 쉬어 갈까요?", "에메랄드는 초록, 루비는 붉음… 그런데 별빛은 무슨 색일까요?", "반지 하나에도 이야기가 담겨요. 당신의 첫 보석은 뭐였나요?", "흠집도 보석의 일부예요. 숨기지 말고 품어 주세요.", "값은 시장이 정하지만, 가치는 마음이 정한답니다.", "오늘은 다이아몬드가 유난히 맑네요. 좋은 징조예요.", "차 한잔 하실래요? 보석 이야기는 길거든요."],role:'보석상',bonus:'광물 사는 값 할인 · 보석 판매가 +10%',line:"어머, 이 마을 돌들 좀 봐요. 다듬어 줄 손길만 기다리고 있었네요.",hair:'#f0d8a0',hat:'hairpin',coat:'#9a5ae0'}},
+  {n:'달빛 첨탑',to:88,g:2200000,mats:[['moonstone',10],['voidalloy',10],['resonant',20]],t:{name:'노을',art:'noeul',d:"뾰족 모자를 쓴 점성술사. 밤하늘을 읽고, 떠도는 소문 중 무엇이 참인지 별에게 묻는다.",says:["오늘 밤 별들이 조금 수다스러워요. 좋은 소식이 오려나 봐요.", "소문이요? 별에게 물어보면 금방이에요. 별은 거짓말을 못 하거든요.", "노을빛은 하루가 남긴 인사래요. 그래서 제 이름이 좋아요.", "떨어진 별은 외로웠을 거예요. 빨리 집에 보내 줘요.", "점괘가 좋네요! …아, 이건 어제 거였나?", "별자리는 지도예요. 길 잃은 마음을 위한 지도.", "오늘의 행운 광석은… 반짝이는 것! 늘 그렇죠, 헤헤.", "달이 차오르면 소문도 차올라요. 조심하세요.", "모자 끝에 별을 달았어요. 진짜 별은 아니지만요.", "하늘을 보세요. 탑이 높아질수록 별이 가까워져요."],role:'점성술사',bonus:'소문 감정이 거의 틀리지 않음',line:"별들이 그러던데요, 오늘 이 탑에 새 이웃이 온다고. …그게 저였네요!",hair:'#e88a5a',hat:'wizard',coat:'#2a2a5a'}},
+  {n:'별의 첨탑',to:99,g:5000000,mats:[['starsteel',10],['starcore',10],['goldbar',20]],t:{name:'아르덴 교수',art:'arden',d:"흰 수염의 노학자이자 왕립 학회장. 떨어진 별을 되돌린다는 이야기를 직접 확인하러 왔다.",says:["학문이란 미친 소리를 끝까지 확인해 보는 일이지.", "자네 할아버지의 일지, 학회 서고에 둘 만한 기록이네.", "허허, 젊은이의 곡괭이질이 노인의 논문보다 빠르구먼.", "별은 떨어진 게 아니라 잠시 내려온 걸세. 그렇게 믿고 싶네.", "실험 노트는 깨끗하게 쓰게. 미래의 자네가 고마워할 걸세.", "현자의 원석이라… 전설인 줄만 알았지.", "모르는 걸 모른다고 하는 것, 그게 학자의 첫걸음일세.", "안경을 또 어디 뒀더라… 아, 머리 위에 있었구먼.", "이 탑은 마을 사람들의 손으로 쌓은 논문일세.", "하늘에 별이 다시 걸리면, 그날은 휴강일세. 허허!"],role:'왕립 학회장',bonus:'모든 보너스 +10% · 별의 물질 판매가 +10%',line:"허허, 이 나이에 이런 연구를 하게 될 줄이야. 자네 할아버지가 옳았네.",hair:'#f0f0f0',hat:'beard',coat:'#5a2a3a'}}
 ];
 SECTIONS.forEach((s,i)=>s.from=i?SECTIONS[i-1].to+1:1);
-const SKY={n:'하늘 너머',g:1.2e7,mats:[['crown',10],['starglass',10],['astralink',10],['emberheart',10]]};
+const SKY={n:'하늘 너머',g:1.2e7,mats:[['starsteel',10],['starcore',10],['cutdiamond',10],['moonstone',10]]};
 
 // 이야기
 const JOURNAL=[
@@ -250,8 +185,8 @@ const LAYER_EVENT={
 };
 // 할아버지의 유산(프롤로그에서 받음): 골드 · 낡은 곡괭이 · 느리게 도는 채굴 기계(드릴 로봇 1단계). 탑 1층 골드
 const LEGACY={gold:1000,auto:1},TUT_FLOOR_G=300;
-// 튜토리얼 동안 처음 깨는 바위에서 나오는 광석(발견 → 재련 → 탑 1층에 필요한 만큼)
-const TUT_DROPS=['stone','clay','copper','stone','stone','stone','stone','stone'];
+// 튜토리얼 동안 처음 깨는 바위에서 나오는 광석(돌 · 구리 발견 → 재련 → 탑 1층에 필요한 만큼)
+const TUT_DROPS=['stone','copper','stone','stone','stone','stone','stone','stone'];
 const PROLOGUE=[
   {t:'한 통의 편지',b:'"할아버지의 재련소가 이번 겨울에 헐린단다. 가져갈 물건이 있으면 와서 챙겨 가거라." — 별빛골 이장'},
   {t:'별빛골',b:'40년 전 겨울밤, 마을을 비추던 등불별이 떨어졌다. 그날 이후 광물은 빛을 잃었고, 사람들은 하나둘 마을을 떠났다. 이제 이곳은 잿빛 폐광촌이다.'},
@@ -273,6 +208,6 @@ const PICK_TIERS=[[1,'녹슨 곡괭이','#8a6a4a','dust'],[6,'철 곡괭이','#b
 const SEASONS=[{n:'봄',d:{gem:1.15,build:1.05}},{n:'여름',d:{build:1.2,fuel:.9}},{n:'가을',d:{metal:1.15,fuel:1.05}},{n:'겨울',d:{fuel:1.3,build:.85}}];
 
 /* 밸런스: 자동 플레이 봇으로 맞춘 값 (applyBal로 적용) */
-let BAL={"hp":[6.376,25.02,46.19,132.9,252.6,362.4,472.2,636.5,895.3,1305,2056,2794,3518],"unlock":[0,1065,4387,20060,59860,176800,457600,1639000,2927000,6702000,19890000,44440000,103800000],"tg":[17780,1558,5424,14560,34000,79650,169000,323600,591700,1014000,1456000,3324000,8153000],"tgrow":1.16,"mgrow":1.12,"sky":20380000,"pick":[20,1.6],"auto":[100,1.75],"autoEff":0.6,"furn":[300,2.6],"wh":[100,2.6],"intel":[800,12000,150000],"rent":4,"box":[200,1.6],"pass":{"k":3000,"g":1,"max":30,"pay":15},"ups":{"crit":[400,2.1],"metal":[600,2.3],"gem":[900,2.3],"box":[150,2.2],"refiner":[3000,4.5],"night":[1500,3.2],"great":[2000,3],"qslot":[2500,7],"qspeed":[800,2.2],"autosell":[5000,1],"safe":[4000,4],"haggle":[500,2],"bulk":[2000,3]}};
+let BAL={"hp":[8.91,26.07,41.76,123.6,255,371.4,531.9,762.6,1006,1395,2218,2908,3577],"unlock":[0,2527,5601,16850,58970,194200,730900,1657000,4506000,11380000,26580000,60700000,112700000],"tg":[17780,1721,5648,16230,36770,100000,248100,400200,799300,1357000,1706000,3500000,8317000],"tgrow":1.16,"mgrow":1.12,"sky":20790000,"pick":[20,1.6],"auto":[100,1.75],"autoEff":0.6,"furn":[300,2.6],"wh":[100,2.6],"intel":[800,12000,150000],"rent":4,"box":[200,1.6],"pass":{"k":3000,"g":1,"max":30,"pay":15},"ups":{"crit":[400,2.1],"metal":[600,2.3],"gem":[900,2.3],"box":[150,2.2],"refiner":[3000,4.5],"night":[1500,3.2],"great":[2000,3],"qslot":[2500,7],"qspeed":[800,2.2],"autosell":[5000,1],"safe":[4000,4],"haggle":[500,2],"bulk":[2000,3]}};
 function applyBal(){LAYERS.forEach((L,i)=>{L.hp=BAL.hp[i];if(L.req)L.req.g=BAL.unlock[i]});SECTIONS.forEach((s,i)=>s.g=BAL.tg[i]);SECTIONS[0].g=TUT_FLOOR_G;SKY.g=BAL.sky}
 applyBal();

@@ -7,13 +7,13 @@ const towerBlocked=()=>S.floors>=99&&!S.ended;
 const rentPerSec=()=>SECTIONS.reduce((s,x)=>s+(S.floors>=x.to?x.g*BAL.rent/3600:0),0);
 // 새 입주자가 들어오면 그 사람이 직접, 새로 열린 것을 알려 준다
 const TENANT_INTRO={
-  '무쇠':[{t:'무쇠네 대장간',b:'"허허, 다시 망치를 잡게 되었구려. [장비] 탭 대장간에서 곡괭이를 벼려 주리다. 날이 설수록 바위가 쉽게 갈라지지."'}],
+  '무쇠':[{t:'무쇠네 대장간',b:'"하하, 망치 다시 잡는다! [장비] 탭 대장간으로 와. 곡괭이 날 세워 줄게. 날이 설수록 바위가 쉽게 갈라지거든!"'}],
   '셈':[{t:'셈의 창고',b:'"창고가 비좁지? [장비] 탭 내 창고에서 칸을 늘려 줄게. 꽉 차면 싼 원석부터 알아서 정리하는 것도 맡겨 둬."'}],
   '핀':[{t:'핀의 작업대',b:'"할아버지 채굴 기계요? 제가 고칠 수 있어요! [장비] 탭 작업대에서 드릴 로봇을 더 빠르게 만들고, 보관함도 넓혀 드릴게요."'}],
   '바우':[{t:'광부 반장 바우',b:'"곡괭이는 힘이 아니라 바위 결로 휘두르는 거여. 내가 요령을 알려 주지. 탭 한 번이 더 세질 게야."'}],
   '루카':[{t:'지층 출입권',b:'"장터에 [지층 출입권]을 열었어요! 출입권을 가지고 있으면 그 지층 광석이 조금씩 로봇 보관함에 들어와요. 한꺼번에 많이 사면 값이 조금씩 올라요."'},
           {t:'소문 게시판',b:'"그리고 소문! 30분쯤마다 지층 소문이 돌고, 15~20분 뒤에 사실인지 발표돼요. 누가 한 말인지, 다른 사람도 같은 말을 하는지, 그 지층에서 단서가 나오는지 잘 보세요. 사실로 밝혀지면 출입권 값이 크게 올라요."'}],
-  '미르':[{t:'미르의 용광로',b:'"…용광로는 제가 돌볼게요. [장비] 탭에서 풀무를 키우면 재련이 더 잘 되고, 자동 재련 칸을 늘리면 자리를 비운 동안에도 녹여 둘게요."'}]};
+  '미르':[{t:'미르의 용광로 · 자동 재련소',b:'"…용광로는 제가 돌볼게요. [장비] 탭에서 풀무를 키우면 재련이 더 잘 돼요. 그리고 [재련] 탭에 자동 재련소를 열었어요. …레시피를 맡겨 두면 자리를 비운 동안에도 녹여 둘게요."'}]};
 function buildFloor(quiet){if(towerBlocked())return false;const f=S.floors+1,c=floorCost(f);if(!canBuild(c))return false;
   S.gold-=c.gold;c.mats.forEach(([id,q])=>add(id,-q));S.floors=f;
   if(f%5===0){const gift=c.gold*3;S.gold+=gift;log(`${f}층 완공 기념! 마을 사람들이 축하금을 보냈어요: +${big(gift)}G`,!quiet)}
@@ -32,51 +32,23 @@ function finale(){if(S.floors<99||S.ended)return;if(cnt('philo')<1||cnt('starsha
   const mins=Math.round((gtime()-S.t0)/60000);
   story(ENDING.map((c,i)=>Object.assign({gold:1,k:'에필로그'},c)).concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>재련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
   renderAll()}
-// 탑 구간 색: 구간 이름에 맞춰 (흙 · 돌 · 청동 · 강철 · 은빛 온실 · 수정 · 청화 · 황금 · 용암 · 백금 · 다이아 · 달빛 · 별)
-const TCOL=['#8a6440','#8c8a84','#b0743a','#5f7488','#76b09a','#9a6ad0','#3f63b8','#d8a832','#c0482e','#a8b4c4','#5cc8d8','#6a68b8','#f0d890'];
-function sectColor(i){return TCOL[i]||ITEMS[SECTIONS[i].mats[0][0]].c}
-// 탑: 끊김 없이 위로 갈수록 가늘어지는 한 덩어리. 층마다 그 구간 재료 색, 구간 사이는 점묘로 자연스럽게 섞는다
-let towerKey='';
-function drawTower(){const key=S.floors+'|'+S.ended+'|'+BON.done+'|'+S.unlocked;if(key===towerKey)return;towerKey=key;
-  const cvT=$('towerCv'),t=cvT.getContext('2d'),W=64,Hh=120;t.imageSmoothingEnabled=false;
+// 탑 그림(사용자 그림 art/scene/tower.png): 쌓은 층만큼 아래부터 색이 들어오고, 위는 어두운 실루엣. 하늘 · 오로라 · 별은 깊이 내려갈수록 짙어짐
+let towerKey='',TOWER_IMG=null;
+function drawTower(){const key=S.floors+'|'+S.ended+'|'+S.unlocked;if(key===towerKey)return;
+  if(!TOWER_IMG){TOWER_IMG=Object.assign(new Image(),{src:ART.scene_tower});TOWER_IMG.onload=()=>{towerKey='';drawTower()}}if(!TOWER_IMG.complete)return;towerKey=key;
+  const cvT=$('towerCv'),t=cvT.getContext('2d'),W=cvT.width,Hh=cvT.height,im=TOWER_IMG;t.imageSmoothingEnabled=false;
   const sky=t.createLinearGradient(0,0,0,Hh);sky.addColorStop(0,'#0b0a1a');sky.addColorStop(1,'#2a1c22');t.fillStyle=sky;t.fillRect(0,0,W,Hh);
-  const R=rng(5);for(let i=0;i<26;i++){t.fillStyle=R()<.3?'#ffe9a8':'#7a7aa0';t.fillRect(Math.floor(R()*W),Math.floor(R()*70),1,1)}
-  // 오로라: 하늘에 물결치는 초록 · 청록 · 보라 띠
-  // 오로라는 깊이 내려갈수록 하늘에 짙어진다
+  const R=rng(5);for(let i=0;i<60;i++){t.fillStyle=R()<.3?'#ffe9a8':'#7a7aa0';const sz=R()<.2?2:1;t.fillRect(Math.floor(R()*W),Math.floor(R()*Hh*.6),sz,sz)}
   const auP=S.ended?1:clamp((S.unlocked-1)/(LAYERS.length-1),0,1);
-  if(auP>0)[['98,240,196',.2*auP,18,0],['95,207,242',.16*auP,26,1.7],['165,140,255',.18*auP,34,3.1]].forEach(([c,al,y0,ph])=>{for(let x=0;x<W;x++){const yy=y0+Math.sin(x*.11+ph)*5+Math.sin(x*.27+ph*2)*2;for(let k=0;k<9;k++){t.fillStyle=`rgba(${c},${(al*(1-k/9)).toFixed(3)})`;t.fillRect(x,Math.round(yy+k),1,1)}}});
-  // 마을: 입주자 수만큼 창에 불
-  const done=BON.done;t.fillStyle='#1a120c';t.fillRect(0,108,W,12);
-  [[2,100,10,8],[14,103,8,5],[44,101,9,7],[54,99,9,9]].forEach((h,k)=>{t.fillStyle='#2e2319';t.fillRect(h[0],h[1],h[2],h[3]);t.fillStyle='#3a2a1c';t.fillRect(h[0]-1,h[1]-2,h[2]+2,2);
-    for(let w=0;w<2;w++){const lit=k*2+w<done;t.fillStyle=lit?'#ffb84a':'#120c08';t.fillRect(h[0]+2+w*4,h[1]+2,2,2)}});
-  const px=(x,y,c)=>{t.fillStyle=c;t.fillRect(x,y,1,1)};
-  const top=16,base=107,hgt=base-top+1,f=S.floors;
-  // 폭은 1px씩 좌우 번갈아 줄어 매끈하게. 층(fl)과 구간(si)은 높이 비율로
-  const rowOf=r=>{const p=r/(hgt-1),w=Math.round(27-17*Math.pow(p,.8)),fl=Math.min(99,Math.floor(p*99)+1);return{w,x0:32-Math.ceil(w/2),fl,si:secOf(fl)}};
-  // 재료 색을 중간 밝기로 맞춰(너무 하얀 은·백금도 음영이 보이게) 구간끼리는 3줄에 걸쳐 섞는다
-  const rgb=h=>{const n=parseInt(h.slice(1),16);return[n>>16,n>>8&255,n&255]},hex=c=>'#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
-  const tone=i=>{let[r,g,b]=rgb(sectColor(i));const mx=Math.max(r,g,b),mn=Math.min(r,g,b),L=(mx+mn)/510;const k=L>.6?.6/L:L<.32?.32/Math.max(L,.05):1;return[r*k,g*k,b*k]};
-  const TONE=SECTIONS.map((_,i)=>tone(i)),mix=(a,b,u)=>a.map((v,j)=>v+(b[j]-v)*u),sh=(c,u)=>u>0?c.map(v=>v+(255-v)*u):c.map(v=>v*(1+u));
-  const ghost=[38,31,46];let builtTop=null;
-  const colAt=r=>{const {fl,si}=rowOf(r);if(f<fl)return null;let c=TONE[si];
-    for(const d of[1,2]){const u=rowOf(Math.min(hgt-1,r+d)),l=rowOf(Math.max(0,r-d));
-      if(u.si!==si&&f>=u.fl){c=mix(c,TONE[u.si],d===1?.35:.15);break}if(l.si!==si){c=mix(c,TONE[l.si],d===1?.35:.15);break}}return c};
-  for(let r=0;r<hgt;r++){const y=base-r,{w,x0,fl,si}=rowOf(r),c=colAt(r),built=!!c,b=c||ghost;
-    // 둥근 기둥처럼: 왼쪽 밝게, 오른쪽 어둡게
-    for(let x=0;x<w;x++){const u=x/(w-1),k=u<.12?.38:u<.3?.16:u<.62?0:u<.82?-.2:-.42;px(x0+x,y,hex(sh(b,built?k:k*.5)))}
-    px(x0-1,y,'#120c14');px(x0+w,y,'#120c14');
-    // 창: 다섯 줄마다, 쌓은 층에만 불
-    if(built&&r%5===2&&r>2){const ws=w>=19?[-6,-1,4]:w>=13?[-4,2]:[-1];ws.forEach(o=>{const wx=32+o;px(wx,y,'#ffe2a0');px(wx,y-1,'#ffcf6a');px(wx+1,y,hex(sh(b,-.6)));px(wx+1,y-1,hex(sh(b,-.6)))})}
-    if(built)builtTop={y,w,x0}}
-  // 꼭대기 테두리
-  {const {w,x0}=rowOf(hgt-1);for(let x=-1;x<=w;x++)px(x0+x,top-1,'#120c14')}
-  // 받침돌
-  t.fillStyle='#4a3a30';t.fillRect(16,105,32,3);t.fillStyle='#6a5444';t.fillRect(16,105,32,1);t.fillStyle='#2a2018';t.fillRect(16,107,32,1);t.fillStyle='#120c14';t.fillRect(15,105,1,3);t.fillRect(48,105,1,3);
-  // 짓는 중: 꼭대기에 비계
-  if(builtTop&&f<99){const {y,w,x0}=builtTop;t.fillStyle='#8a6a3a';t.fillRect(x0,y-4,1,4);t.fillRect(x0+w-1,y-4,1,4);t.fillRect(x0,y-4,w,1);t.fillStyle='#ffe9a8';t.fillRect(32,y-5,1,1)}
-  // 99층: 첨탑과 불빛
-  if(f>=99){t.fillStyle='#120c14';t.fillRect(28,top-6,9,6);t.fillStyle='#ff9a4a';t.fillRect(29,top-5,7,5);t.fillStyle='#ffd27a';t.fillRect(30,top-5,2,5);t.fillStyle='#120c14';t.fillRect(31,top-10,3,4);t.fillStyle='#ffe9a8';t.fillRect(32,top-9,1,3)}
-  if(S.ended){t.fillStyle='rgba(255,233,168,.25)';t.fillRect(28,1,9,9);t.fillStyle='#ffe9a8';t.fillRect(31,4,3,3);t.fillRect(32,2,1,7);t.fillRect(29,5,7,1)}}
+  if(auP>0)[['98,240,196',.2*auP,50,0],['95,207,242',.16*auP,76,1.7],['165,140,255',.18*auP,100,3.1]].forEach(([c,al,y0,ph])=>{for(let x=0;x<W;x+=2){const yy=y0+Math.sin(x*.04+ph)*14+Math.sin(x*.09+ph*2)*5;t.fillStyle=`rgba(${c},${al})`;t.fillRect(x,Math.round(yy),2,26)}});
+  t.fillStyle='#1a120c';t.fillRect(0,Hh-14,W,14);
+  // 탑: 가운데 아래에 맞춤. 전체는 실루엣, 쌓은 비율만큼 아래부터 원래 색
+  const tw=im.width,th=im.height,x0=Math.round((W-tw)/2),y0=Hh-10-th,f=S.ended?99:Math.min(99,S.floors),cut=Math.round(th*(1-f/99));
+  t.save();t.globalAlpha=.32;t.filter='brightness(0.35) saturate(0.2)';t.drawImage(im,x0,y0);t.restore();
+  if(cut<th)t.drawImage(im,0,cut,tw,th-cut,x0,y0+cut,tw,th-cut);
+  // 짓는 중인 높이에 비계 줄, 엔딩엔 꼭대기 빛
+  if(f>0&&f<99){t.fillStyle='#ffe9a8';t.fillRect(x0+8,y0+cut,tw-16,2)}
+  if(S.ended){const gr=t.createRadialGradient(W/2,y0+14,2,W/2,y0+14,60);gr.addColorStop(0,'rgba(255,233,168,.6)');gr.addColorStop(1,'rgba(255,233,168,0)');t.fillStyle=gr;t.fillRect(0,0,W,y0+80)}}
 const TH={card:'',sh:''};
 function renderTower(){
   drawTower();const f=S.floors,i=secOf(f+1),sec=i>=0?SECTIONS[i]:null,rps=rentPerSec();
@@ -91,7 +63,7 @@ function renderTower(){
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="finaleBtn" type="button" ${ok?'':'disabled'}>별을 돌려보내기</button></div>`}
   else{const c=floorCost(f+1),ok=canBuild(c);
     card=`<h2>${f+1}층 짓기 <small>${i>=0?SECTIONS[i].n:'하늘 너머'}</small></h2>`+c.mats.map(([id,q])=>`<div class="matl">${ico(id)}<span>${S.seen.includes(id)?ITEMS[id].n:'???'}</span><span class="${cnt(id)>=q?'ok':'no'}">${big(cnt(id))}/${big(q)}</span></div>`).join('')+
-    `<div class="matl"><i class="ico ic-goldbar"></i><span>골드</span><span class="${S.gold>=c.gold?'ok':'no'}">${big(c.gold)}G</span></div>
+    `<div class="matl"><i class="ico ic-coin"></i><span>골드</span><span class="${S.gold>=c.gold?'ok':'no'}">${big(c.gold)}G</span></div>
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="buildBtn" type="button" ${ok?'':'disabled'}>한 층 쌓기</button><button class="px-btn" id="buildMaxBtn" type="button" ${ok?'':'disabled'}>가능한 만큼</button></div>
     <div class="row-btns"><button class="px-btn grow" id="buyMissBtn" type="button">부족한 재료 장터에서 사기</button></div>
     <p class="dim small" style="margin:8px 0 0">5층마다 축하금 · 구간을 완공하면 새 입주자가 들어와요</p>`}

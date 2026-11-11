@@ -36,24 +36,13 @@ function buildIcons(){
   const KEY='starfall-icons',src=(document.currentScript&&document.currentScript.textContent)||'',h=strSeed(src)+':'+src.length;let css=null;
   try{const c=JSON.parse(localStorage.getItem(KEY)||'null');if(c&&c.h===h)css=c.css}catch(e){}
   if(!css){css='';ORDER.forEach(id=>{css+=`.ic-${id}{background-image:url(${drawIcon(id,32).canvas(1).toDataURL()})}`});try{localStorage.setItem(KEY,JSON.stringify({h,css}))}catch(e){}}
-  const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+  const st=document.createElement('style');st.textContent=css+`.ic-coin{background-image:url(${coinIcon()})}`;document.head.appendChild(st);
 }
+// 골드(돈) 아이콘: 금화 더미(금괴 아이콘과 구분)
+function coinIcon(){const pb=new PB(32,32),G=['#6a3e08','#a8661a','#e0a22a','#ffd23f','#fff3b0'],coin=(cx,cy)=>{pb.ell(cx,cy+1.5,7.5,3.6,G[0]);pb.ell(cx,cy,7.5,3.6,G[2]);pb.ell(cx,cy-.3,5.4,2.4,G[3]);pb.rect(cx-1,cy-2,2,1,G[4])},
+  side=(cx,top,n)=>{for(let k=0;k<n;k++){const y=top+k*2.4;pb.ell(cx,y+1.5,7.5,3.6,G[0]);pb.rect(cx-7,y,15,2,k%2?G[1]:G[2])}};
+  side(10,20,3);coin(10,19);side(22,23,2);coin(22,22);side(15,13,4);coin(15,12);pb.set(12,10,G[4]);pb.set(13,10,G[4]);pb.outline('#2a1606');return pb.canvas(1).toDataURL()}
 const ico=(id,sz='')=>`<i class="ico ${sz} ic-${id}" aria-hidden="true"></i>`;
 
 /* 캐릭터 (옆모습, 왼쪽을 봄). 발 중앙이 기준점 (16, 31) */
 /* 고양이 숯 */
-function drawCat(f){const pb=new PB(20,14),B='#1d1a22',B2='#2e2a36',E=f==='sleep'?'#1d1a22':'#ffd23f';
-  if(f==='sleep'){pb.ell(10,10,7,3.5,B);pb.ell(5,9,3,2.5,B2);pb.set(3,7,B);pb.set(6,7,B);pb.line(15,11,18,8,B,1)}
-  else{pb.ell(11,10,5,3.5,B);pb.rect(5,4,6,5,B);pb.set(5,3,B);pb.set(6,2,B);pb.set(10,3,B);pb.set(9,2,B);pb.set(6,6,E);pb.set(9,6,E);pb.set(7,7,'#e88aa0');
-    const t=f==='tail'?-1:0;pb.line(15,10,18,6+t,B,1);pb.line(18,6+t,19,4+t,B,1);pb.rect(7,12,2,2,B);pb.rect(13,12,2,2,B)}
-  pb.outline('#08070a');return pb.canvas(1)}
-/* 드릴 로봇 */
-function drawBot(state,ph){const pb=new PB(20,13),R=ramp('#d6aa52');
-  pb.rect(6,2,10,7,(x,y)=>y<4?R[3]:x>13?R[1]:R[2]);pb.rect(8,4,5,2,'#1b2a2a');
-  if(state==='on'){pb.set(9,5,'#7cffc8');pb.set(11,5,'#7cffc8')}else if(state==='full'){pb.set(9,5,'#ff6a5a');pb.set(11,5,'#ff6a5a')}else{pb.line(9,5,11,5,'#5a7a7a')}
-  pb.rect(5,9,12,3,'#3a3028');for(let i=0;i<4;i++)pb.set(6+i*3+(ph%2),10,'#7a6a58');
-  const DR=ramp('#c8d2da');pb.poly([[6,3],[6,9],[0,6]],(x,y)=>((x+y+ph)%3===0)?DR[1]:DR[3]);
-  pb.rect(12,0,1,2,'#7a6a58');pb.set(12,0,state==='on'?'#7cffc8':'#5a7a7a');
-  pb.outline('#120c08');return pb.canvas(1)}
-const BOT_CACHE={};const botSprite=(s,ph)=>BOT_CACHE[s+ph]||(BOT_CACHE[s+ph]=drawBot(s,ph));
-const CAT_CACHE={};const catSprite=f=>CAT_CACHE[f]||(CAT_CACHE[f]=drawCat(f));
