@@ -58,7 +58,7 @@ main{padding-top:10px}
 .nb{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 8px;color:var(--dim);font-size:12px;font-family:var(--f11);position:relative;min-height:58px}
 .nb.on{color:var(--lamp)}
 .nb.on::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;background:var(--lamp)}
-.ni{width:32px;height:32px;image-rendering:pixelated;background:center/contain no-repeat}
+.ni{width:32px;height:32px;image-rendering:pixelated;background-position:center;background-size:contain;background-repeat:no-repeat}
 .seg button{position:relative}.seg .dot{position:absolute;top:4px;right:5px;width:7px;height:7px;background:var(--bad);box-shadow:0 0 0 2px var(--bg2,#000)}
 .px-btn.ndot{position:relative}.px-btn.ndot::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--bad);box-shadow:0 0 0 2px rgba(0,0,0,.55)}
 .nb .dot{position:absolute;top:7px;right:calc(50% - 18px);width:8px;height:8px;background:var(--bad);box-shadow:0 0 0 2px #1b140e}
@@ -704,7 +704,7 @@ function buildIcons(){
   const KEY='starfall-icons',src=(document.currentScript&&document.currentScript.textContent)||'',h=strSeed(src)+':'+src.length;let css=null;
   try{const c=JSON.parse(localStorage.getItem(KEY)||'null');if(c&&c.h===h)css=c.css}catch(e){}
   if(!css){css='';ORDER.forEach(id=>{css+=`.ic-${id}{background-image:url(${drawIcon(id,32).canvas(1).toDataURL()})}`});try{localStorage.setItem(KEY,JSON.stringify({h,css}))}catch(e){}}
-  const st=document.createElement('style');st.textContent=css+`.ic-coin{background-image:url(${coinIcon()})}`;document.head.appendChild(st);
+  const st=document.createElement('style');st.textContent=css+`.ic-coin{background-image:url(${coinIcon()})}`;(document.body||document.head).appendChild(st);
 }
 // 골드(돈) 아이콘: 금화 더미(금괴 아이콘과 구분)
 function coinIcon(){const pb=new PB(32,32),G=['#6a3e08','#a8661a','#e0a22a','#ffd23f','#fff3b0'],coin=(cx,cy)=>{pb.ell(cx,cy+1.5,7.5,3.6,G[0]);pb.ell(cx,cy,7.5,3.6,G[2]);pb.ell(cx,cy-.3,5.4,2.4,G[3]);pb.rect(cx-1,cy-2,2,1,G[4])},
@@ -1664,7 +1664,7 @@ function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */
 // 아래 탭 아이콘(사용자 그림 art/ui/nav_*.png)
-function navIcons(){const st=document.createElement('style');st.textContent=['mine','equip','forge','market','tower','manage'].map(k=>`.ni-${k}{background-image:url(${ART['ui_nav_'+k]})}`).join('');document.head.appendChild(st)}
+function navIcons(){const st=document.createElement('style');st.textContent=['mine','equip','forge','market','tower','manage'].map(k=>`.ni-${k}{background-image:url(${ART['ui_nav_'+k]})}`).join('');(document.body||document.head).appendChild(st)}
 
 /* 광고 두 가지 + 광고 제거 패키지 (프로토타입: 가짜 광고 화면, 결제 없음) */
 const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};

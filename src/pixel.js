@@ -36,7 +36,7 @@ function buildIcons(){
   const KEY='starfall-icons',src=(document.currentScript&&document.currentScript.textContent)||'',h=strSeed(src)+':'+src.length;let css=null;
   try{const c=JSON.parse(localStorage.getItem(KEY)||'null');if(c&&c.h===h)css=c.css}catch(e){}
   if(!css){css='';ORDER.forEach(id=>{css+=`.ic-${id}{background-image:url(${drawIcon(id,32).canvas(1).toDataURL()})}`});try{localStorage.setItem(KEY,JSON.stringify({h,css}))}catch(e){}}
-  const st=document.createElement('style');st.textContent=css+`.ic-coin{background-image:url(${coinIcon()})}`;document.head.appendChild(st);
+  const st=document.createElement('style');st.textContent=css+`.ic-coin{background-image:url(${coinIcon()})}`;(document.body||document.head).appendChild(st);
 }
 // 골드(돈) 아이콘: 금화 더미(금괴 아이콘과 구분)
 function coinIcon(){const pb=new PB(32,32),G=['#6a3e08','#a8661a','#e0a22a','#ffd23f','#fff3b0'],coin=(cx,cy)=>{pb.ell(cx,cy+1.5,7.5,3.6,G[0]);pb.ell(cx,cy,7.5,3.6,G[2]);pb.ell(cx,cy-.3,5.4,2.4,G[3]);pb.rect(cx-1,cy-2,2,1,G[4])},

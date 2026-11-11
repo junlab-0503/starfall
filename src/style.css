@@ -49,7 +49,7 @@ main{padding-top:10px}
 .nb{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 8px;color:var(--dim);font-size:12px;font-family:var(--f11);position:relative;min-height:58px}
 .nb.on{color:var(--lamp)}
 .nb.on::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;background:var(--lamp)}
-.ni{width:32px;height:32px;image-rendering:pixelated;background:center/contain no-repeat}
+.ni{width:32px;height:32px;image-rendering:pixelated;background-position:center;background-size:contain;background-repeat:no-repeat}
 .seg button{position:relative}.seg .dot{position:absolute;top:4px;right:5px;width:7px;height:7px;background:var(--bad);box-shadow:0 0 0 2px var(--bg2,#000)}
 .px-btn.ndot{position:relative}.px-btn.ndot::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--bad);box-shadow:0 0 0 2px rgba(0,0,0,.55)}
 .nb .dot{position:absolute;top:7px;right:calc(50% - 18px);width:8px;height:8px;background:var(--bad);box-shadow:0 0 0 2px #1b140e}

@@ -120,7 +120,7 @@ function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */
 // 아래 탭 아이콘(사용자 그림 art/ui/nav_*.png)
-function navIcons(){const st=document.createElement('style');st.textContent=['mine','equip','forge','market','tower','manage'].map(k=>`.ni-${k}{background-image:url(${ART['ui_nav_'+k]})}`).join('');document.head.appendChild(st)}
+function navIcons(){const st=document.createElement('style');st.textContent=['mine','equip','forge','market','tower','manage'].map(k=>`.ni-${k}{background-image:url(${ART['ui_nav_'+k]})}`).join('');(document.body||document.head).appendChild(st)}
 
 /* 광고 두 가지 + 광고 제거 패키지 (프로토타입: 가짜 광고 화면, 결제 없음) */
 const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
