@@ -7,7 +7,8 @@ const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);const S=f=>p.evaluate(f);co
 await p.goto('file://'+process.cwd()+'/dbg24.html');await p.waitForTimeout(700);
 ok(await p.isVisible('#titleScr'),'시작 화면');await p.screenshot({path:'v13_title.png'});
 await p.click('#titleScr');await p.waitForTimeout(300);
-let leg=false;for(let i=0;i<10&&await p.isVisible('#storyNext');i++){const t=await p.textContent('#storyT');if(/재련소/.test(t)){leg=true;await p.screenshot({path:'v13_legacy.png'})}if(/광맥 입구/.test(t))await p.screenshot({path:'v13_entry.png'});await p.click('#storyNext');await p.waitForTimeout(150)}
+let leg=false;for(let i=0;i<10&&await p.isVisible('#storyNext');i++){const t=await p.textContent('#storyT');if(/재련소/.test(t)){leg=true;await p.screenshot({path:'v13_legacy.png'})}await p.click('#storyNext');await p.waitForTimeout(150)}
+await p.waitForTimeout(1500);ok(await p.isVisible('#entry'),'광맥 입구 장면');await p.screenshot({path:'v13_entry.png'});await p.click('#entry');await p.waitForTimeout(700);ok(!(await p.isVisible('#entry')),'탭하면 건너뜀');
 const g=await S(()=>({gold:__d().S.gold,auto:__d().S.auto,pro:__d().S.prologue}));ok(leg&&g.gold===1000&&g.auto===1&&g.pro,`유산: ${g.gold}G, 채굴 기계 ${g.auto}단계`);
 await p.waitForTimeout(500);ok(/탭해서/.test(await tut()),'1단계: '+(await tut()).slice(0,24));
 const box=await (await p.$('#scene')).boundingBox();let pops=[];

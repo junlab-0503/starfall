@@ -7,7 +7,7 @@ const ctx=await b.newContext({...devices['Galaxy S9+']});const p=await ctx.newPa
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 const closeStory=async()=>{while(await p.isVisible('#storyNext'))await p.click('#storyNext')};
 const glow=()=>p.evaluate(()=>[...document.querySelectorAll('.tut-glow')].map(e=>e.id||e.dataset.pk||e.dataset.tab||e.className.split(' ')[0]).join(','));
-await p.goto(url);await p.waitForTimeout(500);if(await p.isVisible('#titleScr'))await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();
+await p.goto(url);await p.waitForTimeout(500);if(await p.isVisible('#titleScr'))await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
 // 튜토리얼은 t24에서 확인. 여기선 건너뜀
 await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await p.waitForTimeout(300);
 ok((await p.textContent('#tutAgain'))==='튜토리얼 다시 보기','설정 버튼 문구');

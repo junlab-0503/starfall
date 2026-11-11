@@ -14,18 +14,18 @@ function welcome(r){const ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot
   ores.slice(0,6).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(n)}</span>`));if(ores.length>6)rows.push(`<span>그 밖의 광석</span><span>×${big(ores.slice(6).reduce((s,o)=>s+o[1],0))}</span>`);
   if(r.sold&&r.sold.n>0)rows.push(`<span>${ico(ul('refiner')?'engine':'mortar','sm')} 넘친 광석 ${big(r.sold.n)}개 ${ul('refiner')?'재련해서 ':''}판매</span><span>+${big(r.sold.g)}G</span>`);
   const mk=Object.entries(r.made||{});mk.slice(0,4).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} 자동 재련 ${ITEMS[id].n}</span><span>×${big(n)}</span>`));
+  if(r.drillOff)rows.push(`<span class="dim">드릴 로봇</span><span class="dim">스위치가 꺼져 있어 쉬었어요</span>`);
   if(!rows.length)return;
-  story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 로봇 보관함에서 받을 수 있어요.':''}</p>`}])}
+  story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`${r.drillOff?'탑의 입주자들이 일했어요. 드릴 로봇은 꺼 둔 채라 쉬었어요.':'탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.'}${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 로봇 보관함에서 받을 수 있어요.':''}</p>`}])}
 document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');
 drawPortrait($('tutPor'),{name:'이장 할머니',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'},false);
 setTab(S.tab);sceneResize();newWall();renderAll();
 addEventListener('resize',()=>{document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');fitScene()});
-// 프롤로그: 편지 → 할아버지의 재련소(유산: 골드 · 낡은 곡괭이 · 느린 채굴 기계) → 일지 → 광맥 입구(그림)
-function startPrologue(){story(PROLOGUE.map((c,i)=>Object.assign({k:'프롤로그'},c,
+// 프롤로그: 편지 → 할아버지의 재련소(유산: 골드 · 낡은 곡괭이 · 느린 채굴 기계) → 일지 → 광맥 입구 → 주인공이 입구로 걸어 들어가는 장면 → B1
+function startPrologue(){story(PROLOGUE.map((c,i)=>Object.assign({gold:1,k:'프롤로그'},c,
   c.legacy?{extra:`<div class="rcard"><span>할아버지의 유산</span><span>+${big(LEGACY.gold)}G</span><span>낡은 곡괭이</span><span>손에 익은 녹슨 곡괭이</span><span>채굴 기계</span><span>느리게 도는 자동 드릴</span></div>`,
-    done:()=>{if(!S.legacy){S.legacy=1;S.gold+=LEGACY.gold;S.auto=Math.max(S.auto,LEGACY.auto);S.autoOn=false;sfx('coin');renderAll()}}}:{},
-  c.scene?{extra:`<img class="scene-img" src="${ART['scene_'+c.scene]}" alt="">`}:{},
-  i===PROLOGUE.length-1?{done:()=>{S.prologue=true;save()}}:{})))}
+    done:()=>{if(!S.legacy){S.legacy=1;S.gold+=LEGACY.gold;S.auto=Math.max(S.auto,LEGACY.auto);S.autoOn=true;sfx('coin');renderAll()}}}:{},
+  i===PROLOGUE.length-1?{done:()=>{S.prologue=true;save()},after:()=>entryScene()}:{})))}
 // 시작 화면: 터치하면 닫히고, 처음이면 프롤로그
 $('titleScr').hidden=false;$('titleScr').style.backgroundImage='';$('titleArt').style.backgroundImage=`url(${ART.scene_title})`;
 $('titleScr').addEventListener('click',()=>{$('titleScr').hidden=true;sfx('page');if(!S.prologue)startPrologue();renderAll()});

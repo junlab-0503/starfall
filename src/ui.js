@@ -14,8 +14,10 @@ function badges(){const equip=SHOPS.some(sh=>sh.ups.some(upCan)),shaft=S.unlocke
 function renderMineHud(){
   const f=used()>=cap(),ab=$('autoBtn'),bx=$('boxBtn'),bu=boxUsed();
   ab.hidden=!(S.auto>0);ab.classList.toggle('on',!!S.autoOn);ab.classList.toggle('full',!!S.autoOn&&f);ab.setAttribute('aria-checked',S.autoOn?'true':'false');
+  // 스위치 하나가 켜 둔 동안과 자리 비운 동안 모두를 정함
+  $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';$('autoSub').textContent=S.autoOn?(f?'창고 가득 · 보관함에 모아요':'자리 비워도 캐요'):'자리 비워도 쉬어요';
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
-  const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp((S.vein.end-gtime())/(VEIN_SEC*1000),0,1)*100)+'%';
+  const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/VEIN_SEC,0,1)*100)+'%';
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
@@ -29,10 +31,10 @@ $('nextL').onclick=()=>{const i=S.unlocked;if(i<LAYERS.length&&reqMet(LAYERS[i])
 $('boxBtn').onclick=e=>{e.stopPropagation();collectBox()};
 function collectBox(){let moved=0,left=0;for(const id of Object.keys(S.box||{})){const k=Math.min(S.box[id],space());if(k>0){add(id,k);S.box[id]-=k;moved+=k}if(S.box[id]<=0)delete S.box[id];else left+=S.box[id]}
   if(moved)toast(`드릴 로봇이 캔 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.');else toast('로봇 보관함이 비어 있어요.');renderAll()}
-$('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;sfx('click');renderMineHud()};
+$('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;sfx('click');toast(S.autoOn?'드릴 로봇을 켰어요. 켜 두면 자리를 비운 동안에도 캐요.':'드릴 로봇을 껐어요. 자리를 비운 동안에도 쉬어요.');renderMineHud()};
 // 확률 보기: 지금 지층에서 광석이 나올 확률
-$('oddsBtn').onclick=()=>{const L=LAYERS[S.layer],tot=L.drops.reduce((s,d)=>s+d[1],0),rows=L.drops.slice().sort((a,b)=>b[1]-a[1]).map(([id,w])=>`<span>${ico(id,'sm')} ${S.seen.includes(id)?ITEMS[id].n:'???'}</span><span>${pctTxt(w/tot)}</span>`).join('');
-  story([{k:'확률 보기',t:`B${S.layer+1} ${L.n}`,b:'바위를 하나 깰 때 나오는 광석이에요. 깊을수록 나오는 광석 종류가 넓어지고, 가운데쯤 광석이 가장 잘 나와요.',extra:`<div class="rcard odds-list">${rows}</div>`}])};
+$('oddsBtn').onclick=()=>{const L=LAYERS[S.layer],dw=dropW(S.layer),tot=dw.reduce((s,d)=>s+d[1],0),rows=dw.slice().sort((a,b)=>(ITEMS[b[0]].L===S.layer+1)-(ITEMS[a[0]].L===S.layer+1)||b[1]-a[1]).map(([id,w])=>`<span>${ico(id,'sm')} ${S.seen.includes(id)?ITEMS[id].n:'???'}${ITEMS[id].L!==S.layer+1?` <span class="dim">B${ITEMS[id].L}</span>`:''}</span><span>${pctTxt(w/tot)}</span>`).join('');
+  story([{k:'확률 보기',t:`B${S.layer+1} ${L.n}`,b:'바위를 하나 깰 때 나오는 광석이에요. 이 지층 광석이 주로 나오고, 지금 필요한 위 지층 광석도 조금 섞여 나와요.',extra:`<div class="rcard odds-list">${rows}</div>`}])};
 const pctTxt=p=>p>=.1?Math.round(p*100)+'%':p>=.01?(p*100).toFixed(1)+'%':(p*100).toFixed(2)+'%';
 $('layerChips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(c){setLayer(+c.dataset.chip);return}if(e.target.closest('[data-chiplock]')){S.sub='shaft';setTab('manage')}});
 /* 갱도 */
@@ -56,7 +58,7 @@ $('sellRaw').onclick=()=>{let t=0;ORDER.filter(id=>!ITEMS[id].cr&&cnt(id)).forEa
 function renderLog(){const el=$('log');if(el)setHTML(el,S.log.slice(0,40).map(l=>`<div>${l}</div>`).join(''))}
 /* 도감·일지·기록 */
 function revealJournal(i){if(S.journal.includes(i))return;S.journal.push(i);const ev=LAYER_EVENT[i+1];
-  story([{k:`할아버지의 일지 · ${S.journal.length}/13`,t:`B${i+1} ${LAYERS[i].n}`,b:(ev?ev+'\n\n':'')+`"${JOURNAL[i]}"`}])}
+  story([{gold:1,k:`할아버지의 일지 · ${S.journal.length}/13`,t:`B${i+1} ${LAYERS[i].n}`,b:(ev?ev+'\n\n':'')+`"${JOURNAL[i]}"`}])}
 function renderBookTab(){
   $('jCount').textContent=`${S.journal.length}/13`;
   setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp" data-jp="${i}" type="button"><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</button>`:`<div class="jp unk">B${i+1} · 아직 찾지 못한 장</div>`).join(''));
@@ -96,10 +98,12 @@ $('oreList').addEventListener('click',e=>{const s_=e.target.closest('[data-osell
 /* 이야기 창 */
 const STQ=[];
 function story(cards){STQ.push(...cards);if($('story').hidden)nextStory()}
-function nextStory(){const c=STQ.shift();if(!c){$('story').hidden=true;return}
+// done: 카드가 뜰 때, after: 그 카드를 넘긴 뒤(창이 닫히거나 다음 카드로)
+let STC=null;
+function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();
   $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';
   const p=$('portrait'),pa=$('portraitArt'),art=c.art&&typeof ART!=='undefined'&&ART[c.art];pa.hidden=!art;if(art){pa.src=art;pa.alt=c.t||''}
-  if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=STQ.length?'다음':'계속';$('story').hidden=false;if(c.done)c.done()}
+  if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=STQ.length?'다음':'계속';$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}
 $('storyNext').onclick=nextStory;
 /* 탭 */
 const TABS=['mine','equip','forge','market','tower','manage'];
@@ -158,7 +162,7 @@ $('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){if(QM==='sell')doSell(QTY,n)
 const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'재련에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
 // 처음 캔 원석: 도감 카드가 은은한 후광과 함께 → "광석을 발견했다!"
 function discover(id){const it=ITEMS[id],L=it.L;sfx('sparkle');
-  story([{k:'광석을 발견했다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} B${L} ${LAYERS[L-1].n}에서 처음 캐냈어요.`,extra:`<div class="halo"><span class="hr"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 원석</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${S.seen.filter(x=>ITEMS[x].L).length} / ${RAW.length}</span></div>`}])}
+  story([{gold:1,k:'광석을 발견했다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} B${L} ${LAYERS[L-1].n}에서 처음 캐냈어요.`,extra:`<div class="halo"><span class="hr"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 원석</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${S.seen.filter(x=>ITEMS[x].L).length} / ${RAW.length}</span></div>`}])}
 function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 찾지 못한 광물이에요. 더 깊이 파 내려가거나 새로운 조합을 시도해 보세요.'}]);return}
   const it=ITEMS[id],L=itemLayer(id),src=it.cr?(()=>{const i=RMAP[key(INS[id][0],INS[id][1])];return S.found.includes(i)?`${ITEMS[INS[id][0]].n} + ${ITEMS[INS[id][1]].n}로 만들어요.`:'만드는 법은 아직 몰라요.'})():id==='slag'?'':`B${L} ${LAYERS[L-1].n}에서 캘 수 있어요.`;
   const uses=OUTS[id].filter(o=>S.found.some(i=>RECIPES[i].out===o)).map(o=>ITEMS[o].n);

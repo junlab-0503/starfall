@@ -3,7 +3,8 @@ function placeInSlot(id){if(!cnt(id))return;const i=S.slots[0]==null?0:S.slots[1
 const canSmeltWith=sl=>{const[a,b]=sl;if(!a||!b)return false;return a===b?cnt(a)>=2:cnt(a)>=1&&cnt(b)>=1};
 function smeltOnce(){const[a,b]=S.slots;if(!canSmeltWith(S.slots))return null;add(a,-1);add(b,-1);S.crafts++;const idx=RMAP[key(a,b)];
   if(idx==null){add('slag',1);return{kind:'bad',msg:`${ITEMS[a].n} + ${ITEMS[b].n}: 반응이 없어요. 광재가 남았어요.`}}
-  const out=RECIPES[idx].out,r=!S.tutDone&&S.crafts<=6?greatRate():Math.random();   // 튜토리얼 동안 처음 몇 번은 꼭 성공if(!S.found.includes(idx)){S.found.push(idx);log(`새 레시피 발견: ${ITEMS[a].n} + ${ITEMS[b].n} = ${ITEMS[out].n}`,true)}
+  // 튜토리얼 동안 처음 몇 번은 꼭 성공
+  const out=RECIPES[idx].out,r=!S.tutDone&&S.crafts<=6?greatRate():Math.random();if(!S.found.includes(idx)){S.found.push(idx);log(`새 레시피 발견: ${ITEMS[a].n} + ${ITEMS[b].n} = ${ITEMS[out].n}`,true)}
   if(r<greatRate()){add(out,2);return{kind:'great',msg:`대성공! ${ITEMS[out].n} 2개`}}
   if(r<successRate()){add(out,1);return{kind:'ok',msg:`${ITEMS[out].n} 완성`}}
   add('slag',1);return{kind:'bad',msg:'불 조절에 실패했어요. 광재가 남았어요.'}}

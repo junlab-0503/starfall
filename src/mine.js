@@ -4,7 +4,8 @@
 const cv=$('scene'),g=cv.getContext('2d');
 let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
 const STX=24,STY=9; // 굴 한 칸의 가로/세로 이동
-function sceneResize(){fitScene();const r=cv.parentElement.getBoundingClientRect();if(!r.width)return;SC=Math.max(2,Math.round(r.width/180));cv.width=Math.round(r.width);cv.height=Math.round(r.height);IW=cv.width/SC;IH=cv.height/SC;g.imageSmoothingEnabled=false}   // 캔버스 = 화면 크기 그대로(모서리 장식이 딱 붙게)
+function sceneResize(){fitScene();const el=cv.parentElement,r={width:el.clientWidth,height:el.clientHeight};if(!r.width)return;   // 테두리 안쪽 크기(캔버스가 늘어나 번지지 않게)
+  SC=Math.max(2,Math.round(r.width/180));cv.width=Math.round(r.width);cv.height=Math.round(r.height);IW=cv.width/SC;IH=cv.height/SC;g.imageSmoothingEnabled=false}   // 캔버스 = 화면 크기 그대로(모서리 장식이 딱 붙게)
 addEventListener('resize',()=>{IW=0});
 function fitScene(){}
 if(window.ResizeObserver)new ResizeObserver(()=>{IW=0}).observe($('sceneWrap'));
@@ -73,9 +74,10 @@ function tierFx(T,x,y){const add=(n,c,o)=>{for(let i=0;i<n;i++)PARTS.push(Object
   if(T==='star'){add(8,'#fff6c8',{star:1,life:.7});add(4,'#bfe0f6')}}
 function breakWall(auto){
   const L=S.layer,hp=layerHp(L);let n=0;const got={};
+  if(auto&&!S.tutDone&&L===0){S.hp=hp;got.stone=1}   // 튜토리얼 동안 드릴 로봇은 돌만(새 광석은 직접 캐서 발견하게)
   const td=!auto&&!S.tutDone&&L===0&&S.tutBrk<TUT_DROPS.length?TUT_DROPS[S.tutBrk]:null;   // 튜토리얼: 정해진 광석(탑 1층 재료가 바로 모이게)
   if(td){S.hp=hp;S.tutBrk++;got[td]=td==='stone'?2:1}
-  else while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1+(Math.random()<extraP(ITEMS[id].s)?1:0)}
+  else if(!got.stone||!auto)while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1+(Math.random()<extraP(ITEMS[id].s)?1:0)}
   const w=charW();
   for(let i=0;i<14;i++)PARTS.push({x:w.x-14+Math.random()*8,y:w.y-24+Math.random()*22,vx:(Math.random()-.8)*80,vy:-40-Math.random()*60,life:.8,c:Math.random()<.4?ITEMS[S.next||'stone'].c:LOOK[L].rock,sz:2,grav:1});
   for(const id in got)gain(id,got[id],auto);
@@ -101,7 +103,8 @@ function update(dt){
   if(A.sw>=0){A.sw+=dt/.26;A.idleT=0;if(A.sw>=1)A.sw=-1}else A.idleT=(A.idleT||0)+dt;
   A.stepT=Math.max(0,A.stepT-dt);A.bobT+=dt;A.blinkT-=dt;if(A.blinkT<0){A.blink=.14;A.blinkT=2+Math.random()*3}A.blink=Math.max(0,A.blink-dt);A.head=Math.max(0,A.head-dt);A.joy=Math.max(0,A.joy-dt);A.yawn=Math.max(0,A.yawn-dt);if(A.sw<0&&!full()){A.yawnT-=dt;if(A.yawnT<0){A.yawn=1.2;A.yawnT=14+Math.random()*12}}else A.yawnT=Math.max(A.yawnT,6);A.shake=Math.max(0,A.shake-dt*8);
   // 자동 드릴
-  if(S.auto>0&&S.autoOn){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(1/400,false)}}
+  // 시작 화면 · 광맥 입구 장면이 떠 있는 동안엔 드릴도 기다림
+  if(S.auto>0&&S.autoOn&&$('titleScr').hidden&&$('entry').hidden){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(1/400,false)}}
   PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt});PARTS=PARTS.filter(p=>p.life>0);
   FLY.forEach(f=>f.t+=dt);FLY=FLY.filter(f=>f.t<.6);
   stepFloats(dt);
@@ -199,11 +202,13 @@ function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);
 cv.addEventListener('pointerdown',e=>{e.preventDefault();doTap()});
 document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||S.tab!=='mine'||$('story').hidden===false)return;if(e.code==='Space'||e.code==='Enter'){e.preventDefault();doTap()}});
 function setLayer(i){if(i>=S.unlocked)return;S.layer=i;S.hp=layerHp(i);S.next=rollDrop(i);newWall();camInit=false;renderMineHud();renderLayers()}
-/* 황금 광맥: 켜 두고 캐는 동안 8~14분마다 45초 동안 나타남. 그동안 탭 · 자동 드릴이 골드를 직접 캐냄
-   (한 번에 켜 두고 4분 동안 벌 골드의 1/40씩, 최대 6분치) */
-const VEIN_SEC=45,veinOn=()=>!!S.vein&&gtime()<S.vein.end;
-function veinTick(){if(S.vein&&gtime()>=S.vein.end)endVein();if(S.vein||!S.tutDone)return;if((S.veinT-=1)<=0)startVein()}
-function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={end:gtime()+VEIN_SEC*1000,pot,got:0};S.veinT=480+Math.random()*360;
+/* 황금 광맥: 채굴 화면을 보며 캐고 있을 때만 다음 광맥까지의 시간이 흐르고(8~14분), 나타나면 45초 동안 탭 · 자동 드릴이 골드를 직접 캐냄.
+   다른 탭 · 이야기 창 · 시작 화면 · 앱이 뒤로 간 동안엔 등장도, 남은 시간도 멈춤 (한 번에 켜 두고 4분치를 탭 40번에 나눠, 최대 6분치) */
+const VEIN_SEC=45;
+const minePlaying=()=>S.tab==='mine'&&!document.hidden&&$('story').hidden&&$('titleScr').hidden;
+const veinOn=()=>!!S.vein&&S.vein.left>0&&minePlaying();
+function veinTick(){if(!minePlaying())return;if(S.vein){if((S.vein.left-=1)<=0)endVein();return}if(!S.tutDone)return;if((S.veinT-=1)<=0)startVein()}
+function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={left:VEIN_SEC,pot,got:0};S.veinT=480+Math.random()*360;
   A.joy=.9;sfx('rare');toast('황금 광맥이 드러났어요! 45초 동안 캐면 골드가 쏟아져요.');for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5});renderMineHud()}
 function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
 function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.round(Math.min(v.pot*1.5-v.got,v.pot*k));if(amt<=0)return;v.got+=amt;S.gold+=amt;S.earned+=amt;

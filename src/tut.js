@@ -17,7 +17,7 @@ const TUT=[
   {t:'할아버지의 일지를 따라 별의 심장까지 내려가고, 탑 99층 꼭대기에서 별을 하늘로 돌려보내는 게 네 일이란다. 할미는 늘 여기 있으마.',sel:null,last:true}
 ];
 const tv=v=>typeof v==='function'?v():v;
-const tutOn=()=>S.prologue&&!S.tutDone&&$('story').hidden&&$('titleScr').hidden;
+const tutOn=()=>S.prologue&&!S.tutDone&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;
 function tutTick(){if(!tutOn())return tutHide();S.tut=S.tut||0;let st=TUT[S.tut];
   while(st&&!st.last&&!st.next&&st.done()){S.tut++;st=TUT[S.tut];sfx('page')}
   if(!st){S.tutDone=true;return tutHide()}
@@ -31,3 +31,32 @@ function tutHide(){const b=$('tut');if(b)b.hidden=true;document.querySelectorAll
 {const g=name=>{const o=window[name];window[name]=function(...a){const r=o.apply(this,a);tutGlow();return r}};['renderTab','renderForge','renderInv','renderMarket','renderTower'].forEach(g)}
 $('tutGo').onclick=()=>{const st=TUT[S.tut||0];if(!st)return;if(st.last){S.tutDone=true;tutHide();return}S.tut++;sfx('page');tutTick()};
 $('tutNext').onclick=()=>{S.tutDone=true;tutHide();toast('튜토리얼을 건너뛰었어요. 관리 → 설정에서 다시 볼 수 있어요.')};
+/* 광맥 입구 장면: 마을 뒤 광산 입구 그림(art/scene/entry) 위로 주인공 도트가 걸어가 입구 안으로 들어가고, 어두워지며 "B1 표토층"이 뜬 뒤 채굴 화면으로.
+   그림 좌표(원본 2000×667): 땅 높이 y 503, 입구 문턱 x 1560, 입구 안 x 1665, 등불 (1645, 318). 탭하면 건너뜀 */
+const ENTRY={ground:503,start:300,door:1560,inside:1665,lamp:[1645,318],W:2000,H:667,speed:330};
+function entryScene(){const el=$('entry'),cv=$('entryCv'),x=cv.getContext('2d'),bg=new Image();bg.src=ART.scene_entry;el.hidden=false;el.classList.remove('out','dark');
+  let t0=null,raf=0,ended=false;const tWalk=(ENTRY.door-ENTRY.start)/ENTRY.speed,tIn=1.1,tDark=.6,tCard=1.6;
+  const finish=()=>{if(ended)return;ended=true;cancelAnimationFrame(raf);el.classList.add('out');setTimeout(()=>{el.hidden=true;el.classList.remove('out','dark');renderAll()},450)};
+  el.onclick=()=>{if(t0!=null&&performance.now()-t0>400)finish()};   // 들어오자마자 누른 탭은 무시
+  const step=now=>{if(ended)return;if(!bg.complete||!HERO.img){raf=requestAnimationFrame(step);return}if(t0==null)t0=now;const t=(now-t0)/1000;
+    const dpr=window.devicePixelRatio||1,W=Math.round(el.clientWidth*dpr),H=Math.round(el.clientHeight*dpr);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
+    const s=Math.max(H*.74/ENTRY.H,W/ENTRY.W),top=Math.round((H-ENTRY.H*s)*.3);
+    // 주인공 위치(그림 좌표): 걷기 → 입구 안으로
+    let hx,fade=1,shrink=1;if(t<tWalk)hx=ENTRY.start+ENTRY.speed*t;else{const k=Math.min(1,(t-tWalk)/tIn);hx=ENTRY.door+(ENTRY.inside-ENTRY.door)*k;fade=1-k;shrink=1-.18*k}
+    const camX=clamp(hx*s-W*.42,0,ENTRY.W*s-W);
+    x.imageSmoothingEnabled=true;x.fillStyle='#7b9ffa';x.fillRect(0,0,W,top+2);x.drawImage(bg,-camX,top,ENTRY.W*s,ENTRY.H*s);
+    // 그림 아래: 흙 속 바위 줄(원본 y 548~612)을 이어 붙여 화면 끝까지, 아래로 갈수록 어둡게
+    const sy=548,sh=64,dh=sh*s;let yy=top+(sy+sh)*s,dk=.3;while(yy<H){x.drawImage(bg,0,sy,ENTRY.W,sh,-camX,yy,ENTRY.W*s,dh);x.fillStyle=`rgba(20,10,22,${dk})`;x.fillRect(0,yy,W,dh+1);yy+=dh;dk=Math.min(.82,dk+.18)}
+    // 등불이 은은하게 흔들림
+    const lx=ENTRY.lamp[0]*s-camX,ly=top+ENTRY.lamp[1]*s,fl=.7+.3*Math.sin(t*9)*Math.sin(t*3.7),gr=x.createRadialGradient(lx,ly,2,lx,ly,90*s);gr.addColorStop(0,`rgba(255,200,110,${(.35*fl).toFixed(2)})`);gr.addColorStop(1,'rgba(255,200,110,0)');x.fillStyle=gr;x.fillRect(lx-100*s,ly-100*s,200*s,200*s);
+    // 주인공: 걷는 도트(왼쪽을 보는 그림이라 좌우 뒤집음), 화면 픽셀에 맞춘 정수 배율
+    const f=HERO_META['walk'+(Math.floor(t*10)%6)],hs=HERO_META._s||1,k=Math.max(1,Math.round(245*s*.4*shrink/(68/hs)))/hs,fw=f[2]*k,fh=f[3]*k,px=Math.round(hx*s-camX),py=Math.round(top+ENTRY.ground*s);
+    // 한 장짜리 캔버스에 주인공을 그리고(입구 안으로 들어갈수록 어둡게), 화면엔 좌우를 뒤집어 붙임
+    const hc=ENTRY.hc||(ENTRY.hc=document.createElement('canvas'));hc.width=f[2];hc.height=f[3];const hx2=hc.getContext('2d');hx2.drawImage(HERO.img,f[0],f[1],f[2],f[3],0,0,f[2],f[3]);
+    if(fade<1){hx2.globalCompositeOperation='source-atop';hx2.globalAlpha=(1-fade)*.85;hx2.fillStyle='#0a0606';hx2.fillRect(0,0,f[2],f[3])}
+    x.save();x.globalAlpha=Math.max(0,Math.min(1,fade*1.6));x.imageSmoothingEnabled=false;x.translate(px,py);x.scale(-1,1);x.drawImage(hc,-(f[2]-f[4])*k,-fh,fw,fh);x.restore();
+    if(t>tWalk+tIn*.7&&!el.classList.contains('dark')){el.classList.add('dark');sfx('page')}
+    if(t>tWalk+tIn+tDark+tCard){finish();return}
+    raf=requestAnimationFrame(step)};
+  raf=requestAnimationFrame(step)}
+

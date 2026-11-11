@@ -39,7 +39,7 @@ const SAVE_VER=3,KEEP_EXTRA=['lost'];
 function cleanSave(d){const f=fresh(),S2={};
   for(const k in f)S2[k]=k in d?d[k]:f[k];KEEP_EXTRA.forEach(k=>{if(k in d)S2[k]=d[k]});
   const num=v=>typeof v==='number'&&isFinite(v);for(const k in f)if(typeof f[k]==='number'&&!num(S2[k]))S2[k]=f[k];
-  if(S2.vein&&!(num(S2.vein.end)&&num(S2.vein.pot)&&num(S2.vein.got)))S2.vein=null;
+  if(S2.vein&&!(num(S2.vein.left)&&num(S2.vein.pot)&&num(S2.vein.got)))S2.vein=null;
   const items=o=>{const r={};for(const id in o||{})if(ITEMS[id]&&num(o[id])&&o[id]>0)r[id]=Math.floor(o[id]);return r};
   S2.inv=items(S2.inv);S2.box=items(S2.box);
   S2.seen=[...new Set((S2.seen||[]).filter(id=>ITEMS[id]))];S2.found=[...new Set((S2.found||[]).filter(i=>RECIPES[i]))];S2.journal=[...new Set((S2.journal||[]).filter(i=>LAYERS[i]))];
@@ -112,4 +112,6 @@ const successRate=()=>Math.min(.97,.78+Math.min(S.furnace,5)*.04+BON.success);
 const greatRate=()=>Math.min(.35,.06+Math.min(S.furnace,5)*.01+BON.great+ul('great')*.01);
 const pickTier=()=>{let t=0;PICK_TIERS.forEach((p,i)=>{if(S.pick>=p[0])t=i});return t};
 const layerHp=i=>LAYERS[i].hp*BON.rockHp;
-function rollDrop(L){const d=LAYERS[L].drops.map(([id,w])=>[id,w<25?w*BON.rare:w]);let t=d.reduce((s,x)=>s+x[1],0),r=Math.random()*t;for(const x of d){if((r-=x[1])<0)return x[0]}return d[0][0]}
+// 서린의 입주 효과(BON.rare): 그 지층 고유 광석 중 드문 것(가중치 25 미만)이 더 잘 나옴
+const dropW=L=>LAYERS[L].drops.map(([id,w])=>[id,ITEMS[id].L===L+1&&w<25?w*BON.rare:w]);
+function rollDrop(L){const d=dropW(L);let t=d.reduce((s,x)=>s+x[1],0),r=Math.random()*t;for(const x of d){if((r-=x[1])<0)return x[0]}return d[0][0]}

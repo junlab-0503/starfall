@@ -170,25 +170,23 @@ ORDER.forEach(id=>{ITEMS[id].cr=!!INS[id];itemLayer(id)});
 RECIPES.forEach(r=>r.L=itemLayer(r.out));
 
 const LAYERS=[
-  {n:'표토층',d:12,hp:5,req:null},
-  {n:'점토 퇴적층',d:60,hp:12,req:{g:250,items:{wire:2}}},
-  {n:'암반층',d:140,hp:25,req:{g:1500,items:{bronze:3,porcelain:2}}},
-  {n:'석회 동굴',d:300,hp:45,req:{g:6000,items:{steel:4,gear:2}}},
-  {n:'결정층',d:620,hp:80,req:{g:20000,items:{silverbar:3,lime:3}}},
-  {n:'지하 수맥',d:1000,hp:130,req:{g:60000,items:{resonant:3,glass:4}}},
-  {n:'금맥층',d:1400,hp:210,req:{g:160000,items:{bluechina:3,ultramarine:2}}},
-  {n:'용암층',d:1900,hp:330,req:{g:420000,items:{goldbar:3,cutemerald:2}}},
-  {n:'화산 유리층',d:2800,hp:520,req:{g:1.1e6,items:{obsalloy:3,powder:4}}},
-  {n:'맨틀 상층',d:4000,hp:800,req:{g:2.8e6,items:{platbar:3,crysteel:3}}},
-  {n:'심연층',d:5400,hp:1250,req:{g:7e6,items:{cutdiamond:2,engine:2}}},
-  {n:'별의 무덤',d:7500,hp:1900,req:{g:1.8e7,items:{moonstone:2,voidalloy:3}}},
-  {n:'별의 심장',d:9999,hp:3000,req:{g:4.5e7,items:{starcore:2,starsteel:3}}}
+  {n:'표토층',d:12,hp:5,drops:[['stone',55],['clay',27],['copper',18]],req:null},
+  {n:'점토 퇴적층',d:60,hp:12,drops:[['kaolin',31],['flint',26],['tin',18],['stone',10],['copper',8],['clay',7]],req:{g:250,items:{wire:2}}},
+  {n:'암반층',d:140,hp:25,drops:[['coal',30],['iron',26],['granite',20],['tin',7],['stone',7],['copper',5],['clay',5]],req:{g:1500,items:{bronze:3,porcelain:2}}},
+  {n:'석회 동굴',d:300,hp:45,drops:[['limestone',33],['calcite',26],['silver',17],['coal',6],['copper',6],['tin',6],['flint',6]],req:{g:6000,items:{steel:4,gear:2}}},
+  {n:'결정층',d:620,hp:80,drops:[['quartz',35],['halite',21],['amethyst',18],['limestone',4],['iron',8],['stone',7],['coal',7]],req:{g:20000,items:{silverbar:3,lime:3}}},
+  {n:'지하 수맥',d:1000,hp:130,drops:[['fossil',30],['cobalt',27],['lapis',18],['halite',8],['coal',8],['limestone',5],['flint',4]],req:{g:60000,items:{resonant:3,glass:4}}},
+  {n:'금맥층',d:1400,hp:210,drops:[['pyrite',32],['gold',25],['emerald',17],['fossil',4],['quartz',7],['coal',7],['amethyst',5],['halite',4]],req:{g:160000,items:{bluechina:3,ultramarine:2}}},
+  {n:'용암층',d:1900,hp:330,drops:[['obsidian',31],['sulfur',28],['ruby',15],['pyrite',4],['kaolin',5],['clay',5],['halite',5],['quartz',5]],req:{g:420000,items:{goldbar:3,cutemerald:2}}},
+  {n:'화산 유리층',d:2800,hp:520,drops:[['basalt',34],['platinum',23],['sapphire',17],['obsidian',4],['coal',7],['pyrite',5],['copper',5],['gold',5]],req:{g:1.1e6,items:{obsalloy:3,powder:4}}},
+  {n:'맨틀 상층',d:4000,hp:800,drops:[['olivine',33],['garnet',26],['diamond',14],['basalt',4],['coal',8],['quartz',5],['obsidian',5],['iron',4]],req:{g:2.8e6,items:{platbar:3,crysteel:3}}},
+  {n:'심연층',d:5400,hp:1250,drops:[['voidstone',34],['darkcrystal',26],['abysspearl',14],['olivine',4],['coal',9],['limestone',5],['quartz',5],['clay',4]],req:{g:7e6,items:{cutdiamond:2,engine:2}}},
+  {n:'별의 무덤',d:7500,hp:1900,drops:[['meteoriron',35],['opal',24],['stariron',17],['voidstone',5],['coal',5],['iron',5],['quartz',5],['halite',4]],req:{g:1.8e7,items:{moonstone:2,voidalloy:3}}},
+  {n:'별의 심장',d:9999,hp:3000,drops:[['stardust',34],['starember',26],['starshard',15],['stariron',7],['coal',7],['quartz',4],['abysspearl',4],['voidstone',4]],req:{g:4.5e7,items:{starcore:2,starsteel:3}}}
 ];
-// 광석 희귀도: 원석을 지층 · 값 순으로 줄 세움(1번이 가장 흔함). k번째 지층은 1 ~ 3k번까지 나오고(깊을수록 범위가 넓어짐),
-// 그 범위의 가운데 번호가 가장 잘 나오는 종 모양(정규분포, 표준편차 = 범위의 1/3) → 깊은 곳에서도 얕은 지층 광석을 캘 수 있다
+// 지층마다 나오는 광석(가중치 합 100): 그 지층 고유 광석 3종이 약 3/4, 위 지층 광석 3~5종이 약 1/4.
+// 위 지층 광석은 이 지층에 있는 동안 개척 · 탑에 많이 필요한 것(재료를 거슬러 올라가 계산) + 바로 위 지층 광석 하나
 const RAW=ORDER.filter(id=>ITEMS[id].L).sort((a,b)=>ITEMS[a].L-ITEMS[b].L||ITEMS[a].p-ITEMS[b].p);
-LAYERS.forEach((L,i)=>{const n=Math.min(RAW.length,3*(i+1)),c=(n-1)/2,sg=Math.max(1,n/3),w=RAW.slice(0,n).map((id,r)=>Math.exp(-((r-c)**2)/(2*sg*sg))),t=w.reduce((a,b)=>a+b,0);
-  L.drops=RAW.slice(0,n).map((id,r)=>[id,Math.max(1,Math.round(w[r]/t*1000))])});   // 가중치 합 ≈ 1000
 // 지층 색 (암벽, 굴 안쪽, 지층 띠, 어둠, 장식)
 const LOOK=[
   {rock:'#7b6247',dark:'#3a2a1c',spec:['#937a5a','#5c4733'],band:'#c9a578',dim:.15,deco:'grass'},
@@ -260,7 +258,7 @@ const PROLOGUE=[
   {t:'할아버지의 재련소',b:'식은 용광로 옆에 검은 고양이 한 마리가 앉아 있다. 할아버지의 고양이, 숯이다. 이장 할머니가 녹슨 열쇠를 건넨다. "영감이 너한테 남긴 거란다."',legacy:true},
   {t:'느리게 도는 기계',b:'구석에서 덜컹덜컹, 낡은 채굴 기계가 혼자 바위를 긁고 있다. 아주 느리지만 아직 움직인다.\n"꼬마 핀이라면 고칠 수 있을 텐데… 그 녀석도 마을을 떠났지." — 이장 할머니'},
   {t:'일지 첫 장',b:'"이 일지를 읽는 사람이 내 손주이기를 바란다. 별은 죽지 않았다. 아래로 내려가 조각을 모아라. 그리고 하늘로 가는 길을 쌓아라."'},
-  {t:'광맥 입구',b:'할아버지의 곡괭이를 쥐고 광맥으로 들어선다. 등불 너머 바위 속 어딘가에서, 희미한 별빛이 반짝인다.',scene:'mine'}
+  {t:'광맥 입구',b:'할아버지의 곡괭이를 쥐고 마을 뒤 광맥 입구로 향한다. 등불 너머 바위 속 어딘가에서, 희미한 별빛이 반짝인다.'}
 ];
 const ENDING=[
   {t:'천공의 용광로',b:'99층 꼭대기, 하늘에 가장 가까운 용광로에 불이 들어온다. 마을 사람들과 탑의 입주자 열세 명이 모두 광장에 모였다.'},
@@ -275,6 +273,6 @@ const PICK_TIERS=[[1,'녹슨 곡괭이','#8a6a4a','dust'],[6,'철 곡괭이','#b
 const SEASONS=[{n:'봄',d:{gem:1.15,build:1.05}},{n:'여름',d:{build:1.2,fuel:.9}},{n:'가을',d:{metal:1.15,fuel:1.05}},{n:'겨울',d:{fuel:1.3,build:.85}}];
 
 /* 밸런스: 자동 플레이 봇으로 맞춘 값 (applyBal로 적용) */
-let BAL={"hp":[2.522,16.31,40.86,118.3,205.7,301.7,412.7,591,717.5,991.2,1625,2115,2620],"unlock":[0,1758,3321,11600,35710,85650,217600,442600,1682000,2927000,5093000,9828000,24020000],"tg":[17780,1215,3776,8961,18540,31840,75570,137000,193400,313800,416100,763900,1783000],"tgrow":1.16,"mgrow":1.12,"sky":4458000,"pick":[20,1.6],"auto":[100,1.75],"autoEff":0.6,"furn":[300,2.6],"wh":[100,2.6],"intel":[800,12000,150000],"rent":4,"box":[200,1.6],"pass":{"k":3000,"g":1,"max":30,"pay":15},"ups":{"crit":[400,2.1],"metal":[600,2.3],"gem":[900,2.3],"box":[150,2.2],"refiner":[3000,4.5],"night":[1500,3.2],"great":[2000,3],"qslot":[2500,7],"qspeed":[800,2.2],"autosell":[5000,1],"safe":[4000,4],"haggle":[500,2],"bulk":[2000,3]}};
+let BAL={"hp":[6.376,25.02,46.19,132.9,252.6,362.4,472.2,636.5,895.3,1305,2056,2794,3518],"unlock":[0,1065,4387,20060,59860,176800,457600,1639000,2927000,6702000,19890000,44440000,103800000],"tg":[17780,1558,5424,14560,34000,79650,169000,323600,591700,1014000,1456000,3324000,8153000],"tgrow":1.16,"mgrow":1.12,"sky":20380000,"pick":[20,1.6],"auto":[100,1.75],"autoEff":0.6,"furn":[300,2.6],"wh":[100,2.6],"intel":[800,12000,150000],"rent":4,"box":[200,1.6],"pass":{"k":3000,"g":1,"max":30,"pay":15},"ups":{"crit":[400,2.1],"metal":[600,2.3],"gem":[900,2.3],"box":[150,2.2],"refiner":[3000,4.5],"night":[1500,3.2],"great":[2000,3],"qslot":[2500,7],"qspeed":[800,2.2],"autosell":[5000,1],"safe":[4000,4],"haggle":[500,2],"bulk":[2000,3]}};
 function applyBal(){LAYERS.forEach((L,i)=>{L.hp=BAL.hp[i];if(L.req)L.req.g=BAL.unlock[i]});SECTIONS.forEach((s,i)=>s.g=BAL.tg[i]);SECTIONS[0].g=TUT_FLOOR_G;SKY.g=BAL.sky}
 applyBal();
