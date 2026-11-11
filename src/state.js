@@ -13,7 +13,7 @@ const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function fresh(){return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
   found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},rq:[],shop:0,ofN:0,ofG:0,prologue:false,
-  clock:0,day:0,pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,mkSub:'pass',
+  clock:0,day:0,pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,mkSub:'pass',
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store'}}
 /* 시계 조작 방지
    게임 시간 = 기기 시계 + 보정값(CLK.off).
@@ -39,6 +39,7 @@ const SAVE_VER=3,KEEP_EXTRA=['lost'];
 function cleanSave(d){const f=fresh(),S2={};
   for(const k in f)S2[k]=k in d?d[k]:f[k];KEEP_EXTRA.forEach(k=>{if(k in d)S2[k]=d[k]});
   const num=v=>typeof v==='number'&&isFinite(v);for(const k in f)if(typeof f[k]==='number'&&!num(S2[k]))S2[k]=f[k];
+  if(S2.vein&&!(num(S2.vein.end)&&num(S2.vein.pot)&&num(S2.vein.got)))S2.vein=null;
   const items=o=>{const r={};for(const id in o||{})if(ITEMS[id]&&num(o[id])&&o[id]>0)r[id]=Math.floor(o[id]);return r};
   S2.inv=items(S2.inv);S2.box=items(S2.box);
   S2.seen=[...new Set((S2.seen||[]).filter(id=>ITEMS[id]))];S2.found=[...new Set((S2.found||[]).filter(i=>RECIPES[i]))];S2.journal=[...new Set((S2.journal||[]).filter(i=>LAYERS[i]))];
@@ -70,10 +71,11 @@ function log(msg,toastIt){S.log.unshift(msg);S.log=S.log.slice(0,60);if(toastIt)
 function toast(msg){const box=$('toasts');if(!box)return;const t=document.createElement('div');t.className='toast';t.textContent=msg;box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),450)},2600)}
 
 /* 보너스: 탑 구간 완공(입주자) + 층수 */
+// 입주 효과는 그 구간 입주자의 것: 0 무쇠(재련 성공 · 금속값) 1 셈 2 핀 3 바우(탭) 4 루카 5 미르(대성공 · 연료값) 6 서린 7 하멜 8 도담 9 강철 10 엘라(사는 값 · 보석값) 11 노을 12 아르덴
 function bonus(){const done=SECTIONS.filter(s=>S.floors>=s.to).length,has=i=>done>i,all=has(12)?1.1:1,sky=Math.max(0,S.floors-99);
-  return{done,tap:(1+(has(0)?.1:0))*all*(1+.02*sky),wh:1+(has(1)?.5:0),auto:(1+(has(2)?.25:0)+(has(9)?.5:0))*all,success:has(3)?.05:0,
-    sell:(1+(has(4)?.05:0)+(has(7)?.1:0))*(1+.01*Math.min(S.floors,99))*all*(1+.01*ul('haggle')),spread:has(5)?.7:1,rare:has(6)?1.2:1,rockHp:has(8)?.85:1,great:has(10)?.05:0,
-    perfectIntel:has(11),dem:{metal:has(3)?1.1:1,gem:has(5)?1.1:1,fuel:has(10)?1.1:1,arcane:has(12)?1.1:1,build:1}}}
+  return{done,tap:(1+(has(3)?.1:0))*all*(1+.02*sky),wh:1+(has(1)?.5:0),auto:(1+(has(2)?.25:0)+(has(9)?.5:0))*all,success:has(0)?.05:0,
+    sell:(1+(has(4)?.05:0)+(has(7)?.1:0))*(1+.01*Math.min(S.floors,99))*all*(1+.01*ul('haggle')),spread:has(10)?.7:1,rare:has(6)?1.2:1,rockHp:has(8)?.85:1,great:has(5)?.05:0,
+    perfectIntel:has(11),dem:{metal:has(0)?1.1:1,gem:has(10)?1.1:1,fuel:has(5)?1.1:1,arcane:has(12)?1.1:1,build:1}}}
 function refreshBonus(){BON=bonus()}
 
 /* 장비 */

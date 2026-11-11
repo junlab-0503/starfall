@@ -30,10 +30,16 @@ const SHOPS=[
   {who:'미르',ups:['furn','great','qslot','qspeed'],lines:['…불은 거짓말을 하지 않아요.','재료만 맡겨 두세요. …알아서 녹여 둘게요.','불씨가 별빛을 닮을수록… 대성공이 잦아지죠.']},
   {who:'셈',ups:['wh','autosell','safe'],lines:['창고는 넓을수록 좋지. 돈이 들 뿐이야.','바닥에 굴러다니는 광석은 못 봐. 내가 정리해 주지.','월세는 꼬박꼬박. 금고에 잘 넣어 둘게.']},
   {who:'루카',ups:['intel','haggle','bulk'],lines:['정보가 곧 돈이죠! 오늘은 뭐가 궁금하세요?','흥정은 웃으면서 하는 거예요. 제가 알려 드릴게요!','큰손 거래처를 소개해 드릴까요? 출입권을 더 많이 가질 수 있어요!']}];
+// 가게는 그 사람이 탑에 들어와야 열린다(그 전엔 고르는 칸에 검은 실루엣)
+const tenantSec=who=>SECTIONS.findIndex(s=>s.t.name===who);
+const tenantIn=who=>{const i=tenantSec(who);return i>=0&&S.floors>=SECTIONS[i].to};
+const shopOpen=i=>tenantIn(SHOPS[i].who);
+const UP_SHOP={};SHOPS.forEach((sh,i)=>sh.ups.forEach(k=>UP_SHOP[k]=i));
+const upOpen=k=>shopOpen(UP_SHOP[k]);
 const upLv=k=>UPS[k].lv?UPS[k].lv():ul(k);
 const upMax=k=>UPS[k].max!=null&&upLv(k)>=UPS[k].max;
 const upCost=k=>UPS[k].cost?UPS[k].cost():upCostOf(k,ul(k));
-const upCan=k=>!upMax(k)&&S.gold>=upCost(k);
+const upCan=k=>upOpen(k)&&!upMax(k)&&S.gold>=upCost(k);
 function buyUp(k){if(!upCan(k))return false;S.gold-=upCost(k);if(UPS[k].buy)UPS[k].buy();else{S.up[k]=ul(k)+1}refreshBonus();return true}
 /* 효과 */
 const critP=()=>ul('crit')*.03;
@@ -55,13 +61,15 @@ function shopSay(text,pose){const p=$('npcSay');if(!p)return;clearInterval(shopT
 function npcPose(p){if(p===shopPose)return;shopPose=p;const n=$('npcImg');if(n)n.dataset.pose=p}
 let shopShown=-1;
 function renderEquip(){const si=Math.min(SHOPS.length-1,S.shop|0),sh=SHOPS[si];
-  setHTML($('shopTabs'),SHOPS.map((x,i)=>`<button class="shopc${i===si?' on':''}" data-shop="${i}" type="button"><span class="fr"><img src="${ART[SHOP_ART[x.who].k]}" alt="${x.who}"></span><span class="plate">${SHOP_ART[x.who].sign}</span>${x.ups.some(upCan)?'<i class="dot"></i>':''}</button>`).join(''));
-  if(shopShown!==si){shopShown=si;const st=$('shopStage');st.className='panel stage '+(si%2?'side-r':'side-l');
+  setHTML($('shopTabs'),SHOPS.map((x,i)=>`<button class="shopc${i===si?' on':''}${shopOpen(i)?'':' lock'}" data-shop="${i}" type="button"><span class="fr"><img src="${shopOpen(i)?ART[SHOP_ART[x.who].k]:ART['shop_'+SHOP_ART[x.who].k]}" alt="${shopOpen(i)?x.who:'아직 돌아오지 않은 사람'}"></span><span class="plate">${shopOpen(i)?SHOP_ART[x.who].sign:`탑 ${SECTIONS[tenantSec(x.who)].to}층`}</span>${x.ups.some(upCan)?'<i class="dot"></i>':''}</button>`).join(''));
+  const op=shopOpen(si);
+  if(shopShown!==si+(op?'':'x')){shopShown=si+(op?'':'x');const st=$('shopStage');st.className='panel stage '+(si%2?'side-r':'side-l');
     const a=SHOP_ART[sh.who];st.style.backgroundImage=`url(${ART['shop_bg_'+a.k]})`;
-    setHTML(st,`<div class="npcw${a.flip?' flip':''}"><img class="npc" id="npcImg" src="${ART['shop_'+a.k]}" alt="${sh.who}"></div><div class="bubble"><div class="bn"><b>${sh.who}</b></div><p id="npcSay"></p></div>`);
-    shopPose='';npcPose('idle');shopSay(sh.lines[shopLine[si]=((shopLine[si]??-1)+1)%sh.lines.length])}
+    setHTML(st,`<div class="npcw${a.flip?' flip':''}${op?'':' sil'}"><img class="npc" id="npcImg" src="${ART['shop_'+a.k]}" alt="${op?sh.who:'???'}"></div><div class="bubble"><div class="bn"><b>${op?sh.who:'???'}</b></div><p id="npcSay"></p></div>`);
+    shopPose='';npcPose('idle');if(op)shopSay(sh.lines[shopLine[si]=((shopLine[si]??-1)+1)%sh.lines.length]);else $('npcSay').textContent=`아직 아무도 없어요. 탑 ${SECTIONS[tenantSec(sh.who)].to}층을 쌓으면 이곳 주인이 돌아와요.`}
+  if(!op){setHTML($('shopUps'),`<p class="dim small" style="margin:0">가게 주인이 돌아오면 여기서 장비를 손볼 수 있어요.</p>`);return}
   setHTML($('shopUps'),sh.ups.map(k=>{const U=UPS[k],l=upLv(k),mx=upMax(k),can=upCan(k),c=upCost(k);
     return`<div class="up${can?' ready':''}">${ico(U.ic())}<span class="t">${U.n} <span class="dim">Lv.${l}${U.max!=null?'/'+U.max:''}</span></span><span class="s">${U.d(ul(k))}</span><button class="px-btn${can?' ndot':''}" data-up="${k}" type="button" ${mx||!can?'disabled':''}>${mx?'최대':big(c)+'G'}</button></div>`}).join(''))}
 $('tab-equip').addEventListener('click',e=>{const b=e.target.closest('[data-up]');if(b){if(buyUp(b.dataset.up)){sfx('buy');const w=SHOPS[S.shop|0].who,L=THANKS[w];shopSay(L[Math.random()*L.length|0],'happy');renderAll()}return}
   const c=e.target.closest('[data-shop]');if(c){S.shop=+c.dataset.shop;renderEquip();return}
-  if(e.target.closest('#npcImg')){const si=S.shop|0,sh=SHOPS[si];shopSay(sh.lines[shopLine[si]=((shopLine[si]??0)+1)%sh.lines.length])}});
+  if(e.target.closest('#npcImg')){const si=S.shop|0,sh=SHOPS[si];if(!shopOpen(si))return;shopSay(sh.lines[shopLine[si]=((shopLine[si]??0)+1)%sh.lines.length])}});

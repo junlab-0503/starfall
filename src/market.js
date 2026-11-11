@@ -76,7 +76,7 @@ function rumorClue(L){for(const r of S.rum){if(r.L!==L)continue;r.brk=(r.brk||0)
 function tickMarket(dt,offline){S.clock+=dt;S.day+=dt/DAY;
   for(let i=0;i<S.unlocked;i++){const P=PM(i),inR=S.rum.some(r=>r.L===i);if(!inR)P.m+=(1-P.m)*Math.min(1,dt/1200)+.002*Math.sqrt(dt)*gauss();P.m=clamp(P.m,.5,3);P.imp*=Math.exp(-dt/90)}
   rumorTick(dt);
-  if(!offline){S.rumT=(S.rumT??300)-dt;if(S.rumT<=0){if(S.rum.length<2)newRumor();S.rumT=1500+Math.random()*600}passDividend(dt)}}
+  if(!offline){S.rumT=(S.rumT??300)-dt;if(S.rumT<=0){if(S.rum.length<2&&tenantIn('루카'))newRumor();S.rumT=1500+Math.random()*600}passDividend(dt)}}
 
 // 앱을 꺼 둔 동안: 소문 발표는 진행되고, 월세 · 드릴 로봇 · 배당 · 자동 재련은 '켜 두고 1시간'치까지만
 function catchUp(sec){sec=Math.min(sec,16*3600);if(sec<30)return null;const steps=Math.min(2000,Math.floor(sec/5)),st=sec/steps;for(let i=0;i<steps;i++)tickMarket(st,true);

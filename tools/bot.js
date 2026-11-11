@@ -6,7 +6,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0;
   window.revealJournal=i=>{if(!S.journal.includes(i))S.journal.push(i)};
   let t=0,endT=null,lost=0,gIncome=0,unlockT={},sectT={},tf=0,RS={};const TAPS=2.5,log=[];
   if(snap){S=JSON.parse(snap.S);t=snap.t;tf=snap.tf||0;RS=snap.RS||{};unlockT=snap.unlockT;sectT=snap.sectT;lost=snap.lost;endT=snap.endT;refreshBonus()}
-  else{S=fresh();S.prologue=true;refreshBonus();S.hp=layerHp(0);for(let i=0;i<120;i++)tickMarket(2,true)}
+  else{S=fresh();S.prologue=true;S.tutDone=true;S.legacy=1;S.gold+=LEGACY.gold;S.auto=LEGACY.auto;S.autoOn=true;refreshBonus();S.hp=layerHp(0);for(let i=0;i<120;i++)tickMarket(2,true)}
   const recipeOf={};RECIPES.forEach((r,i)=>recipeOf[r.out]=i);
   // 캔 광석: 창고에, 넘치면 드릴 몫은 판매(로봇 보관함 → 넘침 판매를 한 번에), 탭 몫은 버려짐. 쇠맥 찾기 · 보석 눈썰미 포함
   function mine(d,auto){S.hp-=d;const L=S.layer,hp=layerHp(L);let n=0;while(S.hp<=0&&n<5000){S.hp+=hp;n++;rumorClue(L);const id=rollDrop(L),k=1+(Math.random()<extraP(ITEMS[id].s)?1:0);S.mined+=k;const ok=Math.min(k,space());if(ok)add(id,ok);if(k>ok){if(auto)sellOverflow(id,k-ok);else lost+=k-ok}}}
@@ -48,10 +48,10 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0;
     // 장비
     for(let k=0;k<30;k++){let did=false;
       const av=S.gold-tf;
-      if(pickCost(S.pick)<av*.2){S.gold-=pickCost(S.pick);S.pick++;did=true}
-      else if(autoCost(S.auto)<av*.2){S.gold-=autoCost(S.auto);S.auto++;did=true}
-      else if(S.furnace<5&&furnCost(S.furnace)<av*.1){S.gold-=furnCost(S.furnace);S.furnace++;did=true}
-      else if(cap()/Math.max(.01,(tapPower()*TAPS+autoDps())/layerHp(S.layer))<1200&&whCost(S.wh)<av*.4){S.gold-=whCost(S.wh);S.wh++;did=true}
+      if(upOpen('pick')&&pickCost(S.pick)<av*.2){S.gold-=pickCost(S.pick);S.pick++;did=true}
+      else if(upOpen('auto')&&autoCost(S.auto)<av*.2){S.gold-=autoCost(S.auto);S.auto++;did=true}
+      else if(upOpen('furn')&&S.furnace<5&&furnCost(S.furnace)<av*.1){S.gold-=furnCost(S.furnace);S.furnace++;did=true}
+      else if(cap()/Math.max(.01,(tapPower()*TAPS+autoDps())/layerHp(S.layer))<1200&&upOpen('wh')&&whCost(S.wh)<av*.4){S.gold-=whCost(S.wh);S.wh++;did=true}
       if(!did)for(const k of ['crit','haggle','metal','gem','bulk','refiner','great','autosell'])if(!upMax(k)&&upCost(k)<av*.12){buyUp(k);did=true;break}
       if(!did)break}
     // 탑

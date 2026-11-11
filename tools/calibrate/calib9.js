@@ -1,3 +1,4 @@
+// 1층(대장간 터)의 골드는 튜토리얼용 고정값(TUT_FLOOR_G)이라 맞추지 않는다
 const {chromium}=require('playwright');const fs=require('fs');
 const SC=+(process.env.SC||.606),END=+(process.env.END||30),TL0={1:0,2:.15,3:.55,4:1.3,5:2.6,6:4.6,7:7.2,8:10.5,9:14.5,10:19,11:24.5,12:30.5,13:37},TU0={0:0,1:.4,2:1,3:2,4:3.5,5:5.8,6:8.8,7:12.5,8:16.8,9:21.5,10:27,11:33.5,12:41,13:49.5};
 const TL={},TU={};for(const k in TL0)TL[k]=TL0[k]*SC;for(const k in TU0)TU[k]=TU0[k]*SC;
@@ -18,8 +19,8 @@ for(let it=0;it<iters;it++){const t0=Date.now();
   for(const k in rate){const f=Math.min(3,Math.max(.33,Math.pow(rate[k]/RT[k],.85)));bal.hp[k-1]=+(bal.hp[k-1]*f).toPrecision(4)}
   const last=r.e?H(r.e):80;
   for(let k=2;k<=13;k++){if(u[k-1]==null)break;const D=TL[k]-TL[k-1],d=u[k]!=null?u[k]-u[k-1]:(80-u[k-1])*1.5;bal.unlock[k-1]=+(bal.unlock[k-1]*Math.min(2.2,Math.max(.4,Math.pow(D/Math.max(d,.02),.7)))).toPrecision(4)}
-  for(let k=1;k<=13;k++){if(s[k-1]==null)break;const E=TU[k]-TU[k-1],e=s[k]!=null?s[k]-s[k-1]:(80-s[k-1])*1.5;bal.tg[k-1]=+(bal.tg[k-1]*Math.min(2.2,Math.max(.4,Math.pow(E/Math.max(e,.02),.7)))).toPrecision(4)}
-  for(let i=1;i<bal.tg.length;i++)if(bal.tg[i]<bal.tg[i-1]*1.2)bal.tg[i]=+(bal.tg[i-1]*1.2).toPrecision(4);
+  for(let k=2;k<=13;k++){if(s[k-1]==null)break;const E=TU[k]-TU[k-1],e=s[k]!=null?s[k]-s[k-1]:(80-s[k-1])*1.5;bal.tg[k-1]=+(bal.tg[k-1]*Math.min(2.2,Math.max(.4,Math.pow(E/Math.max(e,.02),.7)))).toPrecision(4)}
+  for(let i=2;i<bal.tg.length;i++)if(bal.tg[i]<bal.tg[i-1]*1.2)bal.tg[i]=+(bal.tg[i-1]*1.2).toPrecision(4);
   bal.sky=+(bal.tg[12]*2.5).toPrecision(4);fs.writeFileSync('bal.json',JSON.stringify(bal));
 }
 await b.close()})();

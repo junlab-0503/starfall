@@ -1,5 +1,5 @@
 /* ═════════ 시작 ═════════ */
-buildIcons();navIcons();
+buildIcons();navIcons();drawUiIcons();
 const had=load();refreshBonus();
 if(!S.next||!LAYERS[S.layer].drops.some(d=>d[0]===S.next))S.next=rollDrop(S.layer);
 if(!(S.hp>0)||S.hp>layerHp(S.layer))S.hp=layerHp(S.layer);
@@ -20,21 +20,29 @@ document.documentElement.style.setProperty('--navH',document.querySelector('.bna
 drawPortrait($('tutPor'),{name:'이장 할머니',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'},false);
 setTab(S.tab);sceneResize();newWall();renderAll();
 addEventListener('resize',()=>{document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');fitScene()});
-if(!S.prologue)story(PROLOGUE.map((c,i)=>Object.assign({k:'프롤로그'},c,i===PROLOGUE.length-1?{done:()=>{S.prologue=true;save()}}:{})));
+// 프롤로그: 편지 → 할아버지의 재련소(유산: 골드 · 낡은 곡괭이 · 느린 채굴 기계) → 일지 → 광맥 입구(그림)
+function startPrologue(){story(PROLOGUE.map((c,i)=>Object.assign({k:'프롤로그'},c,
+  c.legacy?{extra:`<div class="rcard"><span>할아버지의 유산</span><span>+${big(LEGACY.gold)}G</span><span>낡은 곡괭이</span><span>손에 익은 녹슨 곡괭이</span><span>채굴 기계</span><span>느리게 도는 자동 드릴</span></div>`,
+    done:()=>{if(!S.legacy){S.legacy=1;S.gold+=LEGACY.gold;S.auto=Math.max(S.auto,LEGACY.auto);S.autoOn=false;sfx('coin');renderAll()}}}:{},
+  c.scene?{extra:`<img class="scene-img" src="${ART['scene_'+c.scene]}" alt="">`}:{},
+  i===PROLOGUE.length-1?{done:()=>{S.prologue=true;save()}}:{})))}
+// 시작 화면: 터치하면 닫히고, 처음이면 프롤로그
+$('titleScr').hidden=false;$('titleScr').style.backgroundImage='';$('titleArt').style.backgroundImage=`url(${ART.scene_title})`;
+$('titleScr').addEventListener('click',()=>{$('titleScr').hidden=true;sfx('page');if(!S.prologue)startPrologue();renderAll()});
 $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode').value.trim().toLowerCase(),msg=$('devMsg');
   if(v==='jun'){S.pick=999;S.auto=999;S.furnace=5;S.intel=3;S.wh=30;S.unlocked=LAYERS.length;S.prologue=true;
     ORDER.forEach(id=>{S.inv[id]=9999;if(!S.seen.includes(id))S.seen.push(id)});S.found=RECIPES.map((r,i)=>i);S.journal=LAYERS.map((L,i)=>i);S.gold=9.999e11;S.floors=99;refreshBonus();S.hp=Math.min(S.hp,layerHp(S.layer));
     log('개발자 코드 적용: 전부 해금 · 모든 광물 9,999개 · 골드 9,999억 · 탑 99층',true);msg.textContent='적용됨: 탑 탭에서 바로 별을 돌려보낼 수 있어요.';renderAll()}
   else msg.textContent=v?'알 수 없는 코드예요.':'';$('devCode').value=''});
 let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
-  try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');story(PROLOGUE.map(c=>Object.assign({k:'프롤로그'},c)));S.prologue=true;save()};
+  try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');startPrologue();save()};
 let lastT=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;
 function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden)clockWatch();
   if(S.tab==='mine'&&!IW)sceneResize();
   update(dt);rqRun(dt);if(S.tab==='mine'&&IW)draw(now/1000);
   if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();if(S.tab==='forge')rqBars();renderHeader();tutTick()}
   if(invDirty&&now-invDirtyT>400){invDirty=false;invDirtyT=now;if(S.tab==='forge')renderForge();if(S.tab==='manage'&&S.sub==='store')renderInv()}
-  secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);
+  secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);veinTick();S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);
     if(S.tab==='market'||S.tab==='tower'||S.tab==='equip'||S.tab==='forge'||(S.tab==='manage'&&S.sub!=='set'))renderTab();if(++saveAcc%10===0)save()}
   requestAnimationFrame(frame)}
 requestAnimationFrame(frame);

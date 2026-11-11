@@ -8,6 +8,8 @@ im=np.asarray(Image.open('sheet.webp').convert('RGBA')).astype(np.float64);lab=n
 comps={c[0]:c for c in json.load(open('comps.json'))}
 F=float(sys.argv[1]) if len(sys.argv)>1 else 1.95
 HS=int(sys.argv[2]) if len(sys.argv)>2 else 2
+# 정면 동작(기쁨 · 하품 · 신남 · 잠)은 원본 시트에서 더 크게 그려져 있어 옆모습과 키가 같도록 더 줄인다
+FS={'joy':F*81/68,'yawn':F*81/68,'happy':F*81/68,'sleep':F*81/68}
 SEL={'rest':(12,1),'rest2':(11,1),'ready':(33,1),'sw0':(34,1),'sw1':(32,1),'sw2':(37,1),'sw3':(38,1),'sw4':(36,1),'sw5':(35,1),
      'walk0':(13,1),'walk1':(14,1),'walk2':(19,1),'walk3':(15,1),'walk4':(18,1),'walk5':(16,1),
      'joy':(55,0),'yawn':(53,0),'happy':(52,0),'sleep':(64,0)}
@@ -22,7 +24,7 @@ OUT=pal[luma.argmin()]
 tiles=[]
 for k,(cid,flip) in SEL.items():
     c=comps[cid];x0,y0,x1,y1=c[2],c[3],c[4],c[5];reg=im[y0:y1+1,x0:x1+1];m=(lab[y0:y1+1,x0:x1+1]==cid)&(reg[:,:,3]>128)
-    idx=qidx(reg[:,:,:3]);h,w=m.shape;H=max(1,round(h/F));W=max(1,round(w/F))
+    idx=qidx(reg[:,:,:3]);h,w=m.shape;f_=FS.get(k,F);H=max(1,round(h/f_));W=max(1,round(w/f_))
     res=np.zeros((H,W,4),np.uint8)
     for j in range(H):
         for i in range(W):

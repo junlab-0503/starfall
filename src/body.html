@@ -1,6 +1,6 @@
+<div class="title" id="titleScr" hidden><div class="t-art" id="titleArt"></div><div class="t-top"><h1 class="t-name">별빛광맥</h1><p class="t-sub">할아버지의 일지를 따라, 별을 집으로</p></div><p class="t-tap">터치하여 시작하기</p></div>
 <div class="app">
 <header class="hud">
-  <div class="hud-top"><h1><span class="star-ic" id="starIc" hidden>★</span><span class="ttl" aria-label="별빛광맥"><span class="ttl-a" aria-hidden="true">별빛광맥</span><span class="ttl-s" id="ttlS" aria-hidden="true">별빛광맥</span></span></h1><span class="cal" id="cal"></span></div>
   <div class="stats">
     <div class="stat"><span class="k">골드</span><span class="v gold" id="gold">0</span></div>
     <div class="stat"><span class="k">깊이</span><span class="v" id="depth">-</span></div>
@@ -12,14 +12,14 @@
 <main>
 <section id="tab-mine" class="view">
   <div class="chips" id="layerChips"></div>
+  <button class="next-l" id="nextL" type="button"></button>
   <div class="scene-wrap" id="sceneWrap">
     <canvas id="scene" aria-label="굴 단면. 화면을 탭해서 암벽을 캐세요"></canvas>
-    <div class="sc-ore" id="scOre"></div>
-    <div class="sc-store" id="scStore"></div>
-    <div class="sc-info" id="scInfo"></div>
-    <div class="sc-bot"><button class="px-btn sc-boxbtn" id="boxBtn" type="button"></button><button class="px-btn sc-auto" id="autoBtn" type="button"></button></div>
+    <button class="sc-box" id="boxBtn" type="button" aria-label="로봇 보관함 받기" hidden><canvas width="24" height="24" data-ic="box"></canvas><b id="boxN"></b></button>
+    <div class="vein-bn" id="veinBn" hidden>황금 광맥! <i class="vb"><i id="veinBar"></i></i></div>
+    <button class="sc-sw" id="autoBtn" type="button" role="switch" aria-label="자동 드릴" hidden><span class="knob"></span><span class="lb">드릴</span></button>
   </div>
-  <div class="mine-foot" id="mineFoot"><div class="ad-row"><button class="px-btn ad-btn" id="giftBtn" type="button"></button><button class="px-btn ad-btn" id="boostBtn" type="button"></button></div><div class="drops" id="drops"></div></div>
+  <div class="mine-foot" id="mineFoot"><button class="ic-btn" id="giftBtn" type="button" aria-label="숯의 선물 상자"><canvas width="28" height="28" data-ic="gift"></canvas><span class="ic-tag" id="giftTag"></span></button><button class="ic-btn" id="boostBtn" type="button" aria-label="10분 동안 채굴 2배"><canvas width="28" height="28" data-ic="ff"></canvas><span class="ic-tag" id="boostTag"></span></button><span class="grow"></span><button class="px-btn sm odds" id="oddsBtn" type="button">확률 보기</button></div>
 </section>
 
 <section id="tab-equip" class="view" hidden>

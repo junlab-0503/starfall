@@ -1,4 +1,4 @@
-// v8.3 확인: 튜토리얼(재료만 반짝임, 장터·탑 설명은 [다음]), 창고 표기, 입주자 카드, 광고 하루 횟수, 시계 조작 방지
+// 확인: 설정 문구, 창고 표기, 입주자 카드, 광고 하루 횟수, 시계 조작 방지 (튜토리얼은 t24)
 const {chromium,devices}=require('playwright');
 (async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');
 h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});');fs.writeFileSync('dbg23.html',h);
@@ -7,31 +7,21 @@ const ctx=await b.newContext({...devices['Galaxy S9+']});const p=await ctx.newPa
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 const closeStory=async()=>{while(await p.isVisible('#storyNext'))await p.click('#storyNext')};
 const glow=()=>p.evaluate(()=>[...document.querySelectorAll('.tut-glow')].map(e=>e.id||e.dataset.pk||e.dataset.tab||e.className.split(' ')[0]).join(','));
-await p.goto(url);await p.waitForTimeout(500);await closeStory();
-// 튜토리얼
-await p.evaluate(()=>{const S=__d().S;S.mined=5;S.earned=10;S.inv.stone=6;S.inv.clay=3;S.tut=TUT.findIndex(st=>st.sel==='.nb[data-tab="forge"]')});await p.click('[data-tab="forge"]');await p.waitForTimeout(400);
-ok((await glow())==='stone','합성: 돌 재료 버튼만 반짝임 → '+await glow());
-await p.click('[data-pk="stone"]');await p.waitForTimeout(300);ok((await glow())==='stone','한 칸 넣은 뒤에도 돌만 → '+await glow());
-await p.click('[data-pk="stone"]');await p.waitForTimeout(300);ok((await glow())==='smelt','두 칸 다 차면 합성 버튼 → '+await glow()+' / '+(await p.textContent('#tutT')).slice(0,24));
-await p.click('#smelt');await p.waitForTimeout(300);await closeStory();await p.waitForTimeout(300);
-await p.click('[data-tab="market"]');await p.waitForTimeout(400);const t1=await p.textContent('#tutT');
-await p.waitForTimeout(6000);const t2=await p.textContent('#tutT');ok(t1===t2&&/장터란다/.test(t2)&&await p.isVisible('#tutGo'),'장터 설명이 6초 뒤에도 그대로 + [다음] 보임: '+t2.slice(0,20)+' / glow '+await glow());
-await p.screenshot({path:'v83_tut_market.png'});
-await p.click('#tutGo');await p.waitForTimeout(300);ok(/탑/.test(await p.textContent('#tutT')),'다음 → 탑으로 가라는 말: '+(await p.textContent('#tutT')).slice(0,20));
-await p.click('[data-tab="tower"]');await p.waitForTimeout(400);ok(/한 층씩/.test(await p.textContent('#tutT'))&&(await glow())==='floorCard','탑 설명 단계 + 짓기 카드 반짝임');
-await p.click('#tutGo');await p.waitForTimeout(300);ok((await p.textContent('#tutGo'))==='시작하기','마지막 단계');await p.click('#tutGo');await p.waitForTimeout(300);ok(!(await p.isVisible('#tut')),'튜토리얼 끝');
+await p.goto(url);await p.waitForTimeout(500);if(await p.isVisible('#titleScr'))await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();
+// 튜토리얼은 t24에서 확인. 여기선 건너뜀
+await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await p.waitForTimeout(300);
 ok((await p.textContent('#tutAgain'))==='튜토리얼 다시 보기','설정 버튼 문구');
 // 입주자 카드
-await p.evaluate(()=>{const S=__d().S;S.floors=40;refreshBonus();renderAll()});await p.waitForTimeout(1200);
+await p.evaluate(()=>{const S=__d().S;S.floors=40;refreshBonus();renderAll()});await p.click('[data-tab="tower"]');await p.waitForTimeout(1200);await closeStory();
 await p.screenshot({path:'v83_tower40.png'});
-await p.click('[data-sec="3"]');await p.waitForTimeout(300);const card=await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textContent,x:$('storyX').textContent,por:!$('portrait').hidden||!$('portraitArt').hidden}));
+await p.click('[data-sec="0"]');await p.waitForTimeout(300);const card=await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textContent,x:$('storyX').textContent,por:!$('portrait').hidden||!$('portraitArt').hidden}));
 ok(card.por&&/무쇠/.test(card.t)&&card.b.length>5&&/"/.test(card.x),'무쇠 카드: '+card.t+' | '+card.b.slice(0,20)+' | '+card.x.slice(0,40));
 await p.screenshot({path:'v83_tenant.png'});await closeStory();
 await p.click('[data-sec="10"]');await p.waitForTimeout(300);ok(/비어 있는/.test(await p.textContent('#storyT')),'잠긴 구간: '+await p.textContent('#storyB'));await closeStory();
 // 개발자 코드 → 창고 표기
 await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(500);await closeStory();
 const st=await p.evaluate(()=>{const e=$('store');return{t:e.textContent,ov:e.scrollWidth>e.clientWidth}});ok(!st.ov&&!/…/.test(st.t),'헤더 창고 표기 잘림 없음: '+st.t);
-await p.click('[data-tab="mine"]');await p.waitForTimeout(400);const sc=await p.evaluate(()=>$('scStore').innerText.replace(/\n/g,' '));ok(true,'채굴 화면 창고: '+sc);await p.screenshot({path:'v83_dev_mine.png'});
+await p.click('[data-tab="mine"]');await p.waitForTimeout(400);const sc=await p.evaluate(()=>$('nextL').innerText.replace(/\n/g,' '));ok(true,'다음 지층 칸: '+sc);await p.screenshot({path:'v83_dev_mine.png'});
 await p.click('[data-tab="tower"]');await p.waitForTimeout(800);await p.screenshot({path:'v83_tower99.png'});
 // 광고 하루 횟수
 await p.click('[data-tab="mine"]');await p.waitForTimeout(300);

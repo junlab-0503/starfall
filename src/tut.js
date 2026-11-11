@@ -1,23 +1,23 @@
-/* ═════════ 튜토리얼 (이장 할머니) ═════════ */
+/* ═════════ 튜토리얼 (이장 할머니): 캐기 → 광석 발견 → 재련 → 탑 1층(무쇠) → 곡괭이 강화 → 그 밖의 것 → 최종 목표 ═════════ */
 // t·sel은 함수일 수도 있다(상황에 따라 바뀜). next:true → 저절로 넘어가지 않고 [다음]을 눌러야 넘어가는 설명 단계
 const slotsFull=()=>!!(S.slots[0]&&S.slots[1]);
 const TUT=[
-  {t:'화면을 탭해서 바위를 캐 보렴. 암벽에 박힌 광석이 나올 게다.',sel:'#sceneWrap',tab:'mine',done:()=>S.mined>=5},
-  {t:'광석이 모였구나. 아래 [관리]를 눌러 창고로 가 보렴.',sel:'.nb[data-tab="manage"]',done:()=>S.tab==='manage'&&S.sub==='store'},
-  {t:'[판매]를 눌러 광석을 팔아 보렴. 골드가 생긴단다.',sel:'#inv [data-sellq]',done:()=>S.earned>0},
-  {t:'골드가 생겼구나. 아래 [장비]로 가 보렴. 마을 사람들이 도구를 손봐 준단다.',sel:'.nb[data-tab="equip"]',done:()=>S.tab==='equip'},
-  {t:'무쇠, 핀, 미르, 셈, 루카가 저마다 공방을 연단다. 빨간 점이 보이면 지금 강화할 수 있다는 뜻이지. 골드가 모이면 곡괭이부터 벼려 보렴.',sel:'[data-up="pick"]',next:true},
-  {t:'이번엔 [재련]으로 가 보자. 할아버지의 용광로가 있단다.',sel:'.nb[data-tab="forge"]',done:()=>S.tab==='forge'},
-  {t:()=>slotsFull()?'좋아, 재료가 다 들어갔구나. 이제 [재련]을 눌러 보렴.':'반짝이는 [돌]을 두 번 눌러 재료 칸 두 개에 넣어 보렴. 돌 두 개로도 뭔가 만들어지지.',
-   sel:()=>slotsFull()?'#smelt':'#pickGrid [data-pk="stone"]',done:()=>S.crafts>=1,hint:()=>!slotsFull()&&cnt('stone')<2?'돌이 모자라면 채굴 화면에서 조금 더 캐 오렴.':''},
-  {t:'이번엔 [장터]로 가 보자.',sel:'.nb[data-tab="market"]',done:()=>S.tab==='market'},
-  {t:'여기가 장터란다. 지층 출입권을 사 두면 그 지층 광석이 조금씩 들어오고, 소문이 사실로 밝혀지면 값이 크게 오르지. 누가 한 말인지, 다른 사람도 같은 말을 하는지 잘 살피렴. 광물은 [광물 거래]에서 정해진 값에 사고팔 수 있단다.',sel:'#passes .prow',next:true},
-  {t:'마지막으로 [탑]이다.',sel:'.nb[data-tab="tower"]',done:()=>S.tab==='tower'},
-  {t:'골드와 재료를 모아 한 층씩 쌓으면 마을 사람들이 돌아온단다. 아래 입주자 칸을 누르면 그 사람 이야기도 들을 수 있지.',sel:'#floorCard',next:true},
-  {t:'이제 할아버지의 일지를 따라 내려가 보렴. 별이 기다리고 있을 게다.',sel:null,last:true}
+  {t:'여기가 영감이 평생 판 광맥이란다. 화면을 탭해서 바위를 캐 보렴.',sel:'#sceneWrap',done:()=>S.mined>=1},
+  {t:'처음 보는 광석은 도감에 남는단다. 계속 캐서 돌을 넉넉히 모아 보렴.',sel:'#sceneWrap',done:()=>cnt('stone')+cnt('brick')*2>=10,hint:()=>`(돌 ${Math.min(cnt('stone')+cnt('brick')*2,10)}/10)`},
+  {t:'돌 두 개를 녹이면 다듬은 돌이 된단다. 아래 [재련]으로 가 보렴.',sel:'.nb[data-tab="forge"]',done:()=>S.tab==='forge'||cnt('brick')>=2},
+  {t:()=>slotsFull()?'좋아, 이제 [재련]을 눌러 보렴.':'[돌]을 두 번 눌러 재료 칸 두 개에 넣어 보렴.',sel:()=>slotsFull()?'#smelt':'#pickGrid [data-pk="stone"]',done:()=>cnt('brick')>=2,
+   hint:()=>`(다듬은 돌 ${Math.min(cnt('brick'),2)}/2)`+(!slotsFull()&&cnt('stone')<2?' 돌이 모자라면 채굴 화면에서 조금 더 캐 오렴.':'')},
+  {t:'잘했다! 이제 [탑]으로 가 보자. 떠난 마을 사람들이 돌아올 집이란다.',sel:'.nb[data-tab="tower"]',done:()=>S.tab==='tower'||S.floors>=1},
+  {t:'[한 층 쌓기]를 눌러 1층을 지어 보렴. 대장장이 무쇠가 돌아올 게다.',sel:'#buildBtn',done:()=>S.floors>=1},
+  {t:'무쇠가 돌아왔구나! 아래 [장비]로 가서 대장간을 열어 보렴.',sel:'.nb[data-tab="equip"]',done:()=>S.tab==='equip'||S.pick>=2},
+  {t:'무쇠에게 [곡괭이 벼리기]를 맡겨 보렴. 바위가 훨씬 쉽게 갈라질 게다.',sel:'[data-up="pick"]',done:()=>S.pick>=2},
+  {t:'광석은 [관리] 창고에서 팔거나 [장터]에서 정해진 값에 사고팔 수 있단다. 골드가 모자라면 팔아서 마련하렴.',sel:'.nb[data-tab="manage"]',next:true},
+  {t:'채굴 화면 위 칸에는 다음 지층을 여는 데 필요한 것이 나온단다. 다 모으면 그 칸을 눌러 더 깊이 내려가렴.',sel:'.nb[data-tab="mine"]',next:true},
+  {t:'탑을 높이 쌓을수록 떠났던 사람들이 하나둘 돌아와 가게를 연단다. 누가 오면 그 사람이 직접 알려 줄 게야.',sel:'.nb[data-tab="tower"]',next:true},
+  {t:'할아버지의 일지를 따라 별의 심장까지 내려가고, 탑 99층 꼭대기에서 별을 하늘로 돌려보내는 게 네 일이란다. 할미는 늘 여기 있으마.',sel:null,last:true}
 ];
 const tv=v=>typeof v==='function'?v():v;
-const tutOn=()=>S.prologue&&!S.tutDone&&$('story').hidden;
+const tutOn=()=>S.prologue&&!S.tutDone&&$('story').hidden&&$('titleScr').hidden;
 function tutTick(){if(!tutOn())return tutHide();S.tut=S.tut||0;let st=TUT[S.tut];
   while(st&&!st.last&&!st.next&&st.done()){S.tut++;st=TUT[S.tut];sfx('page')}
   if(!st){S.tutDone=true;return tutHide()}

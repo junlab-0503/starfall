@@ -4,20 +4,21 @@
 const cv=$('scene'),g=cv.getContext('2d');
 let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
 const STX=24,STY=9; // 굴 한 칸의 가로/세로 이동
-function sceneResize(){fitScene();const r=cv.parentElement.getBoundingClientRect();if(!r.width)return;SC=Math.max(2,Math.round(r.width/180));IW=Math.ceil(r.width/SC);IH=Math.ceil(r.height/SC);cv.width=IW*SC;cv.height=IH*SC;g.imageSmoothingEnabled=false}
-addEventListener('resize',()=>{IW=0;DECO_TOP=-1});
+function sceneResize(){fitScene();const r=cv.parentElement.getBoundingClientRect();if(!r.width)return;SC=Math.max(2,Math.round(r.width/180));cv.width=Math.round(r.width);cv.height=Math.round(r.height);IW=cv.width/SC;IH=cv.height/SC;g.imageSmoothingEnabled=false}   // 캔버스 = 화면 크기 그대로(모서리 장식이 딱 붙게)
+addEventListener('resize',()=>{IW=0});
 function fitScene(){}
-if(window.ResizeObserver)new ResizeObserver(()=>{IW=0;DECO_TOP=-1}).observe($('sceneWrap'));
+if(window.ResizeObserver)new ResizeObserver(()=>{IW=0}).observe($('sceneWrap'));
 /* 지층 그림(art/strata): 배경 = 안 판 채굴층 바위 한 장(r, 이음매 없이 다듬어 그대로 반복), 굴 안 = 판 버전의 어두운 안쪽(m_d),
    장식 = 천장 조각(d_t, 화면 왼쪽 위) · 바닥 조각(d_b, 화면 오른쪽 아래) */
 const STRATA={};
 function strata(L){const o=STRATA[L]||(STRATA[L]={});if(o.ok)return o;if(o.wait)return null;o.wait=1;const n=L+1,keys=['r'+n,'m'+n+'_d','d'+n+'_t','d'+n+'_b'].filter(k=>ART['strata_'+k]);let left=keys.length;
   keys.forEach(k=>{const im=new Image();im.onload=()=>{if(!--left)buildStrata(L,o)};im.src=ART['strata_'+k];o[k.replace(/\d+/,'')]=im});return null}
-let DECO_TOP=-1;const decoTop=()=>{if(DECO_TOP<0){const c=document.querySelector('.sc-ore'),w=$('sceneWrap');DECO_TOP=c&&w?Math.round((c.getBoundingClientRect().bottom-w.getBoundingClientRect().top)*cv.width/w.clientWidth):40}return DECO_TOP};
 function cvs(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return[c,x]}
 function mirror(im){const w=im.width,h=im.height,[c,x]=cvs(w*2,h*2);x.drawImage(im,0,0);x.save();x.scale(-1,1);x.drawImage(im,-w*2,0);x.restore();
   x.save();x.scale(1,-1);x.drawImage(c,0,0,w*2,h,0,-h*2,w*2,h);x.restore();return c}
 function tint(src,col,a){const[c,x]=cvs(src.width,src.height);x.drawImage(src,0,0);x.globalCompositeOperation='source-atop';x.globalAlpha=a;x.fillStyle=col;x.fillRect(0,0,c.width,c.height);return c}
+const GOLD={};
+function goldStrata(){if(GOLD.ok)return GOLD;if(!GOLD.im&&ART.strata_gold){GOLD.im=Object.assign(new Image(),{src:ART.strata_gold});GOLD.im.onload=()=>{GOLD.p=g.createPattern(GOLD.im,'repeat');GOLD.dc=tint(mirror(GOLD.im),'#0a0603',.68);GOLD.pd=g.createPattern(GOLD.dc,'repeat');GOLD.ok=1}}return null}
 function buildStrata(L,o){const dm=LOOK[L].dim*.55;o.rockC=o.r;o.darkC=mirror(o.m_d);o.prock=g.createPattern(o.rockC,'repeat');o.pdark=g.createPattern(o.darkC,'repeat');
   o.dt=tint(o.d_t,'#07040a',dm);o.db=tint(o.d_b,'#07040a',dm);   // 앞 장식은 조명 밖이라 지층 어둡기만큼 살짝 어둡게
   const[,x1]=cvs(1,1);x1.imageSmoothingEnabled=true;x1.drawImage(o.r,0,0,1,1);const v=x1.getImageData(0,0,1,1).data;o.rock='#'+[v[0],v[1],v[2]].map(n=>n.toString(16).padStart(2,'0')).join('');o.ok=1}   // 굴 바닥 · 천장 색 = 바위 평균색
@@ -30,7 +31,7 @@ let PARTS=[],FLY=[];
 const DUST=Array.from({length:26},()=>({x:Math.random()*400,y:Math.random()*400,v:.3+Math.random()*.7}));
 let LMASK=null,LMK='';
 function lightMask(){const dim=LOOK[S.layer].dim+(S.ended?-.08:0),k=IW+'x'+IH+'_'+dim.toFixed(2);if(LMK===k)return LMASK;LMK=k;
-  const W=IW*2+2,H=IH*2+2,c=document.createElement('canvas');c.width=W;c.height=H;const t=c.getContext('2d'),img=t.createImageData(W,H),R=Math.max(IW,IH)*.95,cx=W/2,cy=H/2;
+  const W=Math.ceil(IW*2)+2,H=Math.ceil(IH*2)+2,c=document.createElement('canvas');c.width=W;c.height=H;const t=c.getContext('2d'),img=t.createImageData(W,H),R=Math.max(IW,IH)*.95,cx=W/2,cy=H/2;
   // 계단식 고리(4단계, 점무늬 없이): 그림 위에 점무늬가 끼지 않게
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const d=Math.hypot(x-cx,(y-cy)*1.1)/R,lv=clamp((d-.22)/.55,0,1),q=Math.ceil(lv*4)/4,a=lv>=1?dim*.95+.05:dim*.9*q;
     const o=(y*W+x)*4;img.data[o]=6;img.data[o+1]=4;img.data[o+2]=10;img.data[o+3]=Math.round(a*255)}
@@ -50,7 +51,7 @@ function heroFrameKey(sit,t){if(sit)return'sleep';if(A.sw>=0){const s=A.sw;retur
 function doTap(){
   if(full()&&!(ul('autosell')&&autoSellRoom())){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}
   swing();let d=tapPower();if(Math.random()<critP()){d*=3;A.shake=3;const w=charW();for(let i=0;i<10;i++)PARTS.push({x:w.x-10,y:w.y-14,vx:-30+Math.random()*60,vy:-60-Math.random()*50,life:.6,c:'#fff2b0',sz:1,star:Math.random()<.4});floatText('크게!','#ffd36a')}
-  applyDmg(d,false);
+  applyDmg(d,false);veinGold(1/40,true);
 }
 // 알뜰 정리(셈): 창고가 가득 차면 가장 싼 원석을 팔아 자리를 만든다
 let autoSellT=0;
@@ -72,11 +73,13 @@ function tierFx(T,x,y){const add=(n,c,o)=>{for(let i=0;i<n;i++)PARTS.push(Object
   if(T==='star'){add(8,'#fff6c8',{star:1,life:.7});add(4,'#bfe0f6')}}
 function breakWall(auto){
   const L=S.layer,hp=layerHp(L);let n=0;const got={};
-  while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1+(Math.random()<extraP(ITEMS[id].s)?1:0)}
+  const td=!auto&&!S.tutDone&&L===0&&S.tutBrk<TUT_DROPS.length?TUT_DROPS[S.tutBrk]:null;   // 튜토리얼: 정해진 광석(탑 1층 재료가 바로 모이게)
+  if(td){S.hp=hp;S.tutBrk++;got[td]=td==='stone'?2:1}
+  else while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1+(Math.random()<extraP(ITEMS[id].s)?1:0)}
   const w=charW();
   for(let i=0;i<14;i++)PARTS.push({x:w.x-14+Math.random()*8,y:w.y-24+Math.random()*22,vx:(Math.random()-.8)*80,vy:-40-Math.random()*60,life:.8,c:Math.random()<.4?ITEMS[S.next||'stone'].c:LOOK[L].rock,sz:2,grav:1});
   for(const id in got)gain(id,got[id],auto);
-  rumorClue(L);S.digs[L]=digOf(L)+1;A.stepT=.3;A.shake=2;S.next=rollDrop(L);newWall();
+  rumorClue(L);S.digs[L]=digOf(L)+1;A.stepT=.3;A.shake=2;S.next=!S.tutDone&&L===0&&S.tutBrk<TUT_DROPS.length?TUT_DROPS[S.tutBrk]:rollDrop(L);newWall();
   if(!S.journal.includes(0)&&S.mined>=1)revealJournal(0);
 }
 // 캔 광석: 창고 → (드릴 로봇이면) 로봇 보관함 → 넘치면 판매
@@ -85,8 +88,8 @@ function gain(id,n,auto){S.mined+=n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&s
   if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else S.lost=(S.lost||0)+rest}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
 let FLOATS=[];
 function floatText(t,c,id){const wrap=$('sceneWrap');const ex=id&&FLOATS.find(f=>f.id===id&&f.life>.3);
-  if(ex){ex.n++;ex.el.querySelector('b').textContent=`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}
-  const el=document.createElement('div');el.className='ftxt';el.style.color=c;el.innerHTML=(id?ico(id):'')+`<b>${t}</b>`;wrap.appendChild(el);
+  if(ex){ex.n+=id==='$g'?ex.add:1;ex.el.querySelector('b').textContent=id==='$g'?`+${big(ex.n)}G`:`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}
+  const el=document.createElement('div');el.className='ftxt';el.style.color=c;el.innerHTML=(id&&ITEMS[id]?ico(id):'')+`<b>${t}</b>`;wrap.appendChild(el);
   FLOATS.unshift({el,id,n:1,life:1.3,y:0,slot:0,pop:.2});while(FLOATS.length>4){FLOATS.pop().el.remove()}}
 function stepFloats(dt){const w=charW(),wrap=$('sceneWrap'),H=wrap.clientHeight,sx=(w.x-camX)*SC,base=(w.y-40-camY)*SC;
   FLOATS.forEach((f,i)=>{f.life-=dt;f.pop=Math.max(0,f.pop-dt);f.slot=i*24;f.y=Math.min(f.y+dt*14,12);
@@ -98,7 +101,7 @@ function update(dt){
   if(A.sw>=0){A.sw+=dt/.26;A.idleT=0;if(A.sw>=1)A.sw=-1}else A.idleT=(A.idleT||0)+dt;
   A.stepT=Math.max(0,A.stepT-dt);A.bobT+=dt;A.blinkT-=dt;if(A.blinkT<0){A.blink=.14;A.blinkT=2+Math.random()*3}A.blink=Math.max(0,A.blink-dt);A.head=Math.max(0,A.head-dt);A.joy=Math.max(0,A.joy-dt);A.yawn=Math.max(0,A.yawn-dt);if(A.sw<0&&!full()){A.yawnT-=dt;if(A.yawnT<0){A.yawn=1.2;A.yawnT=14+Math.random()*12}}else A.yawnT=Math.max(A.yawnT,6);A.shake=Math.max(0,A.shake-dt*8);
   // 자동 드릴
-  if(S.auto>0&&S.autoOn){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true)}}
+  if(S.auto>0&&S.autoOn){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(1/400,false)}}
   PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt});PARTS=PARTS.filter(p=>p.life>0);
   FLY.forEach(f=>f.t+=dt);FLY=FLY.filter(f=>f.t<.6);
   stepFloats(dt);
@@ -109,21 +112,16 @@ function draw(t){
   const K=SC,CW=cv.width,CH=cv.height,st=strata(L);g.setTransform(1,0,0,1,sh*K,0);
   if(st){
     // 배경: 안 판 바위(카메라와 같이 움직임 = 파고 들어가는 그 바위)
-    fillPat(st.prock,st.rockC.width,st.rockC.height,-camX*K,-camY*K,-K,0,CW+2*K,CH);
+    const gv=veinOn()&&goldStrata();   // 황금 광맥이 나타난 동안은 금맥 바위
+    if(gv)fillPat(gv.p,gv.im.width,gv.im.height,-camX*K,-camY*K,-K,0,CW+2*K,CH);else fillPat(st.prock,st.rockC.width,st.rockC.height,-camX*K,-camY*K,-K,0,CW+2*K,CH);
     // 굴 안: 판 버전의 어두운 안쪽, 조금 느리게(0.8배) → 안쪽이 깊어 보이게
     for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;
-      fillPat(st.pdark,st.darkC.width,st.darkC.height,-camX*K*.8,-camY*K*.8,(x-STX/2)*K,(y-33)*K,(STX+1)*K,33*K)}
+      if(gv)fillPat(gv.pd,gv.dc.width,gv.dc.height,-camX*K*.8,-camY*K*.8,(x-STX/2)*K,(y-33)*K,(STX+1)*K,33*K);else fillPat(st.pdark,st.darkC.width,st.darkC.height,-camX*K*.8,-camY*K*.8,(x-STX/2)*K,(y-33)*K,(STX+1)*K,33*K)}
   }else{g.fillStyle=LOOK[L].dark;g.fillRect(0,0,CW,CH)}
   g.setTransform(K,0,0,K,sh*K,0);
-  // 굴 바닥·천장 음영과 버팀목
-  for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;
-    {const RR=ramp(st?st.rock:lk.rock),Rn=rng(i*7919+S.layer);for(let k=0;k<STX+1;k++){const xx=x-STX/2+k,bump=Math.floor(Rn()*3),bump2=Math.floor(Rn()*2);
-      g.fillStyle=RR[1];g.fillRect(xx,y-33,1,bump+1);g.fillStyle=RR[3];g.fillRect(xx,y-33+bump+1,1,1);
-      g.fillStyle=RR[1];g.fillRect(xx,y-bump2,1,bump2+2);g.fillStyle=RR[4];g.fillRect(xx,y-bump2-1,1,1)}
-     g.fillStyle='rgba(0,0,0,.35)';g.fillRect(x-STX/2,y-30,STX+1,2)}
-    if(i%4===1&&i<d){g.fillStyle='#6b4a2a';g.fillRect(x-STX/2+2,y-32,2,32);g.fillRect(x+STX/2-4,y-32,2,32);g.fillStyle='#8a6038';g.fillRect(x-STX/2+1,y-33,STX-1,3);g.fillStyle='#4a301a';g.fillRect(x-STX/2+1,y-31,STX-1,1)}
-    if(i%6===3&&i<d){const lx=x,ly=y-27;g.fillStyle='#3a2a1a';g.fillRect(lx,ly-3,1,3);g.fillStyle='#ffd36a';g.fillRect(lx-1,ly,3,3);g.fillStyle='#fff6c8';g.fillRect(lx,ly+1,1,1)}
-    decoCell(lk.deco,i,x,y,t)}
+  // 굴: 천장 그림자 · 매달린 바위 · 발판(밝은 윗면 + 자갈) · 어두운 윤곽 · 버팀목 · 등불 — 화면 해상도(2배 촘촘)로
+  g.setTransform(1,0,0,1,sh*K,0);tunnelDetail(L,d,K,st,t);g.setTransform(K,0,0,K,sh*K,0);
+  for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;decoCell(lk.deco,i,x,y,t)}
   // 암벽 면과 박힌 광석
   const w=charW(),fx=Math.round(w.x-STX/2-camX),fy=Math.round(w.y-camY);
   g.fillStyle=shade(lk.rock,.18);g.fillRect(fx-1,fy-33,1,33);
@@ -150,14 +148,38 @@ function draw(t){
   PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리
   const lx=Math.round(w.x-3-camX),ly=Math.round(w.y-28-camY),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
-  // 장식: 천장 조각은 왼쪽 위(윗부분은 광석 카드 뒤, 종유석은 카드 아래로 늘어지게), 바닥 조각은 오른쪽 아래
-  if(st){g.setTransform(1,0,0,1,sh*K,0);g.drawImage(st.dt,0,Math.max(0,decoTop()-Math.round(st.dt.height*.5)));g.drawImage(st.db,CW-st.db.width,CH-st.db.height);g.setTransform(K,0,0,K,sh*K,0)}
+  // 장식: 천장 조각은 왼쪽 위, 바닥 조각은 오른쪽 아래 모서리에 딱 붙여 고정(화면이 흔들려도 그대로)
+  if(st){g.setTransform(1,0,0,1,0,0);g.drawImage(st.dt,0,0);g.drawImage(st.db,CW-st.db.width,CH-st.db.height);g.setTransform(K,0,0,K,sh*K,0)}
   // 떠다니는 먼지
   DUST.forEach(d=>{const x=Math.round(((d.x+t*d.v*6)%IW+IW)%IW),y=Math.round(((d.y-t*d.v*3)%IH+IH)%IH);const dd=Math.hypot(x-lx,y-ly);if(dd<IW*.35){g.globalAlpha=(1-dd/(IW*.35))*.7;g.fillStyle='#fff3d0';g.fillRect(x,y,1,1)}});g.globalAlpha=1;
   // 날아가는 광석 → 창고
   FLY.forEach(f=>{const k=f.t/.6,e=k*k,x=f.x0-camX+((IW-14)-(f.x0-camX))*e,y=f.y0-camY+(10-(f.y0-camY))*e-Math.sin(k*Math.PI)*20;g.drawImage(icon16(f.id),Math.round(x-8),Math.round(y-8))});
   g.setTransform(1,0,0,1,0,0);
 }
+const WOOD=['#24140a','#4a2c16','#6e4424','#94603a','#b8844e'];
+function tunnelDetail(L,d,K,st,t){const RR=ramp(st?st.rock:LOOK[L].rock),O='#120a06',cells=[];
+  for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;cells.push([i,(x-STX/2)*K,(y-33)*K,y*K])}
+  const cw=STX*K,ch=33*K,sy=STY*K;
+  cells.forEach(([i,x0,c0,f0])=>{const R=rng(i*7919+L*31),w=i===d?cw+K:cw;
+    // 천장: 그림자 두 단 + 매달린 바위(3px 단위)
+    g.fillStyle='rgba(0,0,0,.42)';g.fillRect(x0,c0,w,6);g.fillStyle='rgba(0,0,0,.2)';g.fillRect(x0,c0+6,w,6);
+    for(let k=0;k<w;k+=3){const h=R()<.35?0:2+((R()*3)|0)*2;if(!h)continue;g.fillStyle=RR[1];g.fillRect(x0+k,c0,3,h);g.fillStyle=RR[0];g.fillRect(x0+k,c0+h,3,2)}
+    // 발판: 밝은 윗면 6px + 자갈
+    g.fillStyle=RR[2];g.fillRect(x0,f0-6,w,6);g.fillStyle=RR[3];g.fillRect(x0,f0-6,w,2);
+    for(let k=2;k<w-2;k+=4+((R()*5)|0)){const big=R()<.4;g.fillStyle=RR[big?1:4];g.fillRect(x0+k,f0-(big?8:7),big?4:2,big?3:2);if(big){g.fillStyle=RR[3];g.fillRect(x0+k,f0-8,2,1)}}
+    // 윤곽: 천장 위 · 발판 아래 · 계단 턱
+    g.fillStyle=O;g.fillRect(x0,c0-2,w,2);g.fillRect(x0,f0,w,2);
+    const xb=x0+cw;if(i>d-30){g.fillRect(xb-2,c0-sy-2,2,sy+2);g.fillRect(xb,f0-sy,2,sy+2)}
+    if(i===d){g.fillRect(x0-2,c0-2,2,ch+4)}});
+  // 버팀목(4칸마다): 기둥 두 개 + 들보 + 쇠못
+  cells.forEach(([i,x0,c0,f0])=>{if(i%4!==1||i>=d)return;const p=(px)=>{g.fillStyle=WOOD[0];g.fillRect(px-2,c0,10,ch);g.fillStyle=WOOD[2];g.fillRect(px,c0,6,ch);g.fillStyle=WOOD[3];g.fillRect(px,c0,2,ch);g.fillStyle=WOOD[1];for(let yy=c0+10;yy<f0-8;yy+=14)g.fillRect(px+2,yy,4,2)};
+    p(x0+4);p(x0+cw-10);g.fillStyle=WOOD[0];g.fillRect(x0,c0-2,cw,12);g.fillStyle=WOOD[3];g.fillRect(x0+2,c0,cw-4,8);g.fillStyle=WOOD[4];g.fillRect(x0+2,c0,cw-4,2);g.fillStyle=WOOD[2];g.fillRect(x0+2,c0+6,cw-4,2);
+    g.fillStyle='#9aa0a8';[x0+6,x0+cw-8].forEach(bx=>{g.fillRect(bx,c0+3,2,2)})});
+  // 등불(6칸마다): 사슬 + 등 + 은은한 빛
+  cells.forEach(([i,x0,c0,f0])=>{if(i%6!==3||i>=d)return;const lx=x0+cw/2-4,ly=c0+14,fl=.85+.15*Math.sin(t*7+i);
+    const gr=g.createRadialGradient(lx+4,ly+8,2,lx+4,ly+8,34);gr.addColorStop(0,`rgba(255,200,110,${(.32*fl).toFixed(2)})`);gr.addColorStop(1,'rgba(255,200,110,0)');g.fillStyle=gr;g.fillRect(lx-30,ly-26,68,68);
+    g.fillStyle='#3a3a40';for(let yy=c0;yy<ly;yy+=4)g.fillRect(lx+3,yy,2,2);g.fillStyle=O;g.fillRect(lx-1,ly-1,10,14);g.fillStyle='#5a3a1e';g.fillRect(lx,ly,8,2);g.fillRect(lx,ly+10,8,2);
+    g.fillStyle='#ffd36a';g.fillRect(lx+1,ly+2,6,8);g.fillStyle='#fff6c8';g.fillRect(lx+3,ly+4,2,4)})}
 function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);
   if(type==='stalactite'&&R()<.6){g.fillStyle='#d8d4c0';const sx=x-8+Math.floor(R()*16);g.fillRect(sx,y-31,2,3);g.fillRect(sx,y-28,1,2)}
   if(type==='crystal'&&R()<.5){const sx=x-10+Math.floor(R()*20),c=['#c28cf4','#eeeae2'][R()<.5?0:1],a=.6+.4*Math.sin(t*2+i);g.globalAlpha=a;g.fillStyle=c;g.fillRect(sx,y-36,2,3);g.fillRect(sx+1,y-38,1,2);g.globalAlpha=1}
@@ -177,3 +199,13 @@ function decoCell(type,i,x,y,t){const R=rng(i*97+S.layer*7);
 cv.addEventListener('pointerdown',e=>{e.preventDefault();doTap()});
 document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||S.tab!=='mine'||$('story').hidden===false)return;if(e.code==='Space'||e.code==='Enter'){e.preventDefault();doTap()}});
 function setLayer(i){if(i>=S.unlocked)return;S.layer=i;S.hp=layerHp(i);S.next=rollDrop(i);newWall();camInit=false;renderMineHud();renderLayers()}
+/* 황금 광맥: 켜 두고 캐는 동안 8~14분마다 45초 동안 나타남. 그동안 탭 · 자동 드릴이 골드를 직접 캐냄
+   (한 번에 켜 두고 4분 동안 벌 골드의 1/40씩, 최대 6분치) */
+const VEIN_SEC=45,veinOn=()=>!!S.vein&&gtime()<S.vein.end;
+function veinTick(){if(S.vein&&gtime()>=S.vein.end)endVein();if(S.vein||!S.tutDone)return;if((S.veinT-=1)<=0)startVein()}
+function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={end:gtime()+VEIN_SEC*1000,pot,got:0};S.veinT=480+Math.random()*360;
+  A.joy=.9;sfx('rare');toast('황금 광맥이 드러났어요! 45초 동안 캐면 골드가 쏟아져요.');for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5});renderMineHud()}
+function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
+function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.round(Math.min(v.pot*1.5-v.got,v.pot*k));if(amt<=0)return;v.got+=amt;S.gold+=amt;S.earned+=amt;
+  if(tap){const ex=FLOATS.find(f=>f.id==='$g'&&f.life>.3);if(ex)ex.add=amt;floatText(`+${big(amt)}G`,'#ffd23f','$g');const f0=FLOATS[0];if(f0&&f0.id==='$g'&&!ex)f0.n=amt;sfx('coin');const w=charW();for(let i=0;i<5;i++)PARTS.push({x:w.x-12,y:w.y-16,vx:-20+Math.random()*40,vy:-50-Math.random()*30,life:.6,c:'#ffd23f',sz:1,star:Math.random()<.5})}}
+

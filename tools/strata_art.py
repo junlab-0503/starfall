@@ -3,6 +3,7 @@
   m<번호>_d.webp  : 굴 안쪽 벽 = 판 버전(mid_sheet.webp)의 어두운 계단 안쪽에서 가장 큰 부분
   d<번호>_t.webp  : 장식 천장 조각(deco_sheet.webp 왼쪽 그림) → 화면 왼쪽 위
   d<번호>_b.webp  : 장식 바닥 조각(deco_sheet.webp 오른쪽 그림) → 화면 오른쪽 아래
+  gold.webp       : 황금 광맥 배경(gold_rock.webp, 금맥이 나타난 동안)
 사용: python3 tools/strata_art.py"""
 from PIL import Image
 import numpy as np
@@ -96,3 +97,10 @@ for (cx0,cx1),(fx0,fx1),first in (((42,459),(490,728),1),((780,1203),(1245,1500)
             sub=deco[b0:b1,a0:a1];m=sub[...,3]>100;ys,xs=np.where(m);sub=sub[ys.min():ys.max()+1,xs.min():xs.max()+1]
             H,W=sub.shape[:2];res=pixelate(sub,round(W*DECO_SCALE),round(H*DECO_SCALE))
             save(Image.fromarray(res),f'{OUT}d{n}_{part}.webp');print(n,part,res.shape[1],res.shape[0])
+
+# 4) 황금 광맥: 안 판 금맥 바위(gold_rock.webp) → 다른 지층 바위와 비슷한 크기로 줄이고 이음매 없이 → gold.webp
+gr=np.asarray(Image.open(SRC+'gold_rock.webp').convert('RGBA'));ys,xs=np.where(gr[...,3]>200)
+y0,y1,x0,x1=ys.min()+70,ys.max()-70,xs.min()+70,xs.max()-70;sub=gr[y0:y1,x0:x1]
+H,W=sub.shape[:2];f=3.0;res=pixelate(sub,round(W/f),round(H/f))[...,:3]
+res=seam_wrap(seam_wrap(res,40,1),32,0)
+save(Image.fromarray(res).quantize(64,method=Image.Quantize.MEDIANCUT).convert('RGB'),f'{OUT}gold.webp');print('gold',res.shape[1],res.shape[0])
