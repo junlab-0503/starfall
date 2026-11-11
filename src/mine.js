@@ -4,30 +4,28 @@
 const cv=$('scene'),g=cv.getContext('2d'),SCENE_G=g;
 let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
 const STX=24,STY=9; // 굴 한 칸의 가로/세로 이동
-function sceneResize(){fitScene();const el=cv.parentElement,r={width:el.clientWidth,height:el.clientHeight};if(!r.width)return;   // 테두리 안쪽 크기(캔버스가 늘어나 번지지 않게)
+const SWH={w:360,h:500};   // 채굴 화면 크기(떠오르는 글씨 자리 계산용)
+function sceneResize(){fitScene();const el=cv.parentElement,r={width:el.clientWidth,height:el.clientHeight};if(!r.width)return;SWH.w=r.width;SWH.h=r.height;   // 테두리 안쪽 크기(캔버스가 늘어나 번지지 않게)
   SC=Math.max(2,Math.round(r.width/180));cv.width=Math.round(r.width);cv.height=Math.round(r.height);IW=cv.width/SC;IH=cv.height/SC;g.imageSmoothingEnabled=false}   // 캔버스 = 화면 크기 그대로(모서리 장식이 딱 붙게)
 addEventListener('resize',()=>{IW=0});
 function fitScene(){}
 if(window.ResizeObserver)new ResizeObserver(()=>{IW=0}).observe($('sceneWrap'));
 /* 지층 그림(art/strata, 사용자 그림): 배경 = 안 판 채굴층 바위(r, 이음매 없이 반복, 원본 크기 그대로), 판 자리(굴 안) = 판 버전의 어두운 안쪽(m_d) */
 const STRATA={};
-function strata(L){const o=STRATA[L]||(STRATA[L]={});if(o.ok)return o;if(o.wait)return null;o.wait=1;const n=L+1,keys=['r'+n,'m'+n+'_d'].filter(k=>ART['strata_'+k]);let left=keys.length;
+function strata(L){const o=STRATA[L]||(STRATA[L]={});if(o.ok)return o;if(o.wait)return null;o.wait=1;const n=L+1,keys=['r'+n,'dg'+n].filter(k=>ART['strata_'+k]);let left=keys.length;
   keys.forEach(k=>{const im=new Image();im.onload=()=>{if(!--left)buildStrata(L,o)};im.src=ART['strata_'+k];o[k.replace(/\d+/,'')]=im});return null}
 function cvs(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return[c,x]}
 function mirror(im){const w=im.width,h=im.height,[c,x]=cvs(w*2,h*2);x.drawImage(im,0,0);x.save();x.scale(-1,1);x.drawImage(im,-w*2,0);x.restore();
   x.save();x.scale(1,-1);x.drawImage(c,0,0,w*2,h,0,-h*2,w*2,h);x.restore();return c}   // 위아래 · 좌우로 뒤집어 이어 붙임(이음매 없게)
-function buildStrata(L,o){o.rockC=o.r;o.prock=g.createPattern(o.r,'repeat');if(o.m_d){o.darkC=mirror(o.m_d);o.pdark=g.createPattern(o.darkC,'repeat')}o.ok=1}
+function buildStrata(L,o){o.rockC=o.r;o.prock=g.createPattern(o.r,'repeat');
+  if(o.dg){const W=o.dg.width,H=o.dg.height,[c,x]=cvs(W,H);x.drawImage(o.dg,0,0);const im=x.getImageData(0,0,W,H),rim=new ImageData(W,H),cave=new ImageData(W,H);   // 알파 255 = 굴 안, 200 = 둘레
+    for(let p=0;p<im.data.length;p+=4){const a=im.data[p+3];if(!a)continue;for(let k=0;k<3;k++){rim.data[p+k]=im.data[p+k];if(a>230)cave.data[p+k]=im.data[p+k]}rim.data[p+3]=255;if(a>230)cave.data[p+3]=255}
+    const[c1,x1]=cvs(W,H);x1.putImageData(rim,0,0);const[c2,x2]=cvs(W,H);x2.putImageData(cave,0,0);o.dg=c1;o.dc=c2}
+  o.ok=1}
 const GOLD={};
 function goldStrata(){if(GOLD.ok)return GOLD;if(!GOLD.im&&ART.strata_gold){GOLD.im=Object.assign(new Image(),{src:ART.strata_gold});GOLD.im.onload=()=>{GOLD.c=GOLD.im;GOLD.p=g.createPattern(GOLD.im,'repeat');const[c,x]=cvs(GOLD.im.width,GOLD.im.height);x.drawImage(GOLD.im,0,0);x.fillStyle='rgba(10,6,3,.7)';x.fillRect(0,0,c.width,c.height);GOLD.dc=c;GOLD.pd=g.createPattern(c,'repeat');GOLD.ok=1}}return null}
 // 사용자 그림 스프라이트(art/sprites, 화면 픽셀 크기)
 const SPR={};const spr=k=>{if(!SPR[k]&&ART['spr_'+k])SPR[k]=Object.assign(new Image(),{src:ART['spr_'+k]});const im=SPR[k];return im&&im.complete&&im.naturalWidth?im:null};
-// 판 자리 한 칸: 반듯한 네모 대신 3px 기둥마다 천장 · 바닥 높이를 들쭉날쭉하게(곡괭이로 대충 깎은 느낌). 칸 끝은 옆 칸으로 조금 파고들거나 덜 파임
-function digCell(dp,dc,i,L,face,x0,y0,w,h,K){const R=rng(i*4271+L*97),u=3,n=Math.ceil(w/u);
-  for(let k=0;k<n;k++){const edge=k<2||k>=n-2,top=(R()<.55?Math.floor(R()*3):-Math.floor(R()*2))*K+(edge&&R()<.5?K*2:0),bot=(R()<.5?-Math.floor(R()*2)*K:Math.floor(R()*2)*K);
-    let cx=x0+k*u,cw=Math.min(u,x0+w-cx);if(face&&k===0){const bite=Math.floor(R()*3)*K;cx+=bite;cw-=bite}
-    if(cw>0)fillPat(dp,dc.width,dc.height,-camX*K*.8,-camY*K*.8,cx,y0+top,cw,h-top+bot)}
-  // 칸 사이 계단 턱도 살짝 깨진 듯: 오른쪽 끝 위로 작은 홈 몇 개
-  for(let j=0;j<3;j++)if(R()<.6){const hx=x0+w-u*(1+Math.floor(R()*3)),hy=y0-K*(1+Math.floor(R()*3));fillPat(dp,dc.width,dc.height,-camX*K*.8,-camY*K*.8,hx,hy,u,K*(1+Math.floor(R()*2)))}}
 // 캔버스 좌표로 무늬 채우기: (ax,ay)에 무늬 원점을 두고 사각형을 채움
 function fillPat(p,tw,th,ax,ay,x,y,w,h){const ox=((Math.round(ax)%tw)+tw)%tw,oy=((Math.round(ay)%th)+th)%th;g.save();g.translate(ox,oy);g.fillStyle=p;g.fillRect(x-ox,y-oy,w,h);g.restore()}
 const digOf=L=>S.digs[L]||0;
@@ -100,9 +98,9 @@ function floatText(t,c,id){const wrap=$('sceneWrap');const ex=id&&FLOATS.find(f=
   if(ex){ex.n+=id==='$g'?ex.add:1;ex.el.querySelector('b').textContent=id==='$g'?`+${big(ex.n)}G`:`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}
   const el=document.createElement('div');el.className='ftxt';el.style.color=c;el.innerHTML=(id&&ITEMS[id]?ico(id):'')+`<b>${t}</b>`;wrap.appendChild(el);
   FLOATS.unshift({el,id,n:1,life:1.3,y:0,slot:0,pop:.2});while(FLOATS.length>4){FLOATS.pop().el.remove()}}
-function stepFloats(dt){const w=charW(),wrap=$('sceneWrap'),H=wrap.clientHeight,sx=(w.x-camX)*SC,base=(w.y-40-camY)*SC;
+function stepFloats(dt){if(!FLOATS.length)return;const w=charW(),H=SWH.h,sx=(w.x-camX)*SC,base=(w.y-40-camY)*SC;   // 크기는 sceneResize 때 재 둔 값(매 프레임 레이아웃 강제 계산 안 함)
   FLOATS.forEach((f,i)=>{f.life-=dt;f.pop=Math.max(0,f.pop-dt);f.slot=i*24;f.y=Math.min(f.y+dt*14,12);
-    let y=base-f.y-f.slot;y=clamp(y,62,H-80);f.el.style.transform=`translate(${Math.round(clamp(sx-30,6,wrap.clientWidth-190))}px,${Math.round(y)}px) scale(${1+f.pop})`;f.el.style.opacity=Math.min(1,f.life*2.2)});
+    let y=base-f.y-f.slot;y=clamp(y,62,H-80);const tr=`translate(${Math.round(clamp(sx-30,6,SWH.w-190))}px,${Math.round(y)}px) scale(${(1+f.pop).toFixed(2)})`,op=Math.min(1,f.life*2.2).toFixed(2);if(f.tr!==tr){f.tr=tr;f.el.style.transform=tr}if(f.op!==op){f.op=op;f.el.style.opacity=op}});
   FLOATS=FLOATS.filter(f=>{if(f.life<=0){f.el.remove();return false}return true})}
 let invDirty=false;
 function update(dt){
@@ -116,19 +114,33 @@ function update(dt){
   FLY.forEach(f=>f.t+=dt);FLY=FLY.filter(f=>f.t<.6);
   stepFloats(dt);
 }
+/* 배경 캐시: 바위 무늬 + 판 굴 흔적을 화면보다 조금 큰 캔버스 한 장에 그려 두고, 카메라가 움직이는 동안엔 그 한 장만 옮겨 붙인다.
+   다시 그리는 때: 한 칸 더 팠을 때 · 지층/황금 광맥/화면 크기가 바뀔 때 · 카메라가 여백(BGM)을 벗어날 때. 그림 · 위치는 예전과 픽셀 단위로 같음 */
+const BGC={c:null,x:null,k:'',ax:0,ay:0},BGM=96;
+function bgCache(L,st,gv,d,DM,K,CW,CH){
+  let ox=Math.round((BGC.ax-camX)*K),oy=Math.round((BGC.ay-camY)*K);
+  const key=[L,d,gv?1:0,CW,CH,K].join(),ok=BGC.k===key&&Math.abs(ox)<=BGM-K-2&&Math.abs(oy)<=BGM-2;
+  if(!ok){const W=CW+2*BGM,H=CH+2*BGM;if(!BGC.c){[BGC.c,BGC.x]=cvs(W,H)}else if(BGC.c.width!==W||BGC.c.height!==H){BGC.c.width=W;BGC.c.height=H;BGC.x.imageSmoothingEnabled=false}
+    const x=BGC.x,ax=Math.floor(camX),ay=Math.floor(camY);BGC.ax=ax;BGC.ay=ay;BGC.k=key;ox=Math.round((ax-camX)*K);oy=Math.round((ay-camY)*K);
+    x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,W,H);
+    // 배경: 안 판 바위(카메라와 같이 움직임). 황금 광맥이 나타난 동안은 금맥 바위
+    const im=gv?gv.c:st.rockC,tw=im.width,th=im.height,pox=(((-ax*K+BGM)%tw)+tw)%tw,poy=(((-ay*K+BGM)%th)+th)%th;
+    x.save();x.translate(pox,poy);x.fillStyle=x.createPattern(im,'repeat');x.fillRect(-pox,-poy,W,H);x.restore();
+    // 판 자리: 지금 파는 칸(머리)과 4칸마다 남은 굴 흔적. 둘레(dg)를 먼저 모두 그리고 굴 안(dc)을 위에 모두 그려 이어진 굴로. 황금 광맥 동안엔 굴 안만
+    if(st.dg){const sx=i=>(-i*STX+6-ax)*K-DM[0]+BGM,sy=i=>(i*STY-ay)*K-DM[1]+BGM,TW=st.dg.width,TH=st.dg.height,list=[];
+      for(let i=d-((d%4+4)%4||4);i>=d-48&&i>=0;i-=4){const px=sx(i),py=sy(i);if(px>W||py+TH<0)break;if(px+TW<0||py>H)continue;list.push([px,py])}
+      list.reverse();list.push([sx(d),sy(d)]);
+      if(!gv)list.forEach(([px,py])=>x.drawImage(st.dg,px,py));list.forEach(([px,py])=>x.drawImage(st.dc,px,py))}}
+  return{c:BGC.c,ox:ox-BGM,oy:oy-BGM}}
 function draw(t){
   const L=S.layer,lk=LOOK[L],d=digOf(L);
   const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;
   const K=SC,CW=cv.width,CH=cv.height,st=strata(L);g.setTransform(1,0,0,1,sh*K,0);
-  const w=charW(),fx=Math.round(w.x-STX/2-camX),fy=Math.round(w.y-camY),fxS=fx*K,fyS=fy*K,kk=K/2;   // fxS · fyS: 파는 벽 · 바닥(화면 픽셀), kk: 스프라이트 배율(화면 픽셀 그림 기준)
+  // 땅 판 흔적(사용자 그림 dg/dc): 칸마다 굴 + 둘레. DUG_META[L] = [주인공 발 x, 발 y, 숯 발 y, 파는 벽 x](그림 안 px)
+  const w=charW(),DM=(typeof DUG_META!=='undefined'&&DUG_META[L])||[36,0,0,0],heroS=Math.round((w.x+6-camX)*K),fyS=Math.round((w.y-camY)*K),fxS=heroS-(DM[0]-DM[3]),fx=fxS/K,fy=fyS/K,kk=K/2;   // fxS · fyS: 파는 벽 · 바닥(화면 픽셀), kk: 스프라이트 배율
   if(st){
-    // 배경: 안 판 바위(카메라와 같이 움직임). 황금 광맥이 나타난 동안은 금맥 바위
-    const gv=veinOn()&&goldStrata();
-    if(gv)fillPat(gv.p,gv.c.width,gv.c.height,-camX*K,-camY*K,-K,0,CW+2*K,CH);else fillPat(st.prock,st.rockC.width,st.rockC.height,-camX*K,-camY*K,-K,0,CW+2*K,CH);
-    // 판 자리(굴 안): 판 칸마다 어두운 안쪽 그림, 조금 느리게(0.8배) 움직여 안쪽이 깊어 보이게
-    const dp=gv?gv.pd:st.pdark,dc=gv?gv.dc:st.darkC;
-    if(dp)for(let i=d;i>=d-30;i--){const x=Math.round(-i*STX-camX),y=Math.round(i*STY-camY);if(x>IW+STX)break;if(x<-STX)continue;
-      digCell(dp,dc,i,L,i===d,(x-STX/2)*K,(y-33)*K,(STX+1)*K,33*K,K)}
+    // 배경(바위 + 판 굴)은 미리 그려 둔 한 장을 붙이기만 함 → 매 프레임 큰 그림 수십 장을 다시 그리지 않음(렉 줄이기)
+    const gv=veinOn()&&goldStrata(),bc=bgCache(L,st,gv,d,DM,K,CW,CH);g.drawImage(bc.c,bc.ox,bc.oy);
   }else{g.fillStyle=LOOK[L].dark;g.fillRect(0,0,CW,CH)}
   g.setTransform(K,0,0,K,sh*K,0);
   // 파는 벽에 박힌 광석 · 금(벽 왼쪽 바위)
@@ -138,7 +150,7 @@ function draw(t){
   const dmg=clamp(1-S.hp/layerHp(L),0,1);if(dmg>0){g.fillStyle='rgba(0,0,0,.75)';CRACKS.forEach((c,k)=>{const n=Math.floor(dmg*c.length*1.2-(k%2));for(let j=0;j<Math.min(n,c.length);j++)g.fillRect(Math.round(fx+c[j][0]),Math.round(fy+c[j][1]),1,1)})}
   // 숯: 주인공 뒤 한 칸 위(계단 하나 위). 선물 상자는 숯 옆
   g.setTransform(1,0,0,1,sh*K,0);
-  {const catF=full()||S.autoOn&&S.auto>0&&Math.sin(t*.3)>.6?'sleep':(Math.sin(t*2)>.7?'tail':'sit'),cs=spr('cat_'+catF),cx=Math.round((w.x+STX+8-camX)*K),cy=Math.round((w.y-STY-camY)*K);
+  {const catF=full()||S.autoOn&&S.auto>0&&Math.sin(t*.3)>.6?'sleep':(Math.sin(t*2)>.7?'tail':'sit'),cs=spr('cat_'+catF),cx=heroS+56,cy=fyS+(DM[2]-DM[1]);
     if(cs){const cw=Math.round(cs.width*kk),ch=Math.round(cs.height*kk);g.drawImage(cs,cx-Math.round(cw/2),cy-ch+kk*2,cw,ch)}
     const gf=spr('gift');if(gf&&giftReady()){const bw=Math.round(gf.width*kk),bh=Math.round(gf.height*kk),bb=(Math.floor(t*3)%2)*2;g.drawImage(gf,cx+Math.round(14*kk),cy-bh-bb+kk*2,bw,bh)}}
   g.setTransform(K,0,0,K,sh*K,0);

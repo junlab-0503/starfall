@@ -100,4 +100,7 @@ while True:
     d=cur.copy();d[1:]|=cur[:-1];d[:-1]|=cur[1:];d[:,1:]|=cur[:,:-1];d[:,:-1]|=cur[:,1:];d&=light
     if (d==cur).all():break
     cur=d
-a[cur,3]=0;save(pixelate(crop(a,(0,0,a.shape[1],a.shape[0])),330),'art/scene/tower.png')
+# 다른 도트(주인공 · 로봇 · 숯 = 그림 1px ≈ 화면 1px)보다 너무 촘촘해 보이지 않게 조금 굵은 도트로(높이 TOWER_H=200, 게임에서 330 높이로 키워 그림), 색도 48가지로
+import os
+TOWER_H=int(os.environ.get('TOWER_H','200'))
+a[cur,3]=0;tw=pixelate(crop(a,(0,0,a.shape[1],a.shape[0])),TOWER_H);Image.fromarray(tw).quantize(48,method=Image.Quantize.FASTOCTREE,dither=Image.Dither.NONE).save('art/scene/tower.png',optimize=True);print('art/scene/tower.png',tw.shape[1],'x',tw.shape[0])

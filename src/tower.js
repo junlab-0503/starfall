@@ -43,9 +43,10 @@ function drawTower(){const key=S.floors+'|'+S.ended+'|'+S.unlocked;if(key===towe
   if(auP>0)[['98,240,196',.2*auP,50,0],['95,207,242',.16*auP,76,1.7],['165,140,255',.18*auP,100,3.1]].forEach(([c,al,y0,ph])=>{for(let x=0;x<W;x+=2){const yy=y0+Math.sin(x*.04+ph)*14+Math.sin(x*.09+ph*2)*5;t.fillStyle=`rgba(${c},${al})`;t.fillRect(x,Math.round(yy),2,26)}});
   t.fillStyle='#1a120c';t.fillRect(0,Hh-14,W,14);
   // 탑: 가운데 아래에 맞춤. 전체는 실루엣, 쌓은 비율만큼 아래부터 원래 색
-  const tw=im.width,th=im.height,x0=Math.round((W-tw)/2),y0=Hh-10-th,f=S.ended?99:Math.min(99,S.floors),cut=Math.round(th*(1-f/99));
-  t.save();t.globalAlpha=.32;t.filter='brightness(0.35) saturate(0.2)';t.drawImage(im,x0,y0);t.restore();
-  if(cut<th)t.drawImage(im,0,cut,tw,th-cut,x0,y0+cut,tw,th-cut);
+  // 탑 그림은 조금 굵은 도트(높이 200)라 화면에선 높이 330으로 키워 그림(도트 그대로)
+  const ts=330/im.height,tw=Math.round(im.width*ts),th=330,x0=Math.round((W-tw)/2),y0=Hh-10-th,f=S.ended?99:Math.min(99,S.floors),cr=Math.round(im.height*(1-f/99)),cut=Math.round(cr*ts);
+  t.save();t.globalAlpha=.32;t.filter='brightness(0.35) saturate(0.2)';t.drawImage(im,x0,y0,tw,th);t.restore();
+  if(cr<im.height)t.drawImage(im,0,cr,im.width,im.height-cr,x0,y0+cut,tw,th-cut);
   // 짓는 중인 높이에 비계 줄, 엔딩엔 꼭대기 빛
   if(f>0&&f<99){t.fillStyle='#ffe9a8';t.fillRect(x0+8,y0+cut,tw-16,2)}
   if(S.ended){const gr=t.createRadialGradient(W/2,y0+14,2,W/2,y0+14,60);gr.addColorStop(0,'rgba(255,233,168,.6)');gr.addColorStop(1,'rgba(255,233,168,0)');t.fillStyle=gr;t.fillRect(0,0,W,y0+80)}}

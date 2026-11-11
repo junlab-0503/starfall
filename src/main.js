@@ -18,7 +18,7 @@ function welcome(r){const ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot
   if(!rows.length)return;
   story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`${r.drillOff?'탑의 입주자들이 일했어요. 드릴 로봇은 꺼 둔 채라 쉬었어요.':'탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.'}${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 로봇 보관함에서 받을 수 있어요.':''}</p>`}])}
 document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');
-drawPortrait($('tutPor'),{name:'이장 할머니',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'},false);
+drawPortrait($('tutPor'),{name:'이장 할머니',art:'granny',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'},false);   // 이장 할머니 초상화(사용자 그림)
 setTab(S.tab);sceneResize();newWall();renderAll();
 addEventListener('resize',()=>{document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');fitScene()});
 // 프롤로그: 편지 → 할아버지의 재련소(유산: 골드 · 낡은 곡괭이 · 느린 채굴 기계) → 일지 → 광맥 입구 → 주인공이 입구로 걸어 들어가는 장면 → B1
@@ -31,16 +31,17 @@ $('titleScr').hidden=false;$('titleScr').style.backgroundImage='';$('titleArt').
 $('titleScr').addEventListener('click',()=>{$('titleScr').hidden=true;sfx('page');if(!S.prologue)startPrologue();renderAll()});
 $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode').value.trim().toLowerCase(),msg=$('devMsg');
   if(v==='jun'){S.pick=999;S.auto=999;S.furnace=5;S.intel=3;S.wh=30;S.unlocked=LAYERS.length;S.prologue=true;
-    ORDER.forEach(id=>{S.inv[id]=9999;if(!S.seen.includes(id))S.seen.push(id)});S.found=RECIPES.map((r,i)=>i);S.journal=LAYERS.map((L,i)=>i);S.gold=9.999e14;S.floors=99;refreshBonus();S.hp=Math.min(S.hp,layerHp(S.layer));
+    ORDER.forEach(id=>{S.inv[id]=9999;if(!S.seen.includes(id))S.seen.push(id)});S.found=RECIPES.map((r,i)=>i);S.journal=LAYERS.map((L,i)=>i);S.gold=9.999e14;refreshBonus();   // 탑은 그대로(층 · 입주자 · 가게 개방은 직접 쌓아서 확인)
+   S.hp=Math.min(S.hp,layerHp(S.layer));
     S.dev=1;S.tutDone=true;
-    log('개발자 코드 적용: 전부 해금 · 레시피 전부 · 모든 광물 9,999개 · 골드 무한 · 탑 99층',true);msg.textContent='적용됨: 골드 무한 · 레시피 전부 알고 있음. 채굴 화면의 [DEV 광맥]으로 황금 광맥을 바로 부를 수 있어요.';renderAll()}
+    log('개발자 코드 적용: 지층 전부 해금 · 레시피 전부 · 모든 광물 9,999개 · 골드 무한 (탑은 그대로)',true);msg.textContent='적용됨: 골드 무한 · 레시피 전부 알고 있음. 탑은 열지 않았어요(직접 쌓아 입주자 · 가게가 열리는지 확인). 채굴 화면의 [DEV 광맥]으로 황금 광맥을 바로 부를 수 있어요.';renderAll()}
   else msg.textContent=v?'알 수 없는 코드예요.':'';$('devCode').value=''});
 let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
   try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');startPrologue();save()};
-let lastT=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;
+let lastT=0,lastDraw=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;
 function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden)clockWatch();
   if(S.tab==='mine'&&!IW)sceneResize();
-  update(dt);rqRun(dt);if(S.tab==='mine'&&IW)draw(now/1000);
+  update(dt);rqRun(dt);if(S.tab==='mine'&&IW&&now-lastDraw>=10&&$('titleScr').hidden&&$('entry').hidden){lastDraw=now;draw(now/1000)}   // 120Hz 화면에서도 그리기는 초당 60번까지, 시작 화면 · 입구 장면이 덮고 있는 동안엔 안 그림(렉 줄이기)
   if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();if(S.tab==='forge')rqBars();renderHeader();tutTick()}
   if(invDirty&&now-invDirtyT>400){invDirty=false;invDirtyT=now;if(S.tab==='forge')renderForge();if(S.tab==='manage'&&S.sub==='store')renderInv()}
   if(S.dev){if(S.gold<9e14)S.gold=9.999e14;if(S.found.length<RECIPES.length)S.found=RECIPES.map((r,i)=>i)}   // 개발자: 골드 무한 · 레시피 전부

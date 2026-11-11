@@ -72,14 +72,37 @@ for n,(x0,y0,x1,y1) in enumerate([(x0,y0,x1,y1) for (y0,y1) in RY for (x0,x1) in
     a=np.asarray(rock.crop((x0+8,y0+8,x1-8,y1-8)));a=seam_wrap(seam_wrap(a,56,1),48,0)
     save(Image.fromarray(a).quantize(64,method=Image.Quantize.MEDIANCUT).convert('RGB'),f'{OUT}r{n}.webp')
 
-# 1-2) 굴 안쪽(판 자리): 판 버전(mid_sheet.webp)의 어두운 계단 안쪽에서 가장 큰 부분 → m<번호>_d.webp
-mid=Image.open(SRC+'mid_sheet.webp').convert('RGB')
-XS=[(21,360),(378,717),(735,1072),(1091,1429)];YS=[(89,294),(342,547),(595,801),(848,1054)]
-for n,b in enumerate([(x0,y0,x1,y1) for (y0,y1) in YS for (x0,x1) in XS][:13],1):
-    art=mid.crop(b);a=np.asarray(art).astype(float);h,w,_=a.shape;sm=box(a@[.3,.59,.11],6);dark=sm<np.percentile(sm,30)
-    sub=sm[h//4:h*3//4,w//2:];j,i=np.unravel_index(sub.argmin(),sub.shape);sd=np.zeros_like(dark);sd[h//4+j,w//2+i]=True;tun=grow(sd,dark)
-    tx,ty,tw,th=maxrect(box(tun,4)>.999)
-    save(art.crop((tx,ty,tx+tw,ty+th)).quantize(32,method=Image.Quantize.MEDIANCUT).convert('RGB'),f'{OUT}m{n}_d.webp')
+# 1-3) 땅 판 흔적(dug_sheet.webp, 13칸): 칸마다 굴(어두운 부분)을 찾아
+#   dg<번호>.webp = 굴(알파 255) + 둘레 6px(알파 200, 바위 가장자리), 나머지 투명
+#   dug_meta.json = 칸마다 [주인공 발 x, 발 y, 숯 발 y, 파는 벽 x](원본 px)
+dug=np.asarray(Image.open(SRC+'dug_sheet.webp').convert('RGB')).astype(float)
+DRY=[(65,298),(313,545),(561,798),(816,1050)];DRX=[(20,359),(378,715),(733,1072),(1087,1426)];meta=[]
+def dilate(m,k):
+    o=m.copy()
+    for _ in range(k):
+        d=o.copy();d[1:]|=o[:-1];d[:-1]|=o[1:];d[:,1:]|=o[:,:-1];d[:,:-1]|=o[:,1:];o=d
+    return o
+for n,(x0,x1,y0,y1) in enumerate([(x0,x1,y0,y1) for (y0,y1) in DRY for (x0,x1) in DRX][:13],1):
+    t=dug[y0:y1,x0:x1];h,w,_=t.shape;L=t@[.3,.59,.11];sm=box(L,5);big=box(L,14)
+    light=t.min(2)>225;sd=np.zeros((h,w),bool);sd[0]=sd[-1]=sd[:,0]=sd[:,-1]=True;inside=~grow(sd,light)
+    dark=(sm<np.percentile(sm[inside],22))&inside
+    reg=big.copy();reg[:,:int(w*.4)]=1e9;reg[:h//4]=1e9;reg[h*3//4:]=1e9;reg[~inside]=1e9;j,i=np.unravel_index(reg.argmin(),reg.shape)
+    s2=np.zeros((h,w),bool);s2[j,i]=True;cave=grow(s2,dark)
+    # 굴 가장자리를 3px 단위로 다듬지 않고 그대로(사용자 그림의 결) · 바탕 흰색 테두리는 빼고
+    rim=dilate(cave,6)&inside
+    ys,xs=np.where(cave);cl=xs.min()
+    fl={x:ys[xs==x].max() for x in range(w) if (xs==x).any()}
+    top={x:ys[xs==x].min() for x in range(w) if (xs==x).any()}
+    # 주인공 자리: 굴 왼쪽 끝에서 20~70px 사이 가장 높은(천장 ~ 바닥) 곳
+    hx=max(range(cl+20,cl+70),key=lambda x:(fl.get(x,0)-top.get(x,0)));fy=fl[hx]
+    cx=hx+56;cy=fl.get(cx,fy)
+    band=(ys>=fy-50)&(ys<=fy);wx=int(xs[band].min())   # 파는 벽: 주인공 높이에서 굴 왼쪽 끝
+    meta.append([int(hx),int(fy),int(cy),wx])
+    # 한 장에: 알파 255 = 굴 안, 200 = 둘레(바위 가장자리), 0 = 투명 → 게임에서 둘로 나눠 씀
+    rgba=np.zeros((h,w,4),np.uint8);rgba[...,:3]=t.astype(np.uint8);rgba[...,3]=np.where(cave,255,np.where(rim,200,0))
+    Image.fromarray(rgba).save(f'{OUT}dg{n}.webp',lossless=True,quality=100,method=6)
+    print('dug',n,'hero',hx,fy,'cat y',cy,'cave h',fy-top[hx])
+import json;json.dump(meta,open(OUT+'dug_meta.json','w'))
 
 # 2) 황금 광맥: 안 판 금맥 바위(gold_rock.webp) → 다른 지층 바위와 비슷한 크기로 줄이고 이음매 없이 → gold.webp
 gr=np.asarray(Image.open(SRC+'gold_rock.webp').convert('RGBA'));ys,xs=np.where(gr[...,3]>200)

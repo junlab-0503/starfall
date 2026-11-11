@@ -310,3 +310,12 @@ body{margin:0}
 /* 보상 카드 줄: 아이콘과 글자를 가운데 줄에 맞춤 */
 .rcard>span{display:flex;align-items:center;gap:4px;min-height:24px}.rcard>span:nth-child(even){justify-content:flex-end}
 .dev-b{color:#ffd23f;border-color:#7a5a10}
+/* 스마트폰 세로 화면 비율: 넓은 화면에서도 가운데에 폰 세로 비율(9:16, 최대 480px) 틀로 */
+:root{--appw:min(100vw,480px,calc(100vh*9/16))}
+@supports (height:100dvh){:root{--appw:min(100vw,480px,calc(100dvh*9/16))}}
+html{background:#0d0907}
+body{max-width:var(--appw);margin:0 auto;box-shadow:0 0 0 1px #2a1a0e,0 0 40px rgba(0,0,0,.6)}
+.title,.entry{left:calc(50% - var(--appw)/2);right:auto;width:var(--appw)}
+.tut{width:min(calc(var(--appw) - 20px),480px)}
+.story{left:calc(50% - var(--appw)/2);right:auto;width:var(--appw)}
+

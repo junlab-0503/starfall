@@ -1,5 +1,5 @@
 /* ═════════ 밸런스용 자동 플레이 봇 (게임에는 안 들어감) ═════════ */
-function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0;
+function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,veinN=0;
   Object.assign(BAL,JSON.parse(JSON.stringify(bal)));applyBal();
   let rs=snap?snap.rs:seed>>>0;Math.random=()=>{rs=(rs+0x6D2B79F5)>>>0;let t=rs;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};
   window.story=()=>{};window.toast=()=>{};window.renderAll=()=>{};window.renderTab=()=>{};window.renderLog=()=>{};window.renderMineHud=()=>{};window.renderLayers=()=>{};window.renderForge=()=>{};window.renderBook=()=>{};window.renderHeader=()=>{};
@@ -57,8 +57,10 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0;
     // 탑
     // 확신이 큰 소문이 돌고 있으면 탑 짓기를 잠깐 미루고 돈을 굴린다
     let b=0;const hot=opt.pass&&S.rum.some(r=>{const p=pTrue(r),[up,dn]=SZ[r.size];return r.good&&r.t<r.dur*.85&&p*(1+up)+(1-p)*(1-dn*.5)>1.15});
+    // 지층을 다 연 뒤엔 더 모을 곳이 없으니 남는 골드를 모두 탑에 (opt.greedy===false면 예전처럼 번 돈의 45%만)
+    if(opt.greedy!==false&&S.unlocked>=LAYERS.length)tf=S.gold;
     while(!hot&&b<300&&!towerBlocked()){const c=floorCost(S.floors+1);if(!canBuild(c)||tf<c.gold)break;tf-=c.gold;buildFloor(true);b++;SECTIONS.forEach((s,i)=>{if(S.floors>=s.to&&sectT[i+1]==null)sectT[i+1]=t})}
-    if(!towerBlocked()){const fg=floorCost(S.floors+1).gold;if(tf>fg*4)tf=fg*4}
+    if(!towerBlocked()&&!(opt.greedy!==false&&S.unlocked>=LAYERS.length)){const fg=floorCost(S.floors+1).gold;if(tf>fg*4)tf=fg*4}
     // 엔딩
     if(S.floors>=99&&!endT){if(cnt('philo')<1)craft('philo',1);if(cnt('philo')>=1&&cnt('starshard')>=10)endT=t}
   }
@@ -66,10 +68,14 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0;
   let hit=hitF();
   while(t<maxSec&&!hit){
     {const rate=(tapPower()*TAPS*(1+2*critP())+autoDps())/layerHp(S.layer),k=S.layer+1,o=RS[k]||(RS[k]={n:0,r:0,f:0});o.n++;o.r+=rate;o.f+=cap()/Math.max(rate,1e-6)/60}
-    if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true)
+    // 황금 광맥(게임과 같은 규칙, opt.vein===false면 끔): 채굴 화면에서 8~14분마다 45초. 그동안은 광석 대신 골드만
+    // 탭 1번 = pot/40, 드릴 0.25초마다 pot/400, 한 번에 pot×1.5까지 (pot = 지금 채굴 수입 4분치)
+    if(S.vein){const v=S.vein,add=Math.round(Math.min(v.pot*1.5-v.got,v.pot*(TAPS/40+(S.auto>0&&S.autoOn?4/400:0))));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
+    else{if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true);
+      if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:VEIN_SEC,pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=480+Math.random()*360;veinN++}}
     tickMarket(1,false);S.rentAcc+=rentPerSec();
     t++;if(t%10===0){decide();hit=hitF()}
     if(t%3600===0)log.push({h:t/3600,gold:Math.round(S.gold),L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh});
   }
-  return{RS,hit,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
+  return{veinG,veinN,RS,hit,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
 }
