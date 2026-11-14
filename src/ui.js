@@ -18,7 +18,7 @@ function renderMineHud(){
   $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';$('autoSub').textContent=S.autoOn?(f?'창고 가득 · 보관함에 모아요':'자리 비워도 캐요'):'자리 비워도 쉬어요';
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
   const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/VEIN_SEC,0,1)*100)+'%';
-  $('devVein').hidden=!S.dev;
+  $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
@@ -46,6 +46,12 @@ function collectBox(){let moved=0,left=0;for(const id of Object.keys(S.box||{}))
 $('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;sfx('click');toast(S.autoOn?'드릴 로봇을 켰어요. 켜 두면 자리를 비운 동안에도 캐요.':'드릴 로봇을 껐어요. 자리를 비운 동안에도 쉬어요.');renderMineHud()};
 // 개발자: 황금 광맥 바로 부르기
 $('veinPop').onclick=()=>setTab('mine');
+/* 리뷰 부탁: B4를 열 때(B1~B3을 다 캤을 때) 한 번, [나중에]를 누르면 B7을 열 때 한 번 더. 출시 땐 [리뷰 남기기]에 스토어 리뷰 창을 연결 */
+function askReview(force){if(!force&&(S.review==='done'||S.review==='no'))return;
+  story([{gold:1,review:1,btn:'나중에',k:'숯의 부탁',t:'별빛광맥이 마음에 드나요?',b:'여기까지 와 줘서 고마워요. 재미있게 하고 있다면 별점과 리뷰를 남겨 주세요.\n짧은 한마디도 마을을 다시 일으키는 데 큰 힘이 돼요.',
+    extra:'<div class="row-btns" style="justify-content:center;margin:2px 0 4px"><button class="px-btn lamp" id="revGo" type="button">★ 리뷰 남기기</button></div>',done:()=>{if(!force)S.review=S.review==='later'?'no':'later'}}])}
+$('storyX').addEventListener('click',e=>{if(!e.target.closest('#revGo'))return;S.review='done';save();nextStory();toast('고마워요! 출시 후에는 여기서 스토어 리뷰 화면이 열려요.')});
+$('devReview').onclick=()=>{if(S.dev)askReview(true)};
 $('devVein').onclick=()=>{if(!S.dev)return;if(S.vein)endVein();startVein()};
 // 확률 보기: 지금 지층에서 광석이 나올 확률
 $('oddsBtn').onclick=()=>{const L=LAYERS[S.layer],dw=dropW(S.layer),tot=dw.reduce((s,d)=>s+d[1],0),rows=dw.slice().sort((a,b)=>(ITEMS[b[0]].L===S.layer+1)-(ITEMS[a[0]].L===S.layer+1)||b[1]-a[1]).map(([id,w])=>`<span>${ico(id,'sm')} ${S.seen.includes(id)?ITEMS[id].n:'???'}${ITEMS[id].L!==S.layer+1?` <span class="dim">B${ITEMS[id].L}</span>`:''}</span><span>${pctTxt(w/tot)}</span>`).join('');
@@ -55,7 +61,7 @@ $('layerChips').addEventListener('click',e=>{const c=e.target.closest('[data-chi
 /* 갱도 */
 const reqMet=L=>!L.req||(S.gold>=L.req.g&&Object.entries(L.req.items).every(([id,n])=>cnt(id)>=n));
 function unlockLayer(i){const L=LAYERS[i];if(!reqMet(L)||i!==S.unlocked)return;S.gold-=L.req.g;Object.entries(L.req.items).forEach(([id,n])=>add(id,-n));S.unlocked=i+1;setLayer(i);
-  log(`${L.n} 개척! (−${fmt(L.d)}m)`,true);revealJournal(i);setTab('mine');renderAll()}
+  log(`${L.n} 개척! (−${fmt(L.d)}m)`,true);revealJournal(i);if(i===3||(i===6&&S.review==='later'))askReview();setTab('mine');renderAll()}
 function renderLayers(){
   setHTML($('layers'),LAYERS.map((L,i)=>{const d=`<span class="d">B${i+1}<br>${fmt(L.d)}m</span>`;
     if(i<S.unlocked)return`<button class="layer${i===S.layer?' on':''}" data-go="${i}" type="button">${d}<span><span class="nm">${L.n}</span><br><span class="dim">${RAW.filter(id=>ITEMS[id].L===i+1).map(id=>S.seen.includes(id)?ITEMS[id].n:'???').join(' · ')}</span></span><span class="dim">${i===S.layer?'채굴 중':'가기'}</span></button>`;
@@ -160,14 +166,6 @@ function renderPkg(){const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAd
 function pkgRegion(){const L=[].concat(navigator.languages||[],navigator.language||[]);for(const l of L){const m=String(l).match(/^([a-z]{2,3})(?:-([A-Za-z]{4}))?(?:-([A-Za-z]{2}))?/i);if(!m)continue;const lg=m[1].toLowerCase(),sc=(m[2]||'').toLowerCase(),rg=(m[3]||'').toUpperCase();
   if(rg)return rg==='KR'||rg==='TW'?rg:'US';if(lg==='ko')return'KR';if(lg==='zh'&&sc==='hant')return'TW'}return'US'}
 const pkgPrice=()=>({KR:'5,900원',TW:'NT$149'})[pkgRegion()]||'US$4.99';
-/* 버그 제보: 메일 앱으로(받는 사람 · 제목 · 본문에 기기 정보). 받는 주소 BUG_MAIL은 빌드 때 bug_mail.txt에서 넣음 */
-const GAME_VER='v19';
-function bugMail(){const t=$('bugText').value.trim(),info=[`버전 ${GAME_VER}`,`언어 ${typeof LANG!=='undefined'?LANG:'ko'}`,`기기 ${navigator.userAgent}`,`화면 ${innerWidth}×${innerHeight}`,`진행: B${S.unlocked} · 탑 ${S.floors}층 · 곡괭이 ${S.pick} · 드릴 ${S.auto}`].join('\n');
-  return'mailto:'+BUG_MAIL+'?subject='+encodeURIComponent('[별빛광맥] 버그 제보')+'&body='+encodeURIComponent((t||'(내용)')+'\n\n— — —\n'+info)}
-$('bugTo').textContent=BUG_MAIL;
-$('bugText').addEventListener('input',()=>{$('bugSend').href=bugMail()});
-$('bugSend').addEventListener('click',e=>{const t=$('bugText').value.trim();if(!BUG_MAIL){e.preventDefault();toast('받는 메일 주소가 아직 설정되지 않았어요.');return}if(!t){e.preventDefault();toast('무엇이 이상했는지 먼저 적어 주세요.');return}e.currentTarget.href=bugMail();setTimeout(()=>{toast('메일 앱에서 [보내기]를 누르면 제보가 전달돼요. 고마워요!')},300)});
-
 /* 수량 입력 판매 */
 let QTY=null,QM='sell';
 const qtyMax=()=>QM==='sell'?cnt(QTY):Math.max(0,Math.min(Math.floor(S.gold/ask(QTY)),space()));

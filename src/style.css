@@ -346,8 +346,6 @@ html[lang="zh-TW"]{--f14:"StarTC","Galmuri14",sans-serif;--f11:"StarTC","Galmuri
 @supports (height:100dvh){.story-card{max-height:calc(100dvh - 32px)}}
 html[lang="en"] .shopc .plate{font-family:var(--f9);font-size:10px}
 
-/* v19: 버그 제보 · 저작권 · 글꼴 표기 */
-.bug-t{display:block;width:100%;box-sizing:border-box;margin:0 0 8px;padding:6px 8px;resize:vertical;background:#1a120c;color:var(--text);border:3px solid var(--b-out);font:13px/1.4 var(--f11)}
-a.px-btn{text-decoration:none;display:inline-flex;align-items:center}
+/* v19: 저작권 · 글꼴 표기 */
 .credit{margin:6px 0 4px;text-align:center;font-size:10px;font-family:var(--f9);color:var(--dim);line-height:1.5}.credit p{margin:0}
 .t-copy{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);margin:0;text-align:center;font-size:10px;font-family:var(--f9);color:#fff3d8;text-shadow:1px 1px 0 #1a0f08;opacity:.85;pointer-events:none}

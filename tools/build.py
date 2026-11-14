@@ -19,8 +19,6 @@ HM=os.path.join(R,'art','hero','hero_meta.json')
 if os.path.exists(HM):js='const HERO_META='+open(HM,encoding='utf-8').read().strip()+';\n'+js
 DM=os.path.join(R,'art','strata','dug_meta.json')
 if os.path.exists(DM):js='const DUG_META='+open(DM,encoding='utf-8').read().strip()+';\n'+js
-# 버그 제보 받는 주소: 저장소 맨 위 bug_mail.txt(한 줄)
-BM=os.path.join(R,'bug_mail.txt');js='const BUG_MAIL='+repr(open(BM,encoding='utf-8').read().strip() if os.path.exists(BM) else '')+';\n'+js
 js='const ART={'+','.join(f"{k}:'data:image/{t};base64,{v}'" for k,(t,v) in art.items())+'};\n'+js
 css=open(os.path.join(SRC,'style.css'),encoding='utf-8').read();body=open(os.path.join(SRC,'body.html'),encoding='utf-8').read()
 allc=set(c for c in js+css+body if ord(c)>127)|set(chr(i) for i in range(32,127))|set('…·→←▲▼★')
