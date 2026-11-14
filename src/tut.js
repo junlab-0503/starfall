@@ -1,4 +1,4 @@
-/* ═════════ 튜토리얼 (이장 할머니): 캐기 → 광석 발견 → 재련 → 탑 1층(무쇠) → 곡괭이 강화 → 그 밖의 것 → 최종 목표 ═════════ */
+/* ═════════ 튜토리얼 (이장 할머니): 캐기 → 광석 발견 → 재련 → 탑 1층(무쇠) → 곡괭이 강화 → 그 밖의 것 → 할머니의 바람 ═════════ */
 // t·sel은 함수일 수도 있다(상황에 따라 바뀜). next:true → 저절로 넘어가지 않고 [다음]을 눌러야 넘어가는 설명 단계
 const slotsFull=()=>!!(S.slots[0]&&S.slots[1]);
 const TUT=[
@@ -14,7 +14,7 @@ const TUT=[
   {t:'광석은 [관리] 창고에서 팔거나 [장터]에서 정해진 값에 사고팔 수 있단다. 골드가 모자라면 팔아서 마련하렴.',sel:'.nb[data-tab="manage"]',next:true},
   {t:'채굴 화면 위 칸에는 다음 지층을 여는 데 필요한 것이 나온단다. 다 모으면 그 칸을 눌러 더 깊이 내려가렴.',sel:'.nb[data-tab="mine"]',next:true},
   {t:'탑을 높이 쌓을수록 떠났던 사람들이 하나둘 돌아와 가게를 연단다. 누가 오면 그 사람이 직접 알려 줄 게야.',sel:'.nb[data-tab="tower"]',next:true},
-  {t:'할아버지의 일지를 따라 별의 심장까지 내려가고, 탑 99층 꼭대기에서 별을 하늘로 돌려보내는 게 네 일이란다. 할미는 늘 여기 있으마.',sel:null,last:true}
+  {t:'이제 할아버지의 일지를 따라 천천히 내려가 보렴. 할미는 그저… 활기찼던 그 시절 마을을 다시 한번 보고 싶구나. 늘 여기 있으마.',sel:null,last:true}
 ];
 const tv=v=>typeof v==='function'?v():v;
 const tutOn=()=>S.prologue&&!S.tutDone&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;
@@ -45,8 +45,10 @@ function entryScene(){const el=$('entry'),cv=$('entryCv'),x=cv.getContext('2d'),
     let hx,fade=1,shrink=1;if(t<tWalk)hx=ENTRY.start+ENTRY.speed*t;else{const k=Math.min(1,(t-tWalk)/tIn);hx=ENTRY.door+(ENTRY.inside-ENTRY.door)*k;fade=1-k;shrink=1-.18*k}
     const camX=clamp(hx*s-W*.42,0,ENTRY.W*s-W);
     x.imageSmoothingEnabled=true;x.fillStyle='#7b9ffa';x.fillRect(0,0,W,top+2);x.drawImage(bg,-camX,top,ENTRY.W*s,ENTRY.H*s);
-    // 그림 아래: 흙 속 바위 줄(원본 y 548~612)을 이어 붙여 화면 끝까지, 아래로 갈수록 어둡게
-    const sy=548,sh=64,dh=sh*s;let yy=top+(sy+sh)*s,dk=.3;while(yy<H){x.drawImage(bg,0,sy,ENTRY.W,sh,-camX,yy,ENTRY.W*s,dh);x.fillStyle=`rgba(20,10,22,${dk})`;x.fillRect(0,yy,W,dh+1);yy+=dh;dk=Math.min(.82,dk+.18)}
+    // 그림 아래: 땅속 바위 무늬(art/scene/under.webp, 위아래 · 좌우 이음매 없음)를 줄마다 옆으로 어긋나게 깔고, 아래로 갈수록 매끈하게 어두워짐
+    const un=ENTRY.un||(ENTRY.un=Object.assign(new Image(),{src:ART.scene_under}));
+    if(un.complete&&un.naturalWidth){const uw=un.width*s,uh=un.height*s;let yy=top+612*s,row=0;while(yy<H){let xx=-(((row*.37*uw+camX)%uw+uw)%uw);for(;xx<W;xx+=uw)x.drawImage(un,Math.floor(xx),Math.floor(yy),Math.ceil(uw)+1,Math.ceil(uh)+1);yy+=uh;row++}}
+    {const y0=top+575*s,gd=x.createLinearGradient(0,y0,0,H);gd.addColorStop(0,'rgba(16,9,18,0)');gd.addColorStop(.5,'rgba(16,9,18,.6)');gd.addColorStop(1,'rgba(16,9,18,.95)');x.fillStyle=gd;x.fillRect(0,y0,W,H-y0)}
     // 등불이 은은하게 흔들림
     const lx=ENTRY.lamp[0]*s-camX,ly=top+ENTRY.lamp[1]*s,fl=.7+.3*Math.sin(t*9)*Math.sin(t*3.7),gr=x.createRadialGradient(lx,ly,2,lx,ly,90*s);gr.addColorStop(0,`rgba(255,200,110,${(.35*fl).toFixed(2)})`);gr.addColorStop(1,'rgba(255,200,110,0)');x.fillStyle=gr;x.fillRect(lx-100*s,ly-100*s,200*s,200*s);
     // 주인공: 걷는 도트(왼쪽을 보는 그림이라 좌우 뒤집음), 화면 픽셀에 맞춘 정수 배율

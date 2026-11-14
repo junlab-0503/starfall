@@ -19,7 +19,7 @@
     <div class="vein-bn" id="veinBn" hidden>황금 광맥! <i class="vb"><i id="veinBar"></i></i></div>
     <button class="sc-sw" id="autoBtn" type="button" role="switch" aria-label="자동 드릴" hidden><span class="knob"></span><span class="lb"><b id="autoSt">드릴</b><small id="autoSub"></small></span></button>
   </div>
-  <div class="mine-foot" id="mineFoot"><button class="ic-btn" id="giftBtn" type="button" aria-label="숯의 선물 상자"><img data-ic="gift" alt=""><span class="ic-tag" id="giftTag"></span></button><button class="ic-btn" id="boostBtn" type="button" aria-label="10분 동안 채굴 2배"><img data-ic="ff" alt=""><span class="ic-tag" id="boostTag"></span></button><button class="ic-btn box-btn" id="boxBtn" type="button" aria-label="로봇 보관함 받기" hidden><img data-ic="box" alt=""><b id="boxN"></b><span class="ic-tag">보관함</span></button><span class="grow"></span><button class="px-btn sm dev-b" id="devVein" type="button" hidden>DEV 광맥</button><button class="px-btn sm odds" id="oddsBtn" type="button">확률 보기</button></div>
+  <div class="mine-foot" id="mineFoot"><button class="ic-btn" id="giftBtn" type="button" aria-label="숯의 선물 상자"><img data-ic="gift" alt=""><span class="ic-tag" id="giftTag"></span></button><button class="ic-btn" id="boostBtn" type="button" aria-label="10분 동안 채굴 2배"><img data-ic="ff" alt=""><span class="ic-tag" id="boostTag"></span></button><button class="ic-btn box-btn" id="boxBtn" type="button" aria-label="채굴 보관함 열기" hidden><img data-ic="box" alt=""><b id="boxN"></b><span class="ic-tag">채굴 보관함</span></button><span class="grow"></span><button class="px-btn sm dev-b" id="devVein" type="button" hidden>DEV 광맥</button><button class="px-btn sm odds" id="oddsBtn" type="button">확률 보기</button></div>
 </section>
 
 <section id="tab-equip" class="view" hidden>
@@ -51,7 +51,7 @@
   <div id="mkPass">
     <div class="panel"><h2>소문 게시판 <small id="rumInfo"></small></h2><div id="rumors"></div></div>
     <div class="panel"><h2>지층 출입권 <small id="passInfo"></small></h2><div id="passes"></div>
-      <p class="dim small" style="margin:8px 0 0">출입권을 가지고 있으면 그 지층 광석이 조금씩 로봇 보관함에 들어와요. 소문이 사실로 밝혀지면 값이 크게 오르고, 헛소문이면 내려요.</p></div>
+      <p class="dim small" style="margin:8px 0 0">출입권을 가지고 있으면 그 지층 광석이 조금씩 채굴 보관함에 들어와요. 소문이 사실로 밝혀지면 값이 크게 오르고, 헛소문이면 내려요.</p></div>
   </div>
   <div id="mkOre" hidden><div class="panel"><h2>광물 거래 <small>파는 값 / 사는 값</small></h2><div id="oreList"></div></div></div>
 </section>
@@ -67,7 +67,7 @@
 
 <section id="tab-manage" class="view" hidden>
   <div class="seg" id="seg">
-    <button data-sub="store" type="button">창고</button><button data-sub="shaft" type="button">갱도<i class="dot" id="shaftDot" hidden></i></button><button data-sub="book" type="button">도감</button><button data-sub="set" type="button">설정</button>
+    <button data-sub="store" type="button">창고</button><button data-sub="shaft" type="button">갱도<i class="dot" id="shaftDot" hidden></i></button><button data-sub="book" type="button">도감</button><button data-sub="set" id="setBtn" type="button">설정</button>
   </div>
   <div id="sub-store" class="view">
     <div class="panel"><h2>창고 <small id="invCap"></small></h2><div class="inv" id="inv"></div>
@@ -82,7 +82,7 @@
   </div>
   <div id="sub-set" class="view" hidden>
     <div class="panel"><h2>설정</h2>
-      <form class="dev" id="devForm"><label for="devCode">개발자 코드</label><input id="devCode" autocomplete="off" placeholder="코드 입력"><button class="px-btn" type="submit">적용</button></form>
+      <form class="dev" id="devForm" hidden><label for="devCode">개발자 코드</label><input id="devCode" autocomplete="off" placeholder="코드 입력"><button class="px-btn" type="submit">적용</button></form>
       <p class="dim" id="devMsg"></p>
       <div class="snd"><label for="volSfx">효과음</label><input id="volSfx" type="range" min="0" max="100" step="5"><label for="volBgm">배경음악</label><input id="volBgm" type="range" min="0" max="100" step="5"></div>
       <div class="row-btns"><button class="px-btn" id="tutAgain" type="button">튜토리얼 다시 보기</button></div>
@@ -91,7 +91,6 @@
     <div class="panel"><h2>광고 제거 패키지 <small id="pkgState"></small></h2>
       <ul class="pkg"><li>광고 없이 숯의 선물 상자와 2배 부스트를 바로 받아요</li><li>자리를 비운 동안 쌓이는 보상 한도 2배</li><li>숯이 고마워해요</li></ul>
       <div class="row-btns"><span class="grow gold-t">5,900원</span><button class="px-btn lamp" id="buyPkg" type="button">구매하기</button></div>
-      <p class="dim small">글꼴: 갈무리 (Galmuri, SIL Open Font License 1.1)</p>
     </div>
   </div>
 </section>
@@ -105,6 +104,7 @@
   <button class="nb" data-tab="tower" type="button"><i class="ni ni-tower"></i><span>탑</span><i class="dot" id="towerDot" hidden></i></button>
   <button class="nb" data-tab="manage" type="button"><i class="ni ni-manage"></i><span>관리</span><i class="dot" id="manageDot" hidden></i></button>
 </nav>
+<button class="vein-pop" id="veinPop" type="button" hidden><span>황금 광맥이 발견됐어요!</span> <b id="veinPopT"></b><i>캐러 가기 ▶</i></button>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="48" height="48"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
 </div>

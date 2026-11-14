@@ -16,7 +16,7 @@ function welcome(r){const ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot
   const mk=Object.entries(r.made||{});mk.slice(0,4).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} 자동 재련 ${ITEMS[id].n}</span><span>×${big(n)}</span>`));
   if(r.drillOff)rows.push(`<span class="dim">드릴 로봇</span><span class="dim">스위치가 꺼져 있어 쉬었어요</span>`);
   if(!rows.length)return;
-  story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`${r.drillOff?'탑의 입주자들이 일했어요. 드릴 로봇은 꺼 둔 채라 쉬었어요.':'탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.'}${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 로봇 보관함에서 받을 수 있어요.':''}</p>`}])}
+  story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`${r.drillOff?'탑의 입주자들이 일했어요. 드릴 로봇은 꺼 둔 채라 쉬었어요.':'탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.'}${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 채굴 보관함에서 받을 수 있어요.':''}</p>`}])}
 document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');
 drawPortrait($('tutPor'),{name:'이장 할머니',art:'granny',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'},false);   // 이장 할머니 초상화(사용자 그림)
 setTab(S.tab);sceneResize();newWall();renderAll();
@@ -36,6 +36,10 @@ $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode
     S.dev=1;S.tutDone=true;
     log('개발자 코드 적용: 지층 전부 해금 · 레시피 전부 · 모든 광물 9,999개 · 골드 무한 (탑은 그대로)',true);msg.textContent='적용됨: 골드 무한 · 레시피 전부 알고 있음. 탑은 열지 않았어요(직접 쌓아 입주자 · 가게가 열리는지 확인). 채굴 화면의 [DEV 광맥]으로 황금 광맥을 바로 부를 수 있어요.';renderAll()}
   else msg.textContent=v?'알 수 없는 코드예요.':'';$('devCode').value=''});
+// 개발자 코드 칸은 숨겨 둠: 관리 탭의 [설정] 버튼을 10초 동안 누르고 있으면 나타남
+{let devT=0;const off=()=>{clearTimeout(devT);devT=0},b=$('setBtn');
+  b.addEventListener('pointerdown',()=>{off();devT=setTimeout(()=>{$('devForm').hidden=false;S.sub='set';renderManage();toast('개발자 코드 칸이 열렸어요.')},10000)});
+  ['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,off,true));b.addEventListener('contextmenu',e=>e.preventDefault())}   // 손을 떼면(어디서든) 취소
 let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
   try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');startPrologue();save()};
 let lastT=0,lastDraw=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;

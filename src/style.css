@@ -319,3 +319,20 @@ body{max-width:var(--appw);margin:0 auto;box-shadow:0 0 0 1px #2a1a0e,0 0 40px r
 .tut{width:min(calc(var(--appw) - 20px),480px)}
 .story{left:calc(50% - var(--appw)/2);right:auto;width:var(--appw)}
 
+
+/* v17: 채굴 보관함 창 · 황금 광맥 알림 띠 */
+.boxl{display:flex;flex-direction:column;gap:4px;max-height:44vh;overflow-y:auto;text-align:left}
+.boxr{display:grid;grid-template-columns:24px 1fr auto auto auto;align-items:center;gap:6px;padding:3px 4px;background:#1a120c;border:2px solid var(--b-lo)}
+.boxr .bn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vein-pop{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 58px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:6px;max-width:calc(var(--appw) - 24px);padding:6px 10px;background:#3a2408;border:3px solid #ffd23f;color:#ffe9a8;font-size:13px;font-family:var(--f11);white-space:nowrap;clip-path:var(--notch);animation:vbn .6s steps(2) infinite}
+.vein-pop b{color:#fff;font-weight:400}.vein-pop i{font-style:normal;color:#1a0f08;background:#ffd23f;padding:1px 6px}
+@media (prefers-reduced-motion:reduce){.vein-pop{animation:none}}
+
+/* v17: 광석 발견 후광(도트 2장 번갈아) · 장비 탭 액자는 그림 크기와 상관없이 정사각 · 길게 누르기 */
+.halo>.hr{background:none;background-size:240px 120px;background-repeat:no-repeat;border-radius:0;image-rendering:pixelated;animation:halo2 .9s steps(1) infinite}
+@keyframes halo2{50%{background-position:-120px 0}}
+@media (prefers-reduced-motion:reduce){.halo>.hr{animation:none}}
+.shopc .fr{position:relative;overflow:hidden}
+.shopc .fr img{position:absolute;left:2px;top:2px;width:calc(100% - 4px);height:calc(100% - 4px);object-fit:cover;object-position:50% 0}
+#setBtn{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.shopc.lock .fr img{background:none}

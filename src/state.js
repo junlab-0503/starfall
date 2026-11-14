@@ -71,11 +71,11 @@ function log(msg,toastIt){S.log.unshift(msg);S.log=S.log.slice(0,60);if(toastIt)
 function toast(msg){const box=$('toasts');if(!box)return;const t=document.createElement('div');t.className='toast';t.textContent=msg;box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),450)},2600)}
 
 /* 보너스: 탑 구간 완공(입주자) + 층수 */
-// 입주 효과는 그 구간 입주자의 것: 0 무쇠(재련 성공 · 금속값) 1 셈 2 핀 3 바우(탭) 4 루카 5 미르(대성공 · 연료값) 6 서린 7 하멜 8 도담 9 강철 10 엘라(사는 값 · 보석값) 11 노을 12 아르덴
+// 입주 효과는 그 구간 입주자의 것: 0 무쇠(재련 성공 · 금속값) 1 셈 2 핀 3 바우(탭) 4 루카 5 미르(대성공 · 연료값) 6 서린 7 하멜 8 도담 9 강철 10 엘라(사는 값 · 보석값) 11 노을(황금 광맥 간격) 12 아르덴
 function bonus(){const done=SECTIONS.filter(s=>S.floors>=s.to).length,has=i=>done>i,all=has(12)?1.1:1,sky=Math.max(0,S.floors-99);
   return{done,tap:(1+(has(3)?.1:0))*all*(1+.02*sky),wh:1+(has(1)?.5:0),auto:(1+(has(2)?.25:0)+(has(9)?.5:0))*all,success:has(0)?.05:0,
     sell:(1+(has(4)?.05:0)+(has(7)?.1:0))*(1+.01*Math.min(S.floors,99))*all*(1+.01*ul('haggle')),spread:has(10)?.7:1,rare:has(6)?1.2:1,rockHp:has(8)?.85:1,great:has(5)?.05:0,
-    perfectIntel:has(11),dem:{metal:has(0)?1.1:1,gem:has(10)?1.1:1,fuel:has(5)?1.1:1,arcane:has(12)?1.1:1,build:1}}}
+    veinFast:has(11)?.7:1,dem:{metal:has(0)?1.1:1,gem:has(10)?1.1:1,fuel:has(5)?1.1:1,arcane:has(12)?1.1:1,build:1}}}
 function refreshBonus(){BON=bonus()}
 
 /* 장비 */
@@ -100,7 +100,7 @@ const giftReady=()=>giftLeft()>0;
 const capOf=w=>Math.floor(300*Math.pow(1.5,w)*BON.wh);
 const cap=()=>capOf(S.wh);
 const boxUsed=()=>Object.values(S.box||{}).reduce((a,b)=>a+b,0);
-// 로봇 보관함: 꺼 둔 동안 캔 광석만 담는다 (한도는 오프라인 시간으로 정해짐)
+// 채굴 보관함: 꺼 둔 동안 캔 광석만 담는다 (한도는 오프라인 시간으로 정해짐)
 // 자리 비움 보상: 8시간에 걸쳐 천천히 차서 '켜 두고 1시간 플레이한 만큼'이 되면 멈춘다 (패키지는 2시간치). 밤샘 근무는 차는 속도만 올린다
 const OFF_FILL=8,offCapH=()=>S.noAds?2:1,offEquiv=sec=>Math.min(sec*offEff()/OFF_FILL,offCapH()*3600);
 const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto)/layerHp(S.layer);

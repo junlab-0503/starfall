@@ -29,11 +29,23 @@ function renderNextL(){const el=$('nextL'),i=S.unlocked;if(i>=LAYERS.length){set
   el.classList.toggle('ready',ok)}
 $('nextL').onclick=()=>{const i=S.unlocked;if(i<LAYERS.length&&reqMet(LAYERS[i]))unlockLayer(i);else{S.sub='shaft';setTab('manage')}};
 ['autoBtn','boxBtn'].forEach(k=>$(k).addEventListener('pointerdown',e=>e.stopPropagation()));
-$('boxBtn').onclick=e=>{e.stopPropagation();collectBox()};
+$('boxBtn').onclick=e=>{e.stopPropagation();openBox()};
+/* 채굴 보관함 창: 종류별로 골라 [저장](창고로) 또는 [팔기](지금 파는 값으로 골드). 맨 아래 [모두 저장] */
+function boxHtml(){const ids=ORDER.filter(id=>(S.box||{})[id]>0),sp=space();
+  return(ids.length?`<div class="boxl">${ids.map(id=>`<div class="boxr">${ico(id,'sm')}<span class="bn">${ITEMS[id].n}</span><span class="dim">×${big(S.box[id])}</span><button class="px-btn sm" data-boxget="${id}" type="button" ${sp>0?'':'disabled'}>저장</button><button class="px-btn sm" data-boxsell="${id}" type="button">팔기</button></div>`).join('')}</div>`:'<p class="dim" style="margin:0 0 8px">보관함이 비어 있어요. 드릴 로봇과 출입권이 모은 광석이 여기에 쌓여요.</p>')
+    +`<div class="row-btns" style="margin-top:8px"><span class="dim grow small" style="text-align:left">창고 빈칸 ${big(sp)}칸</span><button class="px-btn lamp" data-boxget="all" type="button" ${ids.length&&sp>0?'':'disabled'}>모두 저장</button></div>`}
+const boxCard=()=>({box:1,btn:'닫기',k:'채굴 보관함',t:`${big(boxUsed())} / ${big(boxCap())}칸`,b:'종류별로 골라서 창고에 저장하거나 바로 팔 수 있어요.',extra:boxHtml()});
+function openBox(){story([boxCard()])}
+function boxRefresh(){if(STC&&STC.box&&!$('story').hidden){$('storyT').textContent=`${big(boxUsed())} / ${big(boxCap())}칸`;$('storyX').innerHTML=boxHtml()}renderAll()}
+$('storyX').addEventListener('click',e=>{const b=e.target.closest('[data-boxget]'),sl=e.target.closest('[data-boxsell]');
+  if(b){if(b.dataset.boxget==='all'){collectBox();boxRefresh();return}
+    const id=b.dataset.boxget,k=Math.min(S.box[id]||0,space());if(k>0){add(id,k);S.box[id]-=k;if(S.box[id]<=0)delete S.box[id];sfx('gain')}else toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.');boxRefresh()}
+  if(sl){const id=sl.dataset.boxsell,n=S.box[id]||0;if(n>0){const t=bid(id)*n;delete S.box[id];S.gold+=t;S.earned+=t;S.bestSale=Math.max(S.bestSale,t);sfx('coin');log(`채굴 보관함의 ${ITEMS[id].n} ${big(n)}개 판매: +${big(t)}G`)}boxRefresh()}});
 function collectBox(){let moved=0,left=0;for(const id of Object.keys(S.box||{})){const k=Math.min(S.box[id],space());if(k>0){add(id,k);S.box[id]-=k;moved+=k}if(S.box[id]<=0)delete S.box[id];else left+=S.box[id]}
-  if(moved)toast(`드릴 로봇이 캔 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.');else toast('로봇 보관함이 비어 있어요.');renderAll()}
+  if(moved)toast(`채굴 보관함의 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.');else toast('채굴 보관함이 비어 있어요.');renderAll()}
 $('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;sfx('click');toast(S.autoOn?'드릴 로봇을 켰어요. 켜 두면 자리를 비운 동안에도 캐요.':'드릴 로봇을 껐어요. 자리를 비운 동안에도 쉬어요.');renderMineHud()};
 // 개발자: 황금 광맥 바로 부르기
+$('veinPop').onclick=()=>setTab('mine');
 $('devVein').onclick=()=>{if(!S.dev)return;if(S.vein)endVein();startVein()};
 // 확률 보기: 지금 지층에서 광석이 나올 확률
 $('oddsBtn').onclick=()=>{const L=LAYERS[S.layer],dw=dropW(S.layer),tot=dw.reduce((s,d)=>s+d[1],0),rows=dw.slice().sort((a,b)=>(ITEMS[b[0]].L===S.layer+1)-(ITEMS[a[0]].L===S.layer+1)||b[1]-a[1]).map(([id,w])=>`<span>${ico(id,'sm')} ${S.seen.includes(id)?ITEMS[id].n:'???'}${ITEMS[id].L!==S.layer+1?` <span class="dim">B${ITEMS[id].L}</span>`:''}</span><span>${pctTxt(w/tot)}</span>`).join('');
@@ -88,7 +100,7 @@ function renderMarket(){if(S.tab!=='market')return;const luka=tenantIn('루카')
     const L=[...Array(S.unlocked).keys()],mx=passMax(),pv=passValue();$('passInfo').textContent=pv?`가진 출입권 ${big(pv)}G`:`지층마다 ${mx}장까지`;
     patchList($('passes'),L,L.map(i=>{const v=passPrice(i),hd=S.pass[i],n=passHeld(i),ret=n?v*n/hd.c-1:null,ch=v/passBase(i);
       return[`${pf(v)}G ${pctHtml(ch)}`,n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${ret>=0?'+':''}${Math.round(ret*100)}%</span>`:`0/${mx}장`,
-        `배당 1장당 시간당 약 ${pf(passDiv(i)*3600)}G어치 광석`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>팔기</button>`]}),
+        `1장마다 시간당 약 ${pf(passDiv(i)*3600)}G어치 광석이 들어와요`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>팔기</button>`]}),
       (i,P)=>`<div class="prow"><span class="pn"><b>B${i+1}</b> ${LAYERS[i].n}</span><span class="pv">${P[0]}</span><span class="ph">${P[1]}</span><span class="pd dim">${P[2]}</span><span class="pbtn">${P[3]}</span></div>`,'',[1,2,3,4])}
   else{const ids=ORDER.filter(id=>S.seen.includes(id));
     patchList($('oreList'),ids,ids.map(id=>[`×${big(cnt(id))}`,`<span class="good">${pf(bid(id))}</span> / <span class="lamp">${pf(ask(id))}</span>G`]),
@@ -106,12 +118,12 @@ let STC=null;
 function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();
   $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';
   const p=$('portrait'),pa=$('portraitArt'),art=c.art&&typeof ART!=='undefined'&&ART[c.art];pa.hidden=!art;if(art){pa.src=art;pa.alt=c.t||''}
-  if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=STQ.length?'다음':'계속';$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}
+  if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=c.btn||(STQ.length?'다음':'계속');$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}
 $('storyNext').onclick=nextStory;
 /* 탭 */
 const TABS=['mine','equip','forge','market','tower','manage'];
 function setTab(t){if(!TABS.includes(t))t='mine';S.tab=t;document.querySelector('main').classList.toggle('mine-mode',t==='mine');document.querySelector('main').scrollTop=0;TABS.forEach(k=>$('tab-'+k).hidden=k!==t);document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;renderTab();scrollTo(0,0)}
+  if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;veinPop();renderTab();scrollTo(0,0)}
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 $('seg').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(!b)return;S.sub=b.dataset.sub;renderManage()});
 function renderManage(){['store','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.sub===S.sub));
@@ -158,13 +170,23 @@ $('qtyCancel').onclick=()=>{$('qtyModal').hidden=true;QTY=null};
 $('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){if(QM==='sell')doSell(QTY,n);else{const r=buy(QTY,n);if(r.k){sfx('buy');toast(`${ITEMS[QTY].n} ${r.k}개를 ${big(r.t)}G에 샀어요.`)}renderAll()}}$('qtyModal').hidden=true;QTY=null};
 /* 도감: 광물 설명 */
 const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'재련에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
-// 처음 캔 원석: 도감 카드가 은은한 후광과 함께 → "광석을 발견했다!"
+// 광석 발견 후광: 도트로 찍은 빛 2장(40×40칸, 화면에선 3배). 계단식 둥근 빛 + 빛살 8갈래(십자 · 대각선 길이가 번갈아) + 작은 별
+let HALO_URL='';
+function haloUrl(){if(HALO_URL)return HALO_URL;const N=40,[c,x]=cvs(N*2,N),C=19.5;
+  for(let f=0;f<2;f++){const px=(X,Y,col)=>{if(X<0||Y<0||X>=N||Y>=N)return;x.fillStyle=col;x.fillRect(f*N+X,Y,1,1)};
+    for(let Y=0;Y<N;Y++)for(let X=0;X<N;X++){const d=Math.hypot(X-C,Y-C);if(d<6.6)px(X,Y,'rgba(255,244,200,.62)');else if(d<9.6)px(X,Y,'rgba(255,226,150,.4)');else if(d<12.6)px(X,Y,'rgba(255,208,120,.22)')}
+    const ray=(dx,dy,r0,r1,w)=>{for(let r=r0;r<=r1;r++){const k=(r-r0)/(r1-r0),col=k<.5?'rgba(255,246,208,.95)':k<.8?'rgba(255,214,120,.9)':'rgba(255,190,90,.75)',X=Math.round(C+dx*r-.5+(dx<0?1:0)*0),Y=Math.round(C+dy*r-.5);px(X,Y,col);if(w&&k<.45){px(X+(dy?1:0),Y+(dx?1:0),col);px(X-(dy?1:0),Y-(dx?1:0),col)}}};
+    const card=[[1,0],[-1,0],[0,1],[0,-1]],diag=[[1,1],[-1,1],[1,-1],[-1,-1]];
+    card.forEach(([dx,dy])=>ray(dx,dy,10,f?15:19,!f));diag.forEach(([dx,dy])=>ray(dx*.72,dy*.72,10,f?19:14,f));
+    (f?[[6,9],[33,7],[8,31],[31,33]]:[[10,5],[34,12],[4,27],[29,35]]).forEach(([X,Y])=>{px(X,Y,'#fff6d0');px(X-1,Y,'rgba(255,220,130,.9)');px(X+1,Y,'rgba(255,220,130,.9)');px(X,Y-1,'rgba(255,220,130,.9)');px(X,Y+1,'rgba(255,220,130,.9)')})}
+  return HALO_URL=c.toDataURL()}
+// 처음 캔 원석: 도감 카드가 도트 후광과 함께 → "광석을 발견했다!"
 function discover(id){const it=ITEMS[id],L=it.L;sfx('sparkle');
-  story([{gold:1,k:'광석을 발견했다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} B${L} ${LAYERS[L-1].n}에서 처음 캐냈어요.`,extra:`<div class="halo"><span class="hr"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 원석</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${S.seen.filter(x=>ITEMS[x].L).length} / ${RAW.length}</span></div>`}])}
+  story([{gold:1,k:'광석을 발견했다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} B${L} ${LAYERS[L-1].n}에서 처음 캐냈어요.`,extra:`<div class="halo"><span class="hr" style="background-image:url(${haloUrl()})"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 원석</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${S.seen.filter(x=>ITEMS[x].L).length} / ${RAW.length}</span></div>`}])}
 function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 찾지 못한 광물이에요. 더 깊이 파 내려가거나 새로운 조합을 시도해 보세요.'}]);return}
   const it=ITEMS[id],L=itemLayer(id),src=it.cr?(()=>{const i=RMAP[key(INS[id][0],INS[id][1])];return S.found.includes(i)?`${ITEMS[INS[id][0]].n} + ${ITEMS[INS[id][1]].n}로 만들어요.`:'만드는 법은 아직 몰라요.'})():id==='slag'?'':`B${L} ${LAYERS[L-1].n}에서 캘 수 있어요.`;
   const uses=OUTS[id].filter(o=>S.found.some(i=>RECIPES[i].out===o)).map(o=>ITEMS[o].n);
   story([{k:`도감 · ${SECT[it.s].n}`,t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${src}`,extra:`<div style="display:flex;justify-content:center;margin-bottom:8px">${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${it.cr?'재련품':id==='slag'?'찌꺼기':'원석'}</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>지금 팔면</span><span>${pf(bid(id))}G</span>${uses.length?`<span>쓰이는 곳</span><span>${uses.join(', ')}</span>`:''}</div>`}])}
 $('dex').addEventListener('click',e=>{const b=e.target.closest('[data-dx]');if(b)itemInfo(b.dataset.dx)});
-// 채굴 화면 아이콘(사용자 그림 art/ui: 로봇 보관함 · 숯의 선물 · 채굴 2배)
+// 채굴 화면 아이콘(사용자 그림 art/ui: 채굴 보관함 · 숯의 선물 · 채굴 2배)
 function drawUiIcons(){document.querySelectorAll('img[data-ic]').forEach(im=>{im.src=ART['ui_'+im.dataset.ic]})}

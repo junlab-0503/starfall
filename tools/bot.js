@@ -18,14 +18,14 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
     return T}
   function craft(out,n){const r=RECIPES[recipeOf[out]];if(!r||r.L>S.unlocked)return 0;let k=0;S.slots=[r.a,r.b];while(k<n&&canSmeltWith(S.slots)){smeltOnce();k++}S.slots=[null,null];return k}
   // 소문 읽기: 출처 적중 기록 + 정보원 감정 + 다른 사람의 같은 말 + 캐면서 나온 단서로 진짜일 확률을 어림잡는다
-  const SZ=[[.3,.15],[.7,.275],[1.25,.45]];
+  const SZ=RUM_SIZE.map(R=>[(R.up[0]+R.up[1])/2,(R.dn[0]+R.dn[1])/2]);   // 크기별 평균 오름폭 · 내림폭
   function pTrue(r){const rec=S.srcRec[r.src]||{h:0,n:0};let o=(rec.h+1.5)/(rec.n-rec.h+1.5);
-    const acc=BON.perfectIntel?.99:[0,.75,.88,.97][Math.min(S.intel,3)];if(r.hint!=null&&acc)o*=r.hint?acc/(1-acc):(1-acc)/acc;
+    const acc=[0,.75,.88,.97][Math.min(S.intel,3)];if(r.hint!=null&&acc)o*=r.hint?acc/(1-acc):(1-acc)/acc;
     const mins=r.t/60;o*=Math.pow(4,r.echo.length)*Math.exp(-.06*mins);const b=r.brk||0;o*=Math.pow(.012/.003,r.clue)*Math.pow(.988/.997,b-r.clue);return o/(1+o)}
   function passTrade(){const held=new Set(Object.keys(S.pass).map(Number));
     // 발표가 끝난 지층은 바로 판다
     for(const i of held)if(!S.rum.some(r=>r.L===i)){const c=S.pass[i].c,r=passSell(i,999);passG+=r.gain||0;const d=S.rumDone.find(x=>x.L===i);(window.PT=window.PT||[]).push({L:i,ret:r.gain/c,truth:d&&d.truth,ch:d&&d.ch,stake:c,inc:S.earned})}
-    for(const r of S.rum){const p=pTrue(r),[up,dn]=SZ[r.size],m=PM(r.L).m/r.m0,ev=r.good?(p*(1+up)+(1-p)*(1-dn*.5))/m:(p*(1-up*.5)+(1-p)*(1+dn*.3))/m,f=r.t/r.dur;
+    for(const r of S.rum){const p=pTrue(r),[up,dn]=SZ[r.size],m=PM(r.L).m/r.m0,ev=r.good?(p*(1+up)+(1-p)*(1-dn*.5))/m:(p*(1-dn*1.1)+(1-p)*(1+dn*.4))/m,f=r.t/r.dur;
       if(ev>1.06&&f<.85){const av=ev>1.15?S.gold*.95:Math.max(0,S.gold-tf*.5)*.9,n=Math.floor(av/passPrice(r.L));if(n>0){const x=passBuy(r.L,n);if(x.t>S.gold-tf)tf=Math.max(0,S.gold)}}
       else if(ev<.99&&passHeld(r.L)){const x=passSell(r.L,999);passG+=x.gain||0}}}
   function decide(){
@@ -72,7 +72,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
     // 탭 1번 = pot/40, 드릴 0.25초마다 pot/400, 한 번에 pot×1.5까지 (pot = 지금 채굴 수입 4분치)
     if(S.vein){const v=S.vein,add=Math.round(Math.min(v.pot*1.5-v.got,v.pot*(TAPS/40+(S.auto>0&&S.autoOn?4/400:0))));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
     else{if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true);
-      if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:VEIN_SEC,pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=480+Math.random()*360;veinN++}}
+      if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:VEIN_SEC,pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);veinN++}}
     tickMarket(1,false);S.rentAcc+=rentPerSec();
     t++;if(t%10===0){decide();hit=hitF()}
     if(t%3600===0)log.push({h:t/3600,gold:Math.round(S.gold),L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh});

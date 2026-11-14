@@ -1,4 +1,4 @@
-// v13.1 확인: 재련 레시피 발견 → 도감 등록 → 다시 쓰기(자동 재련 맡기기), 황금 광맥은 채굴 화면에서만, 드릴 스위치가 켜 둔 동안 · 자리 비운 동안 같게, 지층 확률
+// v13.1 확인: 재련 레시피 발견 → 도감 등록 → 다시 쓰기(자동 재련 맡기기), 황금 광맥(어느 탭에서든 시간이 흐름, 골드는 채굴 화면에서만), 드릴 스위치가 켜 둔 동안 · 자리 비운 동안 같게, 지층 확률
 const {chromium,devices}=require('playwright');
 (async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');
 h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});');fs.writeFileSync('dbg25.html',h);
@@ -15,14 +15,13 @@ await p.click('[data-pk="copper"]');await p.click('[data-pk="tin"]');await p.cli
 ok((await E(()=>__d().S.found.length))===r1.n,'같은 레시피는 두 번 등록되지 않음');
 const q=await E(i=>{const S=__d().S;S.inv.copper=4;S.inv.tin=4;rqAdd(i);return S.rq.length},r1.i);ok(q>=1,'도감에 오른 레시피는 자동 재련에 맡길 수 있음');
 const dup=await E(()=>{const S=__d().S;S.inv.stone=4;S.slots=['stone','stone'];const a=S.found.length;smeltOnce();smeltOnce();return S.found.length-a});ok(dup===1,'다른 새 레시피(돌+돌)도 한 번만 등록: +'+dup);
-// 2) 황금 광맥: 채굴 화면에서만
+// 2) 황금 광맥(v17): 어느 탭에 있든 다음 광맥까지 시간이 흐르고 남은 시간도 줄어듦. 골드는 채굴 화면에서 캘 때만
 await close();await p.click('[data-tab="market"]');await p.waitForTimeout(200);
-const v0=await E(()=>{const S=__d().S;S.vein=null;S.veinT=3;return S.veinT});await p.waitForTimeout(4200);
-ok(await E(()=>{const S=__d().S;return !S.vein&&S.veinT===3}),'다른 탭에선 광맥 등장 시간이 흐르지 않음');
-await p.click('[data-tab="mine"]');for(let i=0;i<6;i++){await close();await p.waitForTimeout(800)}const v1=await E(()=>!!__d().S.vein);if(!v1)console.log('dbg',await E(()=>({veinT:__d().S.veinT,mp:minePlaying(),tut:__d().S.tutDone,ent:$('entry').hidden})));ok(v1,'채굴 화면에선 시간이 흘러 광맥 등장');
+await E(()=>{const S=__d().S;S.vein=null;S.veinT=3});for(let i=0;i<6;i++){await close();await p.waitForTimeout(800)}
+const v1=await E(()=>({vein:!!__d().S.vein,pop:!$('veinPop').hidden,on:veinOn()}));ok(v1.vein&&v1.pop&&!v1.on,'다른 탭(장터)에서도 시간이 흘러 광맥 등장 + 알림 띠, 골드는 아직 안 나옴');
 await close();const l1=await E(()=>__d().S.vein.left);await p.click('[data-tab="equip"]');await p.waitForTimeout(3200);const l2=await E(()=>__d().S.vein&&__d().S.vein.left);
-ok(l2===l1,`다른 탭에 있는 동안 광맥 남은 시간 멈춤: ${l1}→${l2}`);
-await close();await p.click('[data-tab="mine"]');for(let i=0;i<3;i++){await close();await p.waitForTimeout(800)}const l3=await E(()=>__d().S.vein.left);ok(l3<l2,`채굴 화면으로 돌아오면 다시 흐름: ${l2}→${l3}`);
+ok(l2<l1,`다른 탭에 있는 동안에도 광맥 남은 시간이 줄어듦: ${l1}→${l2}`);
+await close();await p.click('[data-tab="mine"]');await E(()=>{__d().S.vein.left=25});await p.waitForTimeout(300);ok(await E(()=>veinOn()&&$('veinPop').hidden),'채굴 화면으로 오면 알림 띠는 사라지고 광맥 캐기 시작');
 const inv0=await E(()=>JSON.stringify(__d().S.inv));const g0=await E(()=>__d().S.gold);const bx=await (await p.$('#scene')).boundingBox();
 await E(()=>{const S=__d().S;S.auto=0;S.hp=1});for(let i=0;i<8;i++){await p.mouse.click(bx.x+bx.width/2,bx.y+bx.height/2);await p.waitForTimeout(80)}
 const vr=await E(()=>({inv:JSON.stringify(__d().S.inv),gold:__d().S.gold}));ok(vr.inv===inv0&&vr.gold>g0,`황금 광맥 동안엔 골드만: 광석 그대로, 골드 +${Math.round(vr.gold-g0)}`);

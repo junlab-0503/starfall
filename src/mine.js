@@ -62,10 +62,9 @@ let autoSellT=0;
 function autoSellRoom(){const ids=ORDER.filter(id=>cnt(id)>0&&ITEMS[id].L).sort((a,b)=>bid(a)-bid(b));if(!ids.length)return false;const id=ids[0],k=Math.min(cnt(id),Math.max(1,Math.ceil(cap()*.05)));
   const t=sell(id,k);if(!t)return false;if(performance.now()-autoSellT>4000){autoSellT=performance.now();log(`셈이 ${ITEMS[id].n} ${k}개를 팔아 자리를 만들었어요: +${big(t)}G`)}invDirty=true;return space()>0}
 function applyDmg(d,auto){
-  S.hp-=d;const w=charW(),wx=w.x-10,wy=w.y-14;
-  const T=PICK_TIERS[pickTier()][3],L=LOOK[S.layer];
-  if(!auto){for(let i=0;i<6;i++)PARTS.push({x:wx,y:wy+(Math.random()-.5)*6,vx:-10+Math.random()*60,vy:-40-Math.random()*40,life:.9,c:Math.random()<.5?L.spec[0]:L.rock,sz:i<2?2:1,grav:1});tierFx(T,wx,wy);A.shake=Math.max(A.shake,1)}
-  else for(let i=0;i<2;i++)PARTS.push({x:wx+2,y:w.y-4,vx:Math.random()*40,vy:-30-Math.random()*30,life:.35,c:'#ffe9a8',sz:1});
+  S.hp-=d;const w=charW(),wx=faceWX()+1,wy=w.y-14;
+  const T=PICK_TIERS[pickTier()][3];
+  if(!auto){for(let i=0;i<4;i++)PARTS.push(chip(wx,wy+(Math.random()-.5)*10,14+Math.random()*60,-40-Math.random()*50,2.2+Math.random()));tierFx(T,wx,wy);A.shake=Math.max(A.shake,1)}
   if(S.hp<=0)breakWall(auto);
 }
 function tierFx(T,x,y){const add=(n,c,o)=>{for(let i=0;i<n;i++)PARTS.push(Object.assign({x,y,vx:(Math.random()-.3)*90,vy:-30-Math.random()*70,life:.45,c,sz:1},o||{}))};
@@ -82,14 +81,14 @@ function breakWall(auto){
   if(td){S.hp=hp;S.tutBrk++;got[td]=td==='stone'?2:1}
   else if(!got.stone||!auto)while(S.hp<=0&&n<400){S.hp+=hp;n++;const id=n===1?(S.next||rollDrop(L)):rollDrop(L);got[id]=(got[id]||0)+1+(Math.random()<extraP(ITEMS[id].s)?1:0)}
   const w=charW();
-  for(let i=0;i<14;i++)PARTS.push({x:w.x-14+Math.random()*8,y:w.y-24+Math.random()*22,vx:(Math.random()-.8)*80,vy:-40-Math.random()*60,life:1.3,c:Math.random()<.4?ITEMS[S.next||'stone'].c:LOOK[L].rock,sz:2,grav:1});
+  {const fx0=faceWX()+1;for(let i=0;i<10;i++)PARTS.push(chip(fx0+Math.random()*4,w.y-26+Math.random()*24,12+Math.random()*85,-40-Math.random()*60,5+Math.random()*3))}   // 깨진 바위 조각: 주인공 뒤쪽 굴 바닥에 잠깐 쌓임
   // 황금 광맥이 나타난 동안엔 광석 대신 골드만(골드는 탭 · 드릴이 veinGold로 캠)
-  if(veinOn()){for(let i=0;i<10;i++)PARTS.push({x:w.x-12+Math.random()*8,y:w.y-20+Math.random()*16,vx:(Math.random()-.8)*70,vy:-50-Math.random()*50,life:.8,c:'#ffd23f',sz:2,grav:1,star:Math.random()<.4})}
+  if(veinOn()){for(let i=0;i<8;i++)PARTS.push({x:w.x-12+Math.random()*8,y:w.y-20+Math.random()*16,vx:Math.random()*60,vy:-50-Math.random()*50,life:.8,c:'#ffd23f',sz:1,star:1})}
   else for(const id in got)gain(id,got[id],auto);
   rumorClue(L);S.digs[L]=digOf(L)+1;A.stepT=.3;A.shake=2;S.next=!S.tutDone&&L===0&&S.tutBrk<TUT_DROPS.length?TUT_DROPS[S.tutBrk]:rollDrop(L);newWall();
   if(!S.journal.includes(0)&&S.mined>=1)revealJournal(0);
 }
-// 캔 광석: 창고 → (드릴 로봇이면) 로봇 보관함 → 넘치면 판매
+// 캔 광석: 창고 → (드릴 로봇이면) 채굴 보관함 → 넘치면 판매
 let ofFxT=0;
 function gain(id,n,auto){S.mined+=n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&space()<n&&ul('autosell'))autoSellRoom();let ok=Math.min(n,space());
   if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else S.lost=(S.lost||0)+rest}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
@@ -110,8 +109,11 @@ function update(dt){
   // 자동 드릴
   // 시작 화면 · 광맥 입구 장면이 떠 있는 동안엔 드릴도 기다림
   if(S.auto>0&&S.autoOn&&$('titleScr').hidden&&$('entry').hidden){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(1/400,false)}}
+  const fwx=faceWX()+1;
   PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt;
-    if(p.grav){const fl=w.y+(w.x+6-p.x)*SL-1;if(p.y>fl){p.y=fl;if(p.vy>50){p.vy*=-.3;p.vx*=.6}else{p.vy=0;p.vx*=.7}}}});   // 돌 조각은 굴 바닥에 떨어져 튕기고 잠깐 쌓임PARTS=PARTS.filter(p=>p.life>0);
+    // 돌 조각: 막장(주인공 앞 바위) 쪽으로는 못 가고, 주인공 뒤 굴 바닥에 떨어져 튕긴 뒤 잠깐 쌓였다 사라짐
+    if(p.grav){if(p.x<fwx){p.x=fwx;p.vx=Math.abs(p.vx)*.4}const fl=w.y+(w.x+6-p.x)*SL-1;if(p.y>fl){p.y=fl;if(p.vy>50){p.vy*=-.3;p.vx*=.6}else{p.vy=0;p.vx*=.7}}}});
+  PARTS=PARTS.filter(p=>p.life>0);if(PARTS.length>120)PARTS.splice(0,PARTS.length-120);
   FLY.forEach(f=>f.t+=dt);FLY=FLY.filter(f=>f.t<.6);
   stepFloats(dt);
 }
@@ -140,6 +142,18 @@ function bgCache(L,st,gv,d,DM,K,CW,CH,bite){
 function digBite(L){return Math.min(3,Math.floor(clamp(1-S.hp/layerHp(L),0,1)*4))*4}
 // 발밑 그림자(화면 좌표, 가운데 x · 바닥 y · 폭)
 function shadow(cx,y,w){g.fillStyle='rgba(8,4,2,.38)';g.fillRect(Math.round(cx-w/2)+2,y-2,w-4,1);g.fillRect(Math.round(cx-w/2),y-1,w,2);g.fillRect(Math.round(cx-w/2)+2,y+1,w-4,1)}
+// 막장(주인공이 캐는 바위 면)의 월드 x
+const faceWX=()=>charW().x+6-(REACH+digBite(S.layer))/SC;
+// 돌 조각 입자: rk = 조각 그림 번호(그림은 rockChunks)
+const chip=(x,y,vx,vy,life)=>({x,y,vx,vy,life,grav:1,rk:Math.random()*8|0,c:LOOK[S.layer].rock,sz:2});
+// 돌 조각 그림 8개: 그 지층 바위 그림에서 작은 조각을 떼어 모서리를 깎고, 위는 밝게 · 아래와 가장자리는 어둡게
+function rockChunks(o,im){if(o.chunks)return o.chunks;const out=[],R=rng(77);
+  for(let i=0;i<8;i++){const w=4+(R()*5|0),h=3+(R()*4|0),[c,x]=cvs(w,h);x.drawImage(im,R()*(im.width-w)|0,R()*(im.height-h)|0,w,h,0,0,w,h);
+    const d=x.getImageData(0,0,w,h),p=d.data;
+    for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){const k=(yy*w+xx)*4,cx=(xx+.5)/w-.5,cy=(yy+.5)/h-.5,rr=cx*cx+cy*cy;
+      if(rr>.3){p[k+3]=0;continue}const f=(rr>.19||yy===h-1)?.5:(cy<-.15?1.3:1.05);for(let q=0;q<3;q++)p[k+q]=Math.min(255,p[k+q]*f)}
+    x.putImageData(d,0,0);out.push(c)}
+  return o.chunks=out}
 function draw(t){
   const L=S.layer,lk=LOOK[L],d=digOf(L);
   const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;
@@ -148,10 +162,10 @@ function draw(t){
   // 주인공은 막장 바로 앞(곡괭이가 닿는 거리 REACH)에 서고, 캔 만큼(bite) 막장과 함께 조금씩 앞으로
   const w=charW(),DM=(typeof DUG_META!=='undefined'&&DUG_META[L])||[24,120,84],bite=digBite(L),
     hS0=Math.round((w.x+6-camX)*K),fS0=Math.round((w.y-camY)*K),heroS=hS0-bite,fyS=fS0+Math.round(bite*SL),
-    faceS=heroS-REACH,ffS=fyS+Math.round(REACH*SL),fx=faceS/K,fy=ffS/K,kk=K/2;   // heroS · fyS: 주인공 발, faceS · ffS: 막장 · 막장 바닥(화면 px), kk: 스프라이트 배율
+    faceS=heroS-REACH,ffS=fyS+Math.round(REACH*SL),fx=faceS/K,fy=ffS/K,kk=K/2,gv=st&&veinOn()&&goldStrata();   // heroS · fyS: 주인공 발, faceS · ffS: 막장 · 막장 바닥(화면 px), kk: 스프라이트 배율
   if(st){
     // 배경(바위 + 판 굴)은 미리 그려 둔 한 장을 붙이기만 함 → 매 프레임 큰 그림 수십 장을 다시 그리지 않음(렉 줄이기)
-    const gv=veinOn()&&goldStrata(),bc=bgCache(L,st,gv,d,DM,K,CW,CH,bite);g.drawImage(bc.c,bc.ox,bc.oy);
+    const bc=bgCache(L,st,gv,d,DM,K,CW,CH,bite);g.drawImage(bc.c,bc.ox,bc.oy);
   }else{g.fillStyle=LOOK[L].dark;g.fillRect(0,0,CW,CH)}
   g.setTransform(K,0,0,K,sh*K,0);
   // 막장에 박힌 다음 광석 · 금(막장 왼쪽 바위)
@@ -159,17 +173,17 @@ function draw(t){
   BLOBS.forEach(b=>{const cx=fx+b[0],cy=fy+b[1],r=b[2];for(let yy=-3;yy<=3;yy++)for(let xx=-3;xx<=3;xx++){const dd=Math.hypot(xx,yy*1.1);if(dd>r)continue;g.fillStyle=dd>r-.9?R[0]:(xx+yy<-1?R[4]:xx+yy<1?R[3]:R[2]);g.fillRect(Math.round(cx+xx),Math.round(cy+yy),1,1)}});
   if(((t*1.3)%2)<.25){const b=BLOBS[0];g.fillStyle='#fff';g.fillRect(Math.round(fx+b[0]-1),Math.round(fy+b[1]-2),1,1)}
   const dmg=clamp(1-S.hp/layerHp(L),0,1);if(dmg>0){g.fillStyle='rgba(0,0,0,.75)';CRACKS.forEach((c,k)=>{const n=Math.floor(dmg*c.length*1.2-(k%2));for(let j=0;j<Math.min(n,c.length);j++)g.fillRect(Math.round(fx+c[j][0]),Math.round(fy+c[j][1]),1,1)})}
-  // 숯: 주인공(과 드릴 로봇) 뒤 굴 바닥(오르막). 선물 상자는 숯 옆. 발밑 그림자로 바닥에 붙어 있게
+  // 숯: 주인공 뒤 굴 바닥(오르막). 선물 상자는 숯 옆. 발밑 그림자로 바닥에 붙어 있게
   g.setTransform(1,0,0,1,sh*K,0);
-  {const catF=full()||S.autoOn&&S.auto>0&&Math.sin(t*.3)>.6?'sleep':(Math.sin(t*2)>.7?'tail':'sit'),cs=spr('cat_'+catF),cx=hS0+(S.auto>0?104:52),cy=fS0-Math.round((S.auto>0?104:52)*SL);
+  {const catF=full()||S.autoOn&&S.auto>0&&Math.sin(t*.3)>.6?'sleep':(Math.sin(t*2)>.7?'tail':'sit'),cs=spr('cat_'+catF),cx=hS0+56,cy=fS0-Math.round(56*SL);
     shadow(cx,cy,20);
     if(cs){const cw=Math.round(cs.width*kk),ch=Math.round(cs.height*kk);g.drawImage(cs,cx-Math.round(cw/2),cy-ch+kk*2,cw,ch)}
     const gf=spr('gift');if(gf&&giftReady()){const bw=Math.round(gf.width*kk),bh=Math.round(gf.height*kk),bb=(Math.floor(t*3)%2)*2;g.drawImage(gf,cx+Math.round(14*kk),cy-bh-bb+kk*2,bw,bh)}}
   g.setTransform(K,0,0,K,sh*K,0);
   if(boostOn()&&Math.random()<.5)PARTS.push({x:w.x-4+Math.random()*24,y:w.y-30+Math.random()*24,vx:0,vy:-20,life:.6,c:'#ffe9a8',sz:1,star:Math.random()<.3});
-  // 드릴 로봇: 주인공 바로 뒤 굴 바닥(주인공이 막장 앞, 로봇은 뒤따라오며 같이 캠)
+  // 드릴 로봇: 드릴 끝이 막장에 닿게(주인공과 겹치고, 주인공이 앞에 그려짐 → 드릴이 주인공이 아니라 바위를 파는 것으로 보임)
   if(S.auto>0){const st2=!S.autoOn?'off':full()?'full':'on',ph=st2==='off'?1:Math.floor(A.botPh)%3+1,bs=spr(`robot_${st2}${ph}`);
-    if(bs){g.setTransform(1,0,0,1,sh*K,0);const bw=Math.round(bs.width*kk),bh=Math.round(bs.height*kk),body=Math.round(54*kk),rx=heroS+18,ry=fyS-Math.round((18+bw/2)*SL)+2;shadow(rx+Math.round(bw*.55),ry,Math.round(body*.8));g.drawImage(bs,rx,ry-bh+kk*2,bw,bh);g.setTransform(K,0,0,K,sh*K,0)}
+    if(bs){g.setTransform(1,0,0,1,sh*K,0);const bw=Math.round(bs.width*kk),bh=Math.round(bs.height*kk),body=Math.round(55*kk),rx=faceS-8-(bw-body),ry=fyS+5;shadow(rx+(bw-body)+Math.round(body*.6),ry,Math.round(body*.7));g.drawImage(bs,rx,ry-bh+kk*2,bw,bh);g.setTransform(K,0,0,K,sh*K,0)}
     if(st2==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
   // 주인공: 직접 그린 스프라이트(art/hero)
   const sit=full()&&A.sw<0,fxw=Math.round(w.x+6-camX)-bite/K,fyw=Math.round(w.y-camY)+Math.round(bite*SL)/K;
@@ -178,7 +192,11 @@ function draw(t){
     g.drawImage(HERO.img,sx,sy,sw,sh,fxw-fx/hs,fyw-sh/hs+1+bob,sw/hs,sh/hs);   // 2배 도트를 절반 크기로 → 화면 1px = 그림 1px
     if(sit){const z=(t*.8)%1;g.fillStyle=`rgba(232,224,255,${(1-z).toFixed(2)})`;const zx=fxw+8+z*4,zy=fyw-18-z*10;g.fillRect(zx,zy,3,1);g.fillRect(zx+1,zy+1,1,1);g.fillRect(zx,zy+2,3,1)}}
   // 입자
-  PARTS.forEach(p=>{g.globalAlpha=Math.min(1,p.life*2.5);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});g.globalAlpha=1;
+  const CK=st?rockChunks(gv||st,gv?gv.c:st.rockC):null;
+  PARTS.forEach(p=>{if(p.rk!=null&&CK)return;g.globalAlpha=clamp(p.life*2.5,0,1);g.fillStyle=p.c;const x=Math.round(p.x-camX),y=Math.round(p.y-camY);if(p.star){g.fillRect(x-1,y,3,1);g.fillRect(x,y-1,1,3)}else g.fillRect(x,y,p.sz,p.sz)});
+  // 돌 조각: 그 지층 바위 그림에서 뗀 작은 조각(화면 픽셀 크기) → 배경과 같은 결
+  if(CK){g.setTransform(1,0,0,1,sh*K,0);PARTS.forEach(p=>{if(p.rk==null)return;const im=CK[p.rk%CK.length];g.globalAlpha=clamp(p.life*1.5,0,1);g.drawImage(im,Math.round((p.x-camX)*K-im.width/2),Math.round((p.y-camY)*K)-im.height+2)});g.setTransform(K,0,0,K,sh*K,0)}
+  g.globalAlpha=1;
   // 조명: 헬멧 등불 주변만 밝게, 계단식 고리
   const lx=Math.round(fxw-9),ly=Math.round(fyw-28),dm=lightMask();g.drawImage(dm,lx-dm.width/2,ly-dm.height/2);
   // 떠다니는 먼지
@@ -190,15 +208,20 @@ function draw(t){
 cv.addEventListener('pointerdown',e=>{e.preventDefault();doTap()});
 document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||S.tab!=='mine'||$('story').hidden===false)return;if(e.code==='Space'||e.code==='Enter'){e.preventDefault();doTap()}});
 function setLayer(i){if(i>=S.unlocked)return;S.layer=i;S.hp=layerHp(i);S.next=rollDrop(i);newWall();camInit=false;renderMineHud();renderLayers()}
-/* 황금 광맥: 채굴 화면을 보며 캐고 있을 때만 다음 광맥까지의 시간이 흐르고(8~14분), 나타나면 45초 동안 탭 · 자동 드릴이 골드를 직접 캐냄.
-   다른 탭 · 이야기 창 · 시작 화면 · 앱이 뒤로 간 동안엔 등장도, 남은 시간도 멈춤 (한 번에 켜 두고 4분치를 탭 40번에 나눠, 최대 6분치) */
-const VEIN_SEC=45;
-const minePlaying=()=>S.tab==='mine'&&!document.hidden&&$('story').hidden&&$('titleScr').hidden;
+/* 황금 광맥: 어느 탭에 있든 다음 광맥까지의 시간이 흐르고(8~14분, 노을이 입주하면 30% 짧게), 나타나면 30초 동안 탭 · 자동 드릴이 골드를 직접 캐냄.
+   다른 탭에 있을 때 나타나면 작은 알림 띠(누르면 채굴 화면으로). 골드는 채굴 화면에서 캘 때만 나옴.
+   이야기 창 · 시작 화면 · 입구 장면이 떠 있거나 앱이 뒤로 간 동안엔 멈춤 (한 번에 켜 두고 4분치를 탭 40번에 나눠, 최대 6분치) */
+const VEIN_SEC=30;
+const veinClock=()=>!document.hidden&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;
+const minePlaying=()=>S.tab==='mine'&&veinClock();
 const veinOn=()=>!!S.vein&&S.vein.left>0&&minePlaying();
-function veinTick(){if(!minePlaying())return;if(S.vein){if((S.vein.left-=1)<=0)endVein();return}if(!S.tutDone)return;if((S.veinT-=1)<=0)startVein()}
-function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={left:VEIN_SEC,pot,got:0};S.veinT=480+Math.random()*360;
-  A.joy=.9;sfx('rare');toast('황금 광맥이 드러났어요! 45초 동안 캐면 골드가 쏟아져요.');for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5});renderMineHud()}
-function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
+function veinTick(){if(!veinClock())return;if(S.vein){if((S.vein.left-=1)<=0)endVein();else veinPop();return}if(!S.tutDone)return;if((S.veinT-=1)<=0)startVein()}
+function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={left:VEIN_SEC,pot,got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);
+  A.joy=.9;sfx('rare');if(S.tab==='mine'){toast(`황금 광맥이 드러났어요! ${VEIN_SEC}초 동안 캐면 골드가 쏟아져요.`);for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5})}
+  veinPop();renderMineHud()}
+// 알림 띠: 황금 광맥이 떠 있는데 다른 탭을 보고 있을 때만
+function veinPop(){const el=$('veinPop'),on=!!S.vein&&S.tab!=='mine';if(el.hidden===on){el.hidden=!on}if(on)$('veinPopT').textContent=`${Math.max(0,Math.ceil(S.vein.left))}초`}
+function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;veinPop();if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
 function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.round(Math.min(v.pot*1.5-v.got,v.pot*k));if(amt<=0)return;v.got+=amt;S.gold+=amt;S.earned+=amt;
   if(tap){const ex=FLOATS.find(f=>f.id==='$g'&&f.life>.3);if(ex)ex.add=amt;floatText(`+${big(amt)}G`,'#ffd23f','$g');const f0=FLOATS[0];if(f0&&f0.id==='$g'&&!ex)f0.n=amt;sfx('coin');const w=charW();for(let i=0;i<5;i++)PARTS.push({x:w.x-12,y:w.y-16,vx:-20+Math.random()*40,vy:-50-Math.random()*30,life:.6,c:'#ffd23f',sz:1,star:Math.random()<.5})}}
 

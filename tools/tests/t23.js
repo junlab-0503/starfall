@@ -19,7 +19,7 @@ ok(card.por&&/무쇠/.test(card.t)&&card.b.length>5&&/"/.test(card.x),'무쇠 �
 await p.screenshot({path:'v83_tenant.png'});await closeStory();
 await p.click('[data-sec="10"]');await p.waitForTimeout(300);ok(/비어 있는/.test(await p.textContent('#storyT')),'잠긴 구간: '+await p.textContent('#storyB'));await closeStory();
 // 개발자 코드 → 창고 표기
-await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(500);await closeStory();
+await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.evaluate(()=>{document.getElementById('devForm').hidden=false});await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(500);await closeStory();
 const st=await p.evaluate(()=>{const e=$('store');return{t:e.textContent,ov:e.scrollWidth>e.clientWidth}});ok(!st.ov&&!/…/.test(st.t),'헤더 창고 표기 잘림 없음: '+st.t);
 await p.click('[data-tab="mine"]');await p.waitForTimeout(400);const sc=await p.evaluate(()=>$('nextL').innerText.replace(/\n/g,' '));ok(true,'다음 지층 칸: '+sc);await p.screenshot({path:'v83_dev_mine.png'});
 await p.click('[data-tab="tower"]');await p.waitForTimeout(800);await p.screenshot({path:'v83_tower99.png'});

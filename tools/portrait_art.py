@@ -73,13 +73,15 @@ def sem_src():
     # 붉은 테두리(배경 지울 때 남은 빨간 번짐)는 진한 갈색 윤곽으로
     r,g,b=sub[...,0],sub[...,1],sub[...,2];red=(r>150)&(g<90)&(b<90)&(sub[...,3]>0);sub[red,:3]=(58,30,22)
     ys,xs=np.where(sub[...,3]>100);top=ys.min()
-    S=330;cx=int(np.median(xs[ys<top+120]))+6   # 머리 가운데(다른 초상화처럼 얼굴이 크게)
-    x0=cx-S//2;y0=top-16
+    S=376;cx=int(np.median(xs[ys<top+120]))+2   # 머리 가운데. 다른 초상화와 얼굴 크기 · 어깨가 보이는 정도를 맞춤
+    x0=cx-S//2;y0=top+10          # 다른 초상화처럼 머리 꼭대기가 액자 위에 닿게
     crop=np.zeros((S,S,4));sy0,sx0=max(0,y0),max(0,x0);sy1,sx1=min(sub.shape[0],y0+S),min(sub.shape[1],x0+S)
     crop[sy0-y0:sy1-y0,sx0-x0:sx1-x0]=sub[sy0:sy1,sx0:sx1]
     g_src,g_m=SRCS['granny'];bg=parchment(g_src,g_m)
     bgS=np.asarray(Image.fromarray(bg.astype(np.uint8)).resize((S,S),Image.LANCZOS)).astype(float)
-    al=crop[...,3:4]/255;return (crop[...,:3]*al+bgS*(1-al)).clip(0,255)
+    # 색조: 다른 초상화(밝기 평균 약 100 · 편차 약 60, 윤곽은 검정이 아니라 짙은 갈색)에 맞게 대비를 낮추고 어두운 곳을 따뜻하게 올림
+    fig=crop[...,:3]*.76+np.array([40,27,22.])
+    al=crop[...,3:4]/255;return (fig*al+bgS*(1-al)).clip(0,255)
 SRCS['sem']=(sem_src(),None)
 for k in KEYS+['sem']:
     src=SRCS[k][0]

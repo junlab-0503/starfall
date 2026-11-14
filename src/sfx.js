@@ -30,13 +30,21 @@ function sfx(name){if(!AC||!(S.sound?S.sound.sfx:.6))return;const now=performanc
   case'sparkle':[88,91,95,100].forEach((n,i)=>tone(NOTE(n),.08,'triangle',.15,i*.05));break;
   case'page':tone(NOTE(84),.05,'triangle',.12);break;
   case'click':tone(NOTE(81),.03,'square',.08);break;}}
-/* 배경음악: 조용한 동굴 칩튠 (Am–F–C–G 아르페지오 + 베이스) */
-let BGM_T=null,bgmStep=0,bgmNext=0;
+/* 배경음악: 평소엔 조용한 동굴 칩튠 (Am–F–C–G 아르페지오 + 베이스), 황금 광맥이 떠 있는 동안엔 빠르고 신나는 곡 (C–F–G–C, 통통 튀는 베이스 + 하이햇) */
+let BGM_T=null,bgmStep=0,bgmNext=0,bgmVein=false;
 function bgmStart(){if(BGM_T||!AC)return;bgmNext=AC.currentTime+.1;BGM_T=setInterval(bgmTick,50)}
 const CH=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],MEL=[76,null,74,72,null,69,72,null,74,null,72,69,67,null,69,null];
-function bgmTick(){if(!AC||!(S.sound?S.sound.bgm:.3))return;const sp=60/88/2;while(bgmNext<AC.currentTime+.25){const st=bgmStep%64,ch=CH[Math.floor(st/16)%4],t=bgmNext-AC.currentTime;
-  const play=(f,d,type,v)=>{const o=AC.createOscillator(),g=AC.createGain(),tt=bgmNext;o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,tt);g.gain.exponentialRampToValueAtTime(.001,tt+d);o.connect(g);g.connect(BGMG);o.start(tt);o.stop(tt+d+.02)};
-  play(NOTE(ch[st%3]+12),sp*.9,'triangle',.18);
-  if(st%4===0)play(NOTE(ch[0]-12),sp*3.5,'triangle',.3);
-  const m=MEL[st%16];if(st>=16&&m&&Math.floor(st/16)%2===1)play(NOTE(m),sp*1.6,'square',.07);
+const CHV=[[60,64,67],[65,69,72],[67,71,74],[60,64,67]],MELV=[84,null,88,91,null,88,84,88,91,null,96,null,93,91,88,null,89,null,93,96,null,93,89,93,95,null,91,null,98,95,91,null];
+function bgmTick(){if(!AC||!(S.sound?S.sound.bgm:.3))return;const vein=!!(S&&S.vein);if(vein!==bgmVein){bgmVein=vein;bgmStep=0;bgmNext=AC.currentTime+.06}
+  const sp=vein?60/168/2:60/88/2;while(bgmNext<AC.currentTime+.25){const st=bgmStep%64,tt=bgmNext;
+  const play=(f,d,type,v)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,tt);g.gain.exponentialRampToValueAtTime(.001,tt+d);o.connect(g);g.connect(BGMG);o.start(tt);o.stop(tt+d+.02)};
+  if(vein){const ch=CHV[Math.floor(st/8)%4],m=MELV[st%32];
+    play(NOTE(ch[st%3]+12),sp*.8,'square',.09);                                   // 반짝이는 아르페지오
+    if(st%2===0)play(NOTE(ch[0]-12+(st%4===2?7:0)),sp*1.6,'triangle',.34);         // 통통 튀는 베이스(으뜸음 · 5도)
+    if(m)play(NOTE(m),sp*1.5,'square',.11);                                       // 가락
+    if(st%2===1&&NOISE){const n=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();n.buffer=NOISE;f.type='highpass';f.frequency.value=6000;g.gain.setValueAtTime(.1,tt);g.gain.exponentialRampToValueAtTime(.001,tt+.04);n.connect(f);f.connect(g);g.connect(BGMG);n.start(tt);n.stop(tt+.06)}}   // 하이햇
+  else{const ch=CH[Math.floor(st/16)%4];
+    play(NOTE(ch[st%3]+12),sp*.9,'triangle',.18);
+    if(st%4===0)play(NOTE(ch[0]-12),sp*3.5,'triangle',.3);
+    const m=MEL[st%16];if(st>=16&&m&&Math.floor(st/16)%2===1)play(NOTE(m),sp*1.6,'square',.07)}
   bgmStep++;bgmNext+=sp}}

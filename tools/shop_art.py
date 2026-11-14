@@ -1,6 +1,6 @@
 """상점 그림(사용자 원본) → 게임 도트로 줄이기.
 사람: art/source/shop/people.webp (검은 바탕)에서 다섯 명을 잘라 상반신(머리 꼭대기 ~ 허리, 모두 같은 비율) 도트로 → art/shop/<키>.png (화면 1:1)
-배경: art/source/shop/bg_*.webp를 0.3배로 작게 줄여 띠를 자르고 양옆을 거울로 이어 448×200으로, 살짝 어둡고 따뜻하게 → art/shop/bg_<키>.png (화면 1:1)
+배경: art/source/shop/bg_*.webp의 가로 전체를 360px로 줄여 띠를 자르고 양옆은 가장자리 색을 어둡게 이어 448×200으로(거울처럼 뒤집어 붙이지 않음), 살짝 어둡고 따뜻하게 → art/shop/bg_<키>.png (화면 1:1)
 사용: python3 tools/shop_art.py"""
 from PIL import Image
 import numpy as np,os
@@ -48,17 +48,21 @@ def people():
                 if A[j,i] and any(not(0<=j+dj<H and 0<=i+di<Wd) or not A[j+dj,i+di] for dj,di in((1,0),(-1,0),(0,1),(0,-1))) and j<H-1:o[j,i,:3]=OUTLINE
         Image.fromarray(o).quantize(64,method=Image.Quantize.FASTOCTREE,dither=Image.Dither.NONE).save(OUT+k+'.png',optimize=True)  # 팔레트 PNG(투명 유지, 용량 절약);print(k,o.shape[1],'x',o.shape[0])
 def backgrounds():
-    # 사람(상반신 192px)보다 소품이 커 보이지 않게 원본을 0.3배로 작게 → 가운데에 두고 양옆은 가장자리를 거울처럼 이어 448×200을 채움
-    # 키: (원본, 띠 위쪽 y(원본 px), 좌우 뒤집기, 색 보정)
-    SCL=.3;BH=200;BW=448
-    B={'pin':('bg_workshop',230,0,(1,1,1)),'musoe':('bg_workshop',470,1,(1.1,.95,.82)),'mir':('bg_magic',200,0,(1,1,1)),'sem':('bg_pantry',120,0,(1,1,1)),'luka':('bg_market',250,0,(1,1,1))}
-    for k,(f,y0,flip,tint) in B.items():
-        im=Image.open(SRC+f+'.webp').convert('RGB');w,h=im.size;band=im.crop((0,y0,w,y0+round(BH/SCL)))
+    # 가운데 360px은 원본 그림 그대로(가로 전체를 360px로 줄임), 양옆 44px씩은 가장자리 색을 어둡게 이어 붙임(거울처럼 뒤집어 붙이지 않음)
+    # → 폰 화면(무대 폭 약 340~400px)에선 원본 그림만 보이고, 더 넓은 화면에선 양끝이 어둡게 가라앉음
+    # 키: (원본, 띠 아래쪽 y(원본 px), 좌우 뒤집기, 색 보정)
+    BH=200;BW=448;MW=360
+    B={'pin':('bg_workshop',230+667,0,(1,1,1)),'musoe':('bg_workshop',1500,1,(1.1,.95,.82)),'mir':('bg_magic',200+667,0,(1,1,1)),'sem':('bg_pantry',120+667,0,(1,1,1)),'luka':('bg_market',250+667,0,(1,1,1))}
+    for k,(f,y1,flip,tint) in B.items():
+        im=Image.open(SRC+f+'.webp').convert('RGB');w,h=im.size;scl=MW/w;band=im.crop((0,y1-round(BH/scl),w,y1))
         if flip:band=band.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-        mid=np.asarray(band.resize((round(w*SCL),BH),Image.Resampling.BOX)).astype(float);mw=mid.shape[1];ex=(BW-mw+1)//2
-        L=mid[:,:ex][:,::-1]*.8;R=mid[:,-ex:][:,::-1]*.8          # 이어 붙인 부분은 조금 더 어둡게
+        mid=np.asarray(band.resize((MW,BH),Image.Resampling.BOX)).astype(float);ex=(BW-MW)//2
+        def side(edge):   # 가장자리 8px의 줄별 평균색을 위아래로 조금 흐려, 바깥으로 갈수록 어둡게
+            c=edge.mean(1);c=np.stack([np.convolve(np.pad(c[:,q],6,mode='edge'),np.ones(13)/13,'valid') for q in range(3)],1)
+            return np.stack([c*(.72-.42*i/ex) for i in range(ex)],1)
+        L=side(mid[:,:8])[:,::-1];R=side(mid[:,-8:])
         a=np.concatenate([L,mid,R],1)[:,:BW]
         g=a@[.3,.59,.11];a=g[...,None]+(a-g[...,None])*.8;a=a*.76;a[...,0]*=1.04*tint[0];a[...,1]*=tint[1];a[...,2]*=.9*tint[2]
         sm=Image.fromarray(a.clip(0,255).astype(np.uint8)).quantize(64,method=Image.Quantize.MEDIANCUT)
-        sm.save(OUT+'bg_'+k+'.png',optimize=True);print('bg',k,sm.size,'mid',mw)
+        sm.save(OUT+'bg_'+k+'.png',optimize=True);print('bg',k,sm.size,'mid',MW)
 backgrounds()   # 사람은 이제 tools/sprite_art.py(새 그림 shop_emoji.webp)에서 만듦. 옛 사람 그림이 필요하면 people()

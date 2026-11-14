@@ -16,7 +16,7 @@ await p.click('[data-tab="forge"]');await p.waitForTimeout(200);await p.screensh
 await p.click('[data-tab="market"]');await p.waitForTimeout(300);await p.screenshot({path:'q3.png'});
 if(await p.isVisible('[data-mks="ore"]'))await p.click('[data-mks="ore"]');await p.waitForTimeout(300);await p.screenshot({path:'q4.png',fullPage:true});
 await p.click('[data-tab="tower"]');await p.waitForTimeout(300);await p.screenshot({path:'q5.png',fullPage:true});
-while(await p.isVisible('#storyNext'))await p.click('#storyNext');await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.fill('#devCode','jun');await p.click('#devForm button');await p.waitForTimeout(200);
+while(await p.isVisible('#storyNext'))await p.click('#storyNext');await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.evaluate(()=>{document.getElementById('devForm').hidden=false});await p.fill('#devCode','jun');await p.click('#devForm button');await p.waitForTimeout(200);
 await p.evaluate(()=>{const d=__d();d.S.gold=1e12;});
 while(await p.isVisible('#storyNext'))await p.click('#storyNext');await p.click('[data-tab="equip"]');await p.waitForTimeout(200);await p.screenshot({path:'q6.png'});
 await p.click('[data-tab="mine"]');

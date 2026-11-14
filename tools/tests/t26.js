@@ -10,13 +10,13 @@ await p.goto(url);await p.waitForTimeout(800);
 // 튜토리얼 말풍선 초상화 = 이장 할머니 그림
 const tp=await p.evaluate(()=>{const c=$('tutPor');return{w:c.width,ink:(()=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i])n++;return n})(),art:!!ART.granny}});
 ok(tp.art&&tp.w===128&&tp.ink>128*128*.9,'튜토리얼 초상화 = 이장 할머니 그림 '+JSON.stringify(tp));
-ok(await p.evaluate(()=>PROLOGUE.filter(c=>c.art==='granny').length===2&&ENDING.some(c=>c.t==='이장 할머니'&&c.art==='granny')),'프롤로그 2장 · 에필로그 1장에 이장 할머니 초상화');
+ok(await p.evaluate(()=>PROLOGUE.every(c=>!c.art)&&ENDING.every(c=>!c.art&&c.t!=='이장 할머니')),'프롤로그 · 에필로그에는 이장 할머니 초상화 없음(v17), 튜토리얼 말풍선에만');
 ok(await p.evaluate(()=>SECTIONS[1].t.name==='셈'&&SECTIONS[1].t.art==='sem'&&!!ART.sem&&ART.sem!==ART.granny),'셈 초상화(새 그림, 이장 할머니와 다름)');
 await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
 await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await p.waitForTimeout(200);await closeStory();
 // 개발자 코드: 탑은 그대로
 const f0=await p.evaluate(()=>__d().S.floors);
-await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(400);await closeStory();
+await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.evaluate(()=>{document.getElementById('devForm').hidden=false});await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(400);await closeStory();
 const d=await p.evaluate(()=>{const S=__d().S;return{fl:S.floors,un:S.unlocked,gold:S.gold,found:S.found.length,rec:RECIPES.length,inv:cnt('stone'),shops:SHOPS.map((s,i)=>shopOpen(i)?1:0).join(''),msg:$('devMsg').textContent}});
 ok(d.fl===f0&&d.un===13&&d.gold>9e14&&d.found===d.rec&&d.inv>=9999,`개발자 코드: 탑 ${f0}층 그대로, 지층 ${d.un}개 열림, 골드 무한, 레시피 ${d.found}/${d.rec}, 돌 ${d.inv}`);
 ok(/탑은 열지 않았어요/.test(d.msg),'안내: '+d.msg.slice(0,60));
