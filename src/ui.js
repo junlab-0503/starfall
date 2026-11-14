@@ -155,7 +155,18 @@ $('giftBtn').onclick=openGift;$('boostBtn').onclick=startBoost;
 $('buyPkg').onclick=()=>{if(S.noAds)return;$('shopModal').hidden=false};
 $('shopCancel').onclick=()=>$('shopModal').hidden=true;
 $('shopOk').onclick=()=>{S.noAds=true;$('shopModal').hidden=true;log('광고 제거 패키지가 적용됐어요. 고마워요!',true);renderAll()};
-function renderPkg(){const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAds?'구매 완료':'구매하기';$('pkgState').textContent=S.noAds?'적용 중':''}
+function renderPkg(){const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAds?'구매 완료':'구매하기';$('pkgState').textContent=S.noAds?'적용 중':'';const pr=pkgPrice();$('pkgPrice').textContent=pr;$('pkgPrice2').textContent=pr}
+// 광고 제거 패키지 값: 나라별(기기 지역) 한국 5,900원 · 대만 NT$149 · 그 밖(미국 기준) US$4.99. 출시 땐 스토어가 알려 주는 현지 가격으로 바꿀 자리
+function pkgRegion(){const L=[].concat(navigator.languages||[],navigator.language||[]);for(const l of L){const m=String(l).match(/^([a-z]{2,3})(?:-([A-Za-z]{4}))?(?:-([A-Za-z]{2}))?/i);if(!m)continue;const lg=m[1].toLowerCase(),sc=(m[2]||'').toLowerCase(),rg=(m[3]||'').toUpperCase();
+  if(rg)return rg==='KR'||rg==='TW'?rg:'US';if(lg==='ko')return'KR';if(lg==='zh'&&sc==='hant')return'TW'}return'US'}
+const pkgPrice=()=>({KR:'5,900원',TW:'NT$149'})[pkgRegion()]||'US$4.99';
+/* 버그 제보: 메일 앱으로(받는 사람 · 제목 · 본문에 기기 정보). 받는 주소 BUG_MAIL은 빌드 때 bug_mail.txt에서 넣음 */
+const GAME_VER='v19';
+function bugMail(){const t=$('bugText').value.trim(),info=[`버전 ${GAME_VER}`,`언어 ${typeof LANG!=='undefined'?LANG:'ko'}`,`기기 ${navigator.userAgent}`,`화면 ${innerWidth}×${innerHeight}`,`진행: B${S.unlocked} · 탑 ${S.floors}층 · 곡괭이 ${S.pick} · 드릴 ${S.auto}`].join('\n');
+  return'mailto:'+BUG_MAIL+'?subject='+encodeURIComponent('[별빛광맥] 버그 제보')+'&body='+encodeURIComponent((t||'(내용)')+'\n\n— — —\n'+info)}
+$('bugTo').textContent=BUG_MAIL;
+$('bugText').addEventListener('input',()=>{$('bugSend').href=bugMail()});
+$('bugSend').addEventListener('click',e=>{const t=$('bugText').value.trim();if(!BUG_MAIL){e.preventDefault();toast('받는 메일 주소가 아직 설정되지 않았어요.');return}if(!t){e.preventDefault();toast('무엇이 이상했는지 먼저 적어 주세요.');return}e.currentTarget.href=bugMail();setTimeout(()=>{toast('메일 앱에서 [보내기]를 누르면 제보가 전달돼요. 고마워요!')},300)});
 
 /* 수량 입력 판매 */
 let QTY=null,QM='sell';

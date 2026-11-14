@@ -3,7 +3,7 @@
  암벽에 박힌 광석이 다음에 나올 광물이다. */
 const cv=$('scene'),g=cv.getContext('2d'),SCENE_G=g;
 let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
-const STX=24,STY=9,SL=STY/STX,REACH=34; // 굴 한 칸의 가로/세로 이동, 바닥 기울기, 주인공 발 → 곡괭이가 막장에 닿는 거리(화면 px)
+const STX=24,STY=9,SL=STY/STX,REACH=34,NOSE_W=22; // 굴 한 칸의 가로/세로 이동, 바닥 기울기, 주인공 발 → 곡괭이가 막장에 닿는 거리(화면 px)
 const SWH={w:360,h:500};   // 채굴 화면 크기(떠오르는 글씨 자리 계산용)
 function sceneResize(){fitScene();const el=cv.parentElement,r={width:el.clientWidth,height:el.clientHeight};if(!r.width)return;SWH.w=r.width;SWH.h=r.height;   // 테두리 안쪽 크기(캔버스가 늘어나 번지지 않게)
   SC=2;cv.width=Math.round(r.width);cv.height=Math.round(r.height);IW=cv.width/SC;IH=cv.height/SC;g.imageSmoothingEnabled=false}   // 캔버스 = 화면 크기 그대로(모서리 장식이 딱 붙게)
@@ -132,11 +132,17 @@ function bgCache(L,st,gv,d,DM,K,CW,CH,bite){
     // 판 굴: 굴 띠(사용자 그림을 고른 높이로 편 것)를 판 길을 따라 3칸마다 + 지금 파는 칸(막장)에 찍음.
     // 바위 띠까지(dg) 먼저 모두, 굴 안(dc)을 위에 모두 → 한 줄로 이어진 굴. 막장 띠의 왼쪽 끝(둥근 벽)이 주인공 곡괭이 앞. 황금 광맥 동안엔 굴 안만
     // bite: 지금 바위를 캔 만큼 막장이 조금씩 파고듦(굴 안만 왼쪽 아래로 밀어 한 번 더)
+    // 바위 띠(dg)는 3칸마다 고정된 띠에서만 그림 → 파고 내려가도 뒤쪽 바위가 따라 움직이지 않음.
+    //   지금 칸 앞의 다음 고정 띠(F)는 막장(둥근 코) 뒤쪽만 잘라서 그리고, 지금 칸은 굴 안(dc)만 그려 막장을 만든다
     if(st.dg){const RS=Math.round(REACH*SL),sx=i=>(-i*STX+6-ax)*K-REACH-DM[0]+BGM,sy=i=>(i*STY-ay)*K+RS-DM[1]+BGM,TW=st.dg.width,TH=st.dg.height,list=[];
       for(let i=d-((d%3+3)%3||3);i>=d-48&&i>=0;i-=3){const px=sx(i),py=sy(i);if(px>W||py+TH<0)break;if(px+TW<0||py>H)continue;list.push([px,py])}
-      list.reverse();list.push([sx(d),sy(d)]);
-      if(!gv)list.forEach(([px,py])=>x.drawImage(st.dg,px,py));list.forEach(([px,py])=>x.drawImage(st.dc,px,py));
-      if(bite)x.drawImage(st.dc,sx(d)-bite,sy(d)+Math.round(bite*SL))}}
+      list.reverse();const F=d%3?d+3-d%3:d,face=sx(d)+DM[0];
+      if(!gv){list.forEach(([px,py])=>x.drawImage(st.dg,px,py));
+        x.save();x.beginPath();x.rect(face+NOSE_W,0,W,H);x.clip();x.drawImage(st.dg,sx(F),sy(F));x.restore()}
+      list.forEach(([px,py])=>x.drawImage(st.dc,px,py));
+      // 지금 칸의 굴 안은 막장부터 가장 가까운 고정 띠의 막장까지만(그 뒤는 고정 띠의 굴 안 그대로 → 굴 가장자리도 움직이지 않음)
+      {const last=list.length?list[list.length-1][0]+DM[0]+NOSE_W+2:W;x.save();x.beginPath();x.rect(0,0,last,H);x.clip();x.drawImage(st.dc,sx(d),sy(d));
+       if(bite)x.drawImage(st.dc,sx(d)-bite,sy(d)+Math.round(bite*SL));x.restore()}}}
   return{c:BGC.c,ox:ox-BGM,oy:oy-BGM}}
 // 바위를 캔 만큼 막장이 파고드는 정도(화면 px, 0 · 4 · 8 · 12)
 function digBite(L){return Math.min(3,Math.floor(clamp(1-S.hp/layerHp(L),0,1)*4))*4}

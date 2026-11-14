@@ -9,3 +9,4 @@ calib*.log
 !art/**/*.png
 !exports/**/*.png
 exports/*.zip
+bug_mail.txt

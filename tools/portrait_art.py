@@ -3,6 +3,7 @@
 양피지 배경(위 · 옆 가장자리에서 이어진 양피지 색)은 갱도 등불 느낌의 어두운 갈색(머리 뒤가 은은하게 밝은 계단식)으로 바꾼다
 사용: python3 tools/portrait_art.py"""
 from PIL import Image
+import os
 import numpy as np
 from collections import Counter
 KEYS=['bau','granny','pin','musoe','luka','ella','serin','hamel','dodam','gangcheol','mir','noeul','arden']
@@ -82,7 +83,11 @@ def sem_src():
     # 색조: 다른 초상화(밝기 평균 약 100 · 편차 약 60, 윤곽은 검정이 아니라 짙은 갈색)에 맞게 대비를 낮추고 어두운 곳을 따뜻하게 올림
     fig=crop[...,:3]*.76+np.array([40,27,22.])
     al=crop[...,3:4]/255;return (fig*al+bgS*(1-al)).clip(0,255)
-SRCS['sem']=(sem_src(),None)
+# 셈: 사용자가 따로 그린 셈 초상화(art/source/sem_portrait.webp, 액자 + 이름표)가 있으면 그 액자 안쪽 그림을 그대로 씀
+if os.path.exists('art/source/sem_portrait.webp'):
+    sp=np.asarray(Image.open('art/source/sem_portrait.webp').convert('RGB')).astype(float)
+    SRCS['sem']=(sp[82:902,272:1092],None)   # 금테 · 이름표는 빼고, 다른 초상화처럼 얼굴이 크게(머리 위 ~ 어깨) 정사각
+else:SRCS['sem']=(sem_src(),None)
 for k in KEYS+['sem']:
     src=SRCS[k][0]
     h,w,_=src.shape

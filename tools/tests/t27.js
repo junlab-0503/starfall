@@ -12,7 +12,7 @@ ok(/철거 예정/.test(T.letter)&&/아직 죽지 않았다/.test(T.journal)&&/�
 ok(!T.end,'에필로그에 이장 할머니 카드 없음');
 ok(!/99층|별을 하늘로/.test(T.last)&&/마을/.test(T.last),'튜토리얼 마지막 말: '+T.last.slice(0,40));
 ok(!T.bau&&T.intro==='무쇠,셈,핀,루카,미르','입주 뒤 한 장 더 설명하는 사람은 가게 주인만: '+T.intro);
-ok(await p.evaluate(()=>!/갈무리|Galmuri/.test(document.body.innerText)&&!/배당/.test(document.getElementById('tab-market').innerHTML)),'광고 제거 패키지 글꼴 설명 없음 · 장터에 "배당" 단어 없음');
+ok(await p.evaluate(()=>{const pk=[...document.querySelectorAll('#sub-set .panel')].find(e=>/광고 제거/.test(e.textContent));return pk&&!/Galmuri/.test(pk.textContent)&&/Galmuri/.test(document.querySelector('.credit').textContent)&&/© 2026 jun/.test(document.querySelector('.t-copy').textContent)&&!/배당/.test(document.getElementById('tab-market').innerHTML)}),'글꼴 · 저작권 표기는 관리 탭 아래와 시작 화면 아래(광고 제거 패키지 칸엔 없음) · 장터에 "배당" 단어 없음');
 await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
 await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await closeStory();
 // 장비 탭: 순서 · 액자 크기
@@ -26,11 +26,8 @@ ok(up.crit===20&&Math.abs(up.c20-.4)<1e-9&&Math.abs(up.m20-.7)<1e-9&&up.hag===20
 ok(Math.abs(up.c5-2.1)<.01&&Math.abs(up.c11-1.4)<.01,`강화 값: 예전 한도까지 ×${up.c5.toFixed(2)}, 그 뒤 ×${up.c11.toFixed(2)}`);
 ok(up.pm===50&&up.bulk===10,'출입권 한도: 지층마다 50장(큰손 거래처 1단계마다 +10장, 10단계)');
 ok(await p.evaluate(()=>{const S=__d().S,f=S.floors;S.floors=88;refreshBonus();const a=BON.veinFast;S.floors=f;refreshBonus();return a===.7&&BON.veinFast===1&&/황금 광맥/.test(SECTIONS[11].t.bonus)}),'노을 입주 효과: 황금 광맥 간격 ×0.7');
-// 개발자 코드: 숨김 → [설정] 10초 누르기
-await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.waitForTimeout(200);
-const hid0=await p.evaluate(()=>$('devForm').hidden);
-const sb=await (await p.$('#setBtn')).boundingBox();await p.mouse.move(sb.x+sb.width/2,sb.y+sb.height/2);await p.mouse.down();await p.waitForTimeout(4000);const hid4=await p.evaluate(()=>$('devForm').hidden);await p.waitForTimeout(6400);await p.mouse.up();
-const hid10=await p.evaluate(()=>$('devForm').hidden);ok(hid0&&hid4&&!hid10,`개발자 코드 칸: 처음 숨김 ${hid0}, 4초 누름 숨김 ${hid4}, 10초 누르면 나타남 ${!hid10}`);
+// 개발자 코드 칸: 다시 보이게(v19, 출시 전에 지울 것)
+await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.waitForTimeout(200);ok(await p.evaluate(()=>!$('devForm').hidden),'개발자 코드 칸 보임');
 // 채굴 보관함
 await p.evaluate(()=>{const S=__d().S;S.auto=3;S.autoOn=false;S.box={stone:120,copper:44,clay:30};['stone','copper','clay'].forEach(i=>S.seen.includes(i)||S.seen.push(i));setTab('mine')});await p.waitForTimeout(300);await closeStory();
 const bx=await p.evaluate(()=>({tag:$('boxBtn').querySelector('.ic-tag').textContent,n:$('boxN').textContent,has:$('boxBtn').classList.contains('has')}));ok(bx.tag==='채굴 보관함'&&bx.has&&bx.n==='194','보관함 버튼: '+JSON.stringify(bx));
