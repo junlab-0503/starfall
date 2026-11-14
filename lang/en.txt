@@ -353,7 +353,7 @@ Sem's Warehouse
 Pin's Workbench
 "Grandpa's mining machine? I can fix it! At my workbench in the [Gear] tab I'll make the drill robots faster and make the stash bigger, too."
 Layer Passes
-"I've opened [Layer Passes] at the market! Hold a pass and ore from that layer trickles into your mining stash. Buy a lot at once and the price creeps up a little."
+"I've opened [Layer Passes] at the market! Hold a pass and ore from that layer trickles into your mining stash."
 Rumor Board
 "And rumors! A layer rumor goes around every 30–40 minutes, and 15–20 minutes later it's announced whether it was true. Watch who said it, whether others say the same, and whether clues turn up in that layer. If it proves true, the pass price jumps."
 Mir's Furnace · Auto Smeltery

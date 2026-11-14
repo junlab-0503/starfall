@@ -4,9 +4,11 @@ const canSmeltWith=sl=>{const[a,b]=sl;if(!a||!b)return false;return a===b?cnt(a)
 function smeltOnce(){const[a,b]=S.slots;if(!canSmeltWith(S.slots))return null;add(a,-1);add(b,-1);S.crafts++;const idx=RMAP[key(a,b)];
   if(idx==null){add('slag',1);return{kind:'bad',msg:`${ITEMS[a].n} + ${ITEMS[b].n}: 반응이 없어요. 광재가 남았어요.`}}
   // 튜토리얼 동안 처음 몇 번은 꼭 성공
-  const out=RECIPES[idx].out,r=!S.tutDone&&S.crafts<=6?greatRate():Math.random();if(!S.found.includes(idx)){S.found.push(idx);log(`새 레시피 발견: ${ITEMS[a].n} + ${ITEMS[b].n} = ${ITEMS[out].n}`,true)}
-  if(r<greatRate()){add(out,2);return{kind:'great',msg:`대성공! ${ITEMS[out].n} 2개`}}
-  if(r<successRate()){add(out,1);return{kind:'ok',msg:`${ITEMS[out].n} 완성`}}
+  const out=RECIPES[idx].out,r=!S.tutDone&&S.crafts<=6?greatRate():Math.random();
+  // 레시피는 실제로 만들어졌을 때(성공 · 대성공)만 도감에 남는다. 불 조절에 실패해 광재만 남으면 아직 모르는 레시피
+  const learn=()=>{if(!S.found.includes(idx)){S.found.push(idx);log(`새 레시피 발견: ${ITEMS[a].n} + ${ITEMS[b].n} = ${ITEMS[out].n}`,true)}};
+  if(r<greatRate()){add(out,2);learn();return{kind:'great',msg:`대성공! ${ITEMS[out].n} 2개`}}
+  if(r<successRate()){add(out,1);learn();return{kind:'ok',msg:`${ITEMS[out].n} 완성`}}
   add('slag',1);return{kind:'bad',msg:'불 조절에 실패했어요. 광재가 남았어요.'}}
 function showResult(r){const el=$('result');el.className='result '+r.kind;el.textContent=r.msg;const p=$('forgePanel');p.classList.remove('flash');void p.offsetWidth;p.classList.add('flash')}
 $('smelt').onclick=()=>{const k=[...S.slots],r=smeltOnce();if(r){S.slots=canSmeltWith(k)?k:S.slots.map(x=>x&&cnt(x)?x:null);showResult(r);renderForge();renderBook();renderHeader()}};

@@ -44,7 +44,7 @@ $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode
 let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
   try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');startPrologue();save()};
 let lastT=0,lastDraw=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;
-function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden)clockWatch();
+function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden){clockWatch();S.playT=(S.playT||0)+dt}   // 플레이 시간: 화면이 켜져 있는 동안만
   if(S.tab==='mine'&&!IW)sceneResize();
   update(dt);rqRun(dt);if(S.tab==='mine'&&IW&&now-lastDraw>=10&&$('titleScr').hidden&&$('entry').hidden){lastDraw=now;draw(now/1000)}   // 120Hz 화면에서도 그리기는 초당 60번까지, 시작 화면 · 입구 장면이 덮고 있는 동안엔 안 그림(렉 줄이기)
   if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();if(S.tab==='forge')rqBars();renderHeader();tutTick()}

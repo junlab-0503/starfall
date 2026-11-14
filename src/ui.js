@@ -85,7 +85,7 @@ function renderBookTab(){
   setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp" data-jp="${i}" type="button"><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</button>`:`<div class="jp unk">B${i+1} · 아직 찾지 못한 장</div>`).join(''));
   $('dexCount').textContent=`${S.seen.length}/${ORDER.length}`;
   setHTML($('dex'),ORDER.map(id=>`<button class="dx${S.seen.includes(id)?'':' unk'}" data-dx="${id}" type="button" aria-label="${S.seen.includes(id)?ITEMS[id].n:'아직 모르는 광물'}">${ico(id)}</button>`).join(''));
-  const mins=Math.round((gtime()-S.t0)/60000);
+  const mins=Math.round((S.playT||0)/60);   // 게임을 켜 두고 있던 시간만(자리 비운 시간 · 앱이 뒤로 간 시간은 빼고)
   setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['재련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
 $('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([{k:'할아버지의 일지',t:`B${i+1} ${LAYERS[i].n}`,b:`"${JOURNAL[i]}"`}])});
 /* 장터: [지층 출입권] 소문을 읽고 사고팔기 · [광물 거래] 정해진 값 */

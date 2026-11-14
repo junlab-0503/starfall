@@ -10,7 +10,7 @@ const TENANT_INTRO={
   '무쇠':[{t:'무쇠네 대장간',b:'"하하, 망치 다시 잡는다! [장비] 탭 대장간으로 와. 곡괭이 날 세워 줄게. 날이 설수록 바위가 쉽게 갈라지거든!"'}],
   '셈':[{t:'셈의 창고',b:'"창고가 비좁지? [장비] 탭 내 창고에서 칸을 늘려 줄게. 꽉 차면 싼 원석부터 알아서 정리하는 것도 맡겨 둬."'}],
   '핀':[{t:'핀의 작업대',b:'"할아버지 채굴 기계요? 제가 고칠 수 있어요! [장비] 탭 작업대에서 드릴 로봇을 더 빠르게 만들고, 보관함도 넓혀 드릴게요."'}],
-  '루카':[{t:'지층 출입권',b:'"장터에 [지층 출입권]을 열었어요! 출입권을 가지고 있으면 그 지층 광석이 조금씩 채굴 보관함에 들어와요. 한꺼번에 많이 사면 값이 조금씩 올라요."'},
+  '루카':[{t:'지층 출입권',b:'"장터에 [지층 출입권]을 열었어요! 출입권을 가지고 있으면 그 지층 광석이 조금씩 채굴 보관함에 들어와요."'},
           {t:'소문 게시판',b:'"그리고 소문! 30~40분마다 지층 소문이 돌고, 15~20분 뒤에 사실인지 발표돼요. 누가 한 말인지, 다른 사람도 같은 말을 하는지, 그 지층에서 단서가 나오는지 잘 보세요. 사실로 밝혀지면 출입권 값이 크게 올라요."'}],
   '미르':[{t:'미르의 용광로 · 자동 재련소',b:'"…용광로는 제가 돌볼게요. [장비] 탭에서 풀무를 키우면 재련이 더 잘 돼요. 그리고 [재련] 탭에 자동 재련소를 열었어요. …레시피를 맡겨 두면 자리를 비운 동안에도 녹여 둘게요."'}]};
 function buildFloor(quiet){if(towerBlocked())return false;const f=S.floors+1,c=floorCost(f);if(!canBuild(c))return false;
@@ -28,7 +28,7 @@ function buyMissing(){const c=floorCost(S.floors+1);let spent=0,got=0;c.mats.for
 function collectRent(){if(S.rentAcc<1)return;S.gold+=S.rentAcc;log(`입주자들이 월세 ${big(S.rentAcc)}G를 냈어요.`,true);S.rentAcc=0;renderAll()}
 function finale(){if(S.floors<99||S.ended)return;if(cnt('philo')<1||cnt('starshard')<10){toast('현자의 원석 1개와 별의 파편 10개가 필요해요.');return}
   add('philo',-1);add('starshard',-10);S.ended=true;refreshBonus();
-  const mins=Math.round((gtime()-S.t0)/60000);
+  const mins=Math.round((S.playT||0)/60);
   story(ENDING.map((c,i)=>Object.assign({gold:1,k:'에필로그'},c)).concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>재련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
   renderAll()}
 // 탑 그림(사용자 그림 art/scene/tower.png): 쌓은 층만큼 아래부터 색이 들어오고, 위는 어두운 실루엣. 하늘 · 오로라 · 별은 깊이 내려갈수록 짙어짐

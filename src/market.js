@@ -2,7 +2,7 @@
  광물  팔 때 = 기본가 × 판매 보너스(탑 층수 · 흥정 솜씨 · 입주자 분야 보너스), 살 때 = 팔 때 × 1.3 (엘라 입주 후 1.21)
  출입권 지층마다 있다. 1장마다 그 지층 광석이 천천히 채굴 보관함으로 들어온다(약 15시간에 본전).
         값 = 기본값 × 분위기 × (1 + 매수 압력). 소문이 돌면 분위기가 움직이고, 조사단 발표로 크게 오르거나 내린다.
- 소문  켜 둔 동안 32~42분마다 하나(동시에 최대 2개), 15~20분 뒤 발표. 진짜인지는 처음에 정해져 저장된다.
+ 소문  켜 둔 동안 25~35분마다 하나(동시에 최대 2개), 15~20분 뒤 발표. 진짜인지는 처음에 정해져 저장된다.
         추리 단서: 출처의 적중 기록, 다른 사람의 같은 말(진짜일수록 잦음, 1분에 8% 대 2%), 그 지층을 캘 때 나오는 흔적, 값의 미리 움직임, 정보원 감정 */
 function seasonIdx(){return Math.floor(S.day/7)%4}
 const sellBon=id=>BON.sell*((BON.dem&&BON.dem[ITEMS[id].s])||1);
@@ -28,10 +28,11 @@ const passDiv=i=>passBase(i)/(BAL.pass.pay*3600);                       // 1장�
 const PM=i=>S.pm[i]||(S.pm[i]={m:1,imp:0});
 const passPrice=i=>passBase(i)*PM(i).m*(1+PM(i).imp);
 const passHeld=i=>(S.pass[i]&&S.pass[i].n)||0;
-// 사고팔기: 한 장마다 값이 0.1%씩 밀린다(시간이 지나면 풀림). 한꺼번에 사면 조금 비싸지는 정도
+// 사고팔기: 한 장 살 때마다 값이 0.1%씩 밀리고(시간이 지나면 풀림), 팔 때는 밀린 만큼 먼저 되돌리고 값을 매긴다
+//  → 산 그 자리에서 되팔면 정확히 본전(값이 밀린 덕에 생기는 무위험 수익 없음)
 function passBuy(i,n){const P=PM(i);n=Math.min(n,passMax()-passHeld(i));let k=0,t=0;while(k<n){const c=passPrice(i);if(S.gold<c)break;S.gold-=c;t+=c;P.imp+=.001;k++}
   if(k){const h=S.pass[i]||(S.pass[i]={n:0,c:0});h.n+=k;h.c+=t}return{k,t}}
-function passSell(i,n){const P=PM(i),h=S.pass[i];if(!h)return{k:0,t:0};n=Math.min(n,h.n);let t=0;const avg=h.c/h.n;for(let k=0;k<n;k++){t+=passPrice(i);P.imp-=.001}
+function passSell(i,n){const P=PM(i),h=S.pass[i];if(!h)return{k:0,t:0};n=Math.min(n,h.n);let t=0;const avg=h.c/h.n;for(let k=0;k<n;k++){P.imp-=.001;t+=passPrice(i)}
   S.gold+=t;S.earned+=t;h.c-=avg*n;h.n-=n;if(!h.n)delete S.pass[i];return{k:n,t,gain:t-avg*n}}
 const passValue=()=>Object.keys(S.pass||{}).reduce((s,i)=>s+passHeld(i)*passPrice(+i),0);
 // 출입권 수입: 보유한 출입권만큼 그 지층 광석이 천천히 채굴 보관함으로
@@ -79,7 +80,7 @@ function rumorClue(L){for(const r of S.rum){if(r.L!==L)continue;r.brk=(r.brk||0)
 function tickMarket(dt,offline){S.clock+=dt;S.day+=dt/DAY;
   for(let i=0;i<S.unlocked;i++){const P=PM(i),inR=S.rum.some(r=>r.L===i);if(!inR)P.m+=(1-P.m)*Math.min(1,dt/1200)+.002*Math.sqrt(dt)*gauss();P.m=clamp(P.m,.15,8);P.imp*=Math.exp(-dt/90)}
   rumorTick(dt);
-  if(!offline){S.rumT=(S.rumT??300)-dt;if(S.rumT<=0){if(S.rum.length<2&&tenantIn('루카'))newRumor();S.rumT=1900+Math.random()*600}passDividend(dt)}}
+  if(!offline){S.rumT=(S.rumT??300)-dt;if(S.rumT<=0){if(S.rum.length<2&&tenantIn('루카'))newRumor();S.rumT=1500+Math.random()*600}passDividend(dt)}}
 
 // 앱을 꺼 둔 동안: 소문 발표는 진행되고, 월세 · 드릴 로봇(스위치가 켜져 있을 때만) · 출입권 수입 · 자동 재련은 '켜 두고 1시간'치까지만
 function catchUp(sec){sec=Math.min(sec,16*3600);if(sec<30)return null;const steps=Math.min(2000,Math.floor(sec/5)),st=sec/steps;for(let i=0;i<steps;i++)tickMarket(st,true);

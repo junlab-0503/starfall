@@ -1,6 +1,6 @@
 // 1층(대장간 터)의 골드는 튜토리얼용 고정값(TUT_FLOOR_G)이라 맞추지 않는다
 const {chromium}=require('playwright');const fs=require('fs');
-const SC=+(process.env.SC||.606),END=+(process.env.END||30),TL0={1:0,2:.15,3:.55,4:1.3,5:2.6,6:4.6,7:7.2,8:10.5,9:14.5,10:19,11:24.5,12:30.5,13:37},TU0={0:0,1:.4,2:1,3:2,4:3.5,5:5.8,6:8.8,7:12.5,8:16.8,9:21.5,10:27,11:33.5,12:41,13:49.5};
+const SC=+(process.env.SC||.404),END=+(process.env.END||20),TL0={1:0,2:.15,3:.55,4:1.3,5:2.6,6:4.6,7:7.2,8:10.5,9:14.5,10:19,11:24.5,12:30.5,13:37},TU0={0:0,1:.4,2:1,3:2,4:3.5,5:5.8,6:8.8,7:12.5,8:16.8,9:21.5,10:27,11:33.5,12:41,13:49.5};
 const TL={},TU={};for(const k in TL0)TL[k]=TL0[k]*SC;for(const k in TU0)TU[k]=TU0[k]*SC;
 const RT=[0,1.6,1.5,1.4,1.35,1.3,1.2,1.15,1.1,1,.95,.9,.85,.8];
 (async()=>{const b=await chromium.launch();const p=await b.newPage();await p.goto('file://'+process.cwd()+'/harness.html');await p.waitForTimeout(200);
