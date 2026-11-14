@@ -229,5 +229,6 @@ function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein
 function veinPop(){const el=$('veinPop'),on=!!S.vein&&S.tab!=='mine';if(el.hidden===on){el.hidden=!on}if(on)$('veinPopT').textContent=`${Math.max(0,Math.ceil(S.vein.left))}초`}
 function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;veinPop();if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
 function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.round(Math.min(v.pot*1.5-v.got,v.pot*k));if(amt<=0)return;v.got+=amt;S.gold+=amt;S.earned+=amt;
+  if(!tap){A.vAuto=(A.vAuto||0)+amt;if(gtime()-(A.vAutoT||0)>1000){A.vAutoT=gtime();floatText(`드릴 +${big(A.vAuto)}G`,'#ffd23f');A.vAuto=0}}
   if(tap){const ex=FLOATS.find(f=>f.id==='$g'&&f.life>.3);if(ex)ex.add=amt;floatText(`+${big(amt)}G`,'#ffd23f','$g');const f0=FLOATS[0];if(f0&&f0.id==='$g'&&!ex)f0.n=amt;sfx('coin');const w=charW();for(let i=0;i<5;i++)PARTS.push({x:w.x-12,y:w.y-16,vx:-20+Math.random()*40,vy:-50-Math.random()*30,life:.6,c:'#ffd23f',sz:1,star:Math.random()<.5})}}
 

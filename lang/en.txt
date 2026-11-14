@@ -355,7 +355,7 @@ Pin's Workbench
 Layer Passes
 "I've opened [Layer Passes] at the market! Hold a pass and ore from that layer trickles into your mining stash."
 Rumor Board
-"And rumors! A layer rumor goes around every 30–40 minutes, and 15–20 minutes later it's announced whether it was true. Watch who said it, whether others say the same, and whether clues turn up in that layer. If it proves true, the pass price jumps."
+"And rumors! A layer rumor goes around about every 10 minutes, and 6–8 minutes later it's announced whether it was true. Watch who said it, whether others say the same, and whether clues turn up in that layer. If it proves true, the pass price jumps."
 Mir's Furnace · Auto Smeltery
 "…I'll look after the furnace. Grow the bellows in the [Gear] tab and smelting goes better. And I've opened an Auto Smeltery in the [Smelt] tab. …Leave a recipe with me and I'll keep smelting while you're away."
 ## shopLines

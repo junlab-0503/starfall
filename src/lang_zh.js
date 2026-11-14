@@ -62,7 +62,7 @@ LANGS.zh={d:{
   F.rum=(i,...g)=>{const e=g[g.length-1];return STEM[i](...g)+(END[e]!==undefined?END[e]:'。')};
   Object.assign(F,{
   toLayer:(a,b)=>`開拓 B${a} ${T(b)} 還需要`,openL:a=>`開拓 B${a} →`,tutHint:(a,b,c,d)=>`（${T(a)} ${b}/${c}）`+(d?'石頭不夠的話，就到挖礦畫面再挖一些吧。':''),
-  firstDug:(a,b,c)=>`${T(a)}第一次在 B${b} ${T(c)}挖到。`,ofFloat:a=>`賣出溢出礦石 +${a}G`,plusItem:(a,b)=>`+${a} ${T(b)}`,newMineral:a=>`發現新礦物：${T(a)}`,journalN:a=>`爺爺的日誌 · ${a}/13`,
+  firstDug:(a,b,c)=>`${T(a)}第一次在 B${b} ${T(c)}挖到。`,ofFloat:a=>`賣出溢出礦石 +${a}G`,drillGold:a=>`鑽頭 +${a}G`,plusItem:(a,b)=>`+${a} ${T(b)}`,newMineral:a=>`發現新礦物：${T(a)}`,journalN:a=>`爺爺的日誌 · ${a}/13`,
   boxTitle:(a,b)=>`${a} / ${b} 格`,freeWh:a=>`倉庫空位 ${a} 格`,veinShow:a=>`黃金礦脈出現了！${a} 秒內挖掘就會湧出金幣。`,veinEnd:a=>`黃金礦脈再次沉睡了。這次挖到的金幣 +${a}G`,secN:a=>a+' 秒',
   boxMoved:(a,b)=>`把採礦保管箱的 ${a} 個礦石搬進倉庫了。`+(b?`（倉庫滿了，還有 ${b} 個留在保管箱）`:''),boxSold:(a,b,c)=>`賣出採礦保管箱的${T(a)} ${b} 個：+${c}G`,semSold:(a,b,c)=>`小算賣掉了 ${b} 個${T(a)}騰出空位：+${c}G`,
   opened:(a,b)=>`開拓了${T(a)}！（−${b}m）`,boostOn:a=>`10 分鐘內十字鎬和自動鑽頭威力 2 倍！（今天還剩 ${a} 次）`,

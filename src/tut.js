@@ -34,10 +34,11 @@ $('tutNext').onclick=()=>{S.tutDone=true;tutHide();toast('튜토리얼을 건너
 /* 광맥 입구 장면: 마을 뒤 광산 입구 그림(art/scene/entry) 위로 주인공 도트가 걸어가 입구 안으로 들어가고, 어두워지며 "B1 표토층"이 뜬 뒤 채굴 화면으로.
    그림 좌표(원본 2000×667): 땅 높이 y 503, 입구 문턱 x 1560, 입구 안 x 1665, 등불 (1645, 318). 탭하면 건너뜀 */
 const ENTRY={ground:503,start:300,door:1560,inside:1665,lamp:[1645,318],W:2000,H:667,speed:330};
-function entryScene(){const el=$('entry'),cv=$('entryCv'),x=cv.getContext('2d'),bg=new Image();bg.src=ART.scene_entry;el.hidden=false;el.classList.remove('out','dark');
+// still: 프롤로그 카드 뒤에 깔리는 멈춘 한 장면(주인공은 출발 자리에 서 있음, 탭해도 넘어가지 않음)
+function entryScene(still){const el=$('entry'),cv=$('entryCv'),x=cv.getContext('2d'),bg=new Image();bg.src=ART.scene_entry;el.hidden=false;el.classList.remove('out','dark');el.classList.toggle('still',!!still);
   let t0=null,raf=0,ended=false;const tWalk=(ENTRY.door-ENTRY.start)/ENTRY.speed,tIn=1.1,tDark=.6,tCard=1.6;
   const finish=()=>{if(ended)return;ended=true;cancelAnimationFrame(raf);el.classList.add('out');setTimeout(()=>{el.hidden=true;el.classList.remove('out','dark');renderAll()},450)};
-  el.onclick=()=>{if(t0!=null&&performance.now()-t0>400)finish()};   // 들어오자마자 누른 탭은 무시
+  el.onclick=still?null:()=>{if(t0!=null&&performance.now()-t0>400)finish()};   // 들어오자마자 누른 탭은 무시
   const step=now=>{if(ended)return;if(!bg.complete||!HERO.img){raf=requestAnimationFrame(step);return}if(t0==null)t0=now;const t=(now-t0)/1000;
     const dpr=window.devicePixelRatio||1,W=Math.round(el.clientWidth*dpr),H=Math.round(el.clientHeight*dpr);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
     const s=Math.max(H*.74/ENTRY.H,W/ENTRY.W),top=Math.round((H-ENTRY.H*s)*.3);
@@ -57,6 +58,7 @@ function entryScene(){const el=$('entry'),cv=$('entryCv'),x=cv.getContext('2d'),
     const hc=ENTRY.hc||(ENTRY.hc=document.createElement('canvas'));hc.width=f[2];hc.height=f[3];const hx2=hc.getContext('2d');hx2.drawImage(HERO.img,f[0],f[1],f[2],f[3],0,0,f[2],f[3]);
     if(fade<1){hx2.globalCompositeOperation='source-atop';hx2.globalAlpha=(1-fade)*.85;hx2.fillStyle='#0a0606';hx2.fillRect(0,0,f[2],f[3])}
     x.save();x.globalAlpha=Math.max(0,Math.min(1,fade*1.6));x.imageSmoothingEnabled=false;x.translate(px,py);x.scale(-1,1);x.drawImage(hc,-(f[2]-f[4])*k,-fh,fw,fh);x.restore();
+    if(still)return;   // 멈춘 한 장면: 한 번만 그림
     if(t>tWalk+tIn*.7&&!el.classList.contains('dark')){el.classList.add('dark');sfx('page')}
     if(t>tWalk+tIn+tDark+tCard){finish();return}
     raf=requestAnimationFrame(step)};

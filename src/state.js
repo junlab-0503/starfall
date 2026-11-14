@@ -48,13 +48,14 @@ function cleanSave(d){const f=fresh(),S2={};
   S2.slots=[0,1].map(i=>{const id=(S2.slots||[])[i];return ITEMS[id]?id:null});
   const a=S2.ads||{};S2.ads={boostUntil:num(a.boostUntil)?a.boostUntil:0,day:num(a.day)?a.day:0,gift:num(a.gift)?a.gift:0,boost:num(a.boost)?a.boost:0};
   const pass={};for(const i in S2.pass||{}){const h=S2.pass[i];if(LAYERS[i]&&h&&num(h.n)&&h.n>0&&num(h.c))pass[i]={n:h.n|0,c:h.c}}S2.pass=pass;
-  const pm={};for(const i in S2.pm||{}){const P=S2.pm[i];if(LAYERS[i]&&P&&num(P.m))pm[i]={m:clamp(P.m,.5,3),imp:num(P.imp)?P.imp:0}}S2.pm=pm;
+  const pm={};for(const i in S2.pm||{}){const P=S2.pm[i];if(LAYERS[i]&&P&&num(P.m))pm[i]={m:clamp(P.m,.15,8),a:num(P.a)?clamp(P.a,.15,8):1,imp:num(P.imp)?P.imp:0}}S2.pm=pm;
   S2.rum=(Array.isArray(S2.rum)?S2.rum:[]).filter(r=>r&&LAYERS[r.L]&&SOURCES[r.src]&&num(r.t)&&num(r.dur));S2.rumDone=(Array.isArray(S2.rumDone)?S2.rumDone:[]).slice(0,4);
   S2.unlocked=clamp(S2.unlocked|0,1,LAYERS.length);S2.layer=clamp(S2.layer|0,0,S2.unlocked-1);
   if(!['pass','ore'].includes(S2.mkSub))S2.mkSub='pass';
   const up={};for(const k in S2.up||{})if(UPS[k]&&num(S2.up[k])&&S2.up[k]>0)up[k]=Math.min(S2.up[k]|0,UPS[k].max??999);S2.up=up;
   S2.rq=(Array.isArray(S2.rq)?S2.rq:[]).filter(j=>j&&RECIPES[j.r]&&num(j.n)).map(j=>({r:j.r,n:Math.max(0,j.n|0),t:num(j.t)?j.t:0,loop:!!j.loop}));
-  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.rq=[];S2.slots=[null,null]}   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움S2.log=(S2.log||[]).slice(0,60);
+  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.rq=[];S2.slots=[null,null]}   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움
+  S2.log=(S2.log||[]).slice(0,60);
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
   const raw=localStorage.getItem(SAVE_KEY);if(raw){S=cleanSave(JSON.parse(raw));return true}}catch(e){}S=fresh();return false}

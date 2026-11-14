@@ -74,7 +74,7 @@ LANGS.en={d:{
   F.rum=(i,...g)=>{const e=g[g.length-1];return STEM[i](...g)+(END[e]!==undefined?END[e]:'.')};
   Object.assign(F,{
   toLayer:(a,b)=>`To open B${a} ${T(b)}`,openL:a=>`Open B${a} →`,tutHint:(a,b,c,d)=>`(${T(a)} ${b}/${c})`+(d?' If you run short of stone, dig a little more on the mining screen.':''),
-  firstDug:(a,b,c)=>`${T(a)} First dug up in B${b} ${T(c)}.`,ofFloat:a=>`Overflow sold +${a}G`,plusItem:(a,b)=>`+${a} ${T(b)}`,newMineral:a=>`New mineral found: ${T(a)}`,journalN:a=>`Grandpa's Journal · ${a}/13`,
+  firstDug:(a,b,c)=>`${T(a)} First dug up in B${b} ${T(c)}.`,ofFloat:a=>`Overflow sold +${a}G`,drillGold:a=>`Drill +${a}G`,plusItem:(a,b)=>`+${a} ${T(b)}`,newMineral:a=>`New mineral found: ${T(a)}`,journalN:a=>`Grandpa's Journal · ${a}/13`,
   boxTitle:(a,b)=>`${a} / ${b} slots`,freeWh:a=>`Free warehouse space: ${a}`,veinShow:a=>`A golden vein appeared! Dig for ${a} seconds and gold pours out.`,veinEnd:a=>`The golden vein went back to sleep. Gold dug this time: +${a}G`,secN:a=>a+'s',
   boxMoved:(a,b)=>`Moved ${a} ore from the mining stash to the warehouse.`+(b?` (The warehouse filled up, so ${b} stayed in the stash)`:''),boxSold:(a,b,c)=>`Sold ${b} ${T(a)} from the mining stash: +${c}G`,semSold:(a,b,c)=>`Sem sold ${b} ${T(a)} to make room: +${c}G`,
   opened:(a,b)=>`${T(a)} opened! (−${b}m)`,boostOn:a=>`Pickaxe and auto drill are 2× stronger for 10 minutes! (${a} left today)`,

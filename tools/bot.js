@@ -4,7 +4,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   let rs=snap?snap.rs:seed>>>0;Math.random=()=>{rs=(rs+0x6D2B79F5)>>>0;let t=rs;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};
   window.story=()=>{};window.toast=()=>{};window.renderAll=()=>{};window.renderTab=()=>{};window.renderLog=()=>{};window.renderMineHud=()=>{};window.renderLayers=()=>{};window.renderForge=()=>{};window.renderBook=()=>{};window.renderHeader=()=>{};
   window.revealJournal=i=>{if(!S.journal.includes(i))S.journal.push(i)};
-  let t=0,endT=null,lost=0,gIncome=0,unlockT={},sectT={},tf=0,RS={};const TAPS=2.5,log=[];
+  let t=0,endT=null,lost=0,gIncome=0,unlockT={},sectT={},tf=0,RS={};const TAPS=opt.taps??2.5,log=[];
   if(snap){S=JSON.parse(snap.S);t=snap.t;tf=snap.tf||0;RS=snap.RS||{};unlockT=snap.unlockT;sectT=snap.sectT;lost=snap.lost;endT=snap.endT;refreshBonus()}
   else{S=fresh();S.prologue=true;S.tutDone=true;S.legacy=1;S.gold+=LEGACY.gold;S.auto=LEGACY.auto;S.autoOn=true;refreshBonus();S.hp=layerHp(0);for(let i=0;i<120;i++)tickMarket(2,true)}
   const recipeOf={};RECIPES.forEach((r,i)=>recipeOf[r.out]=i);
@@ -21,7 +21,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   const SZ=RUM_SIZE.map(R=>[(R.up[0]+R.up[1])/2,(R.dn[0]+R.dn[1])/2]);   // 크기별 평균 오름폭 · 내림폭
   function pTrue(r){const rec=S.srcRec[r.src]||{h:0,n:0};let o=(rec.h+1.5)/(rec.n-rec.h+1.5);
     const acc=[0,.75,.88,.97][Math.min(S.intel,3)];if(r.hint!=null&&acc)o*=r.hint?acc/(1-acc):(1-acc)/acc;
-    const mins=r.t/60;o*=Math.pow(4,r.echo.length)*Math.exp(-.06*mins);const b=r.brk||0;o*=Math.pow(.012/.003,r.clue)*Math.pow(.988/.997,b-r.clue);return o/(1+o)}
+    const mins=r.t/60;o*=Math.pow(4,r.echo.length)*Math.exp(-.135*mins);const b=r.brk||0;o*=Math.pow(.03/.0075,r.clue)*Math.pow(.97/.9925,b-r.clue);return o/(1+o)}
   function passTrade(){const held=new Set(Object.keys(S.pass).map(Number));
     // 발표가 끝난 지층은 바로 판다
     for(const i of held)if(!S.rum.some(r=>r.L===i)){const c=S.pass[i].c,r=passSell(i,999);passG+=r.gain||0;const d=S.rumDone.find(x=>x.L===i);(window.PT=window.PT||[]).push({L:i,ret:r.gain/c,truth:d&&d.truth,ch:d&&d.ch,stake:c,inc:S.earned})}

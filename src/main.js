@@ -4,7 +4,7 @@ buildIcons();navIcons();drawUiIcons();
 const had=load();refreshBonus();
 if(!S.next||!LAYERS[S.layer].drops.some(d=>d[0]===S.next))S.next=rollDrop(S.layer);
 if(!(S.hp>0)||S.hp>layerHp(S.layer))S.hp=layerHp(S.layer);
-for(let i=0;i<180;i++)tickMarket(2,true)
+if(!had)for(let i=0;i<180;i++)tickMarket(2,true)   // 처음 시작할 때만 시장을 미리 돌려 둠(불러올 때마다 돌리면 다시 켤 때마다 6분씩 앞당겨짐)
 // 다시 열 때: 서버 시각을 먼저 확인(최대 1.5초)하고, 시계를 되돌렸는지 본 뒤 자리 비운 시간을 계산
 let resuming=false;
 async function resume(){if(resuming)return;resuming=true;CLK.hold=true;clockRebase();await syncTime(1500);CLK.hold=false;const back=clockCheck();
@@ -23,7 +23,7 @@ drawPortrait($('tutPor'),{name:'이장 할머니',art:'granny',hair:'#d8d4cc',ha
 setTab(S.tab);sceneResize();newWall();renderAll();
 addEventListener('resize',()=>{document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');fitScene()});
 // 프롤로그: 편지 → 할아버지의 재련소(유산: 골드 · 낡은 곡괭이 · 느린 채굴 기계) → 일지 → 광맥 입구 → 주인공이 입구로 걸어 들어가는 장면 → B1
-function startPrologue(){story(PROLOGUE.map((c,i)=>Object.assign({gold:1,k:'프롤로그'},c,
+function startPrologue(){entryScene(true);story(PROLOGUE.map((c,i)=>Object.assign({gold:1,k:'프롤로그'},c,
   c.legacy?{extra:`<div class="rcard"><span>할아버지의 유산</span><span>+${big(LEGACY.gold)}G</span><span>낡은 곡괭이</span><span>손에 익은 녹슨 곡괭이</span><span>채굴 기계</span><span>느리게 도는 자동 드릴</span></div>`,
     done:()=>{if(!S.legacy){S.legacy=1;S.gold+=LEGACY.gold;S.auto=Math.max(S.auto,LEGACY.auto);S.autoOn=true;sfx('coin');renderAll()}}}:{},
   i===PROLOGUE.length-1?{done:()=>{S.prologue=true;save()},after:()=>entryScene()}:{})))}

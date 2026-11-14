@@ -349,3 +349,4 @@ html[lang="en"] .shopc .plate{font-family:var(--f9);font-size:10px}
 /* v19: 저작권 · 글꼴 표기 */
 .credit{margin:6px 0 4px;text-align:center;font-size:10px;font-family:var(--f9);color:var(--dim);line-height:1.5}.credit p{margin:0}
 .t-copy{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);margin:0;text-align:center;font-size:10px;font-family:var(--f9);color:#fff3d8;text-shadow:1px 1px 0 #1a0f08;opacity:.85;pointer-events:none}
+.entry.still{z-index:19;cursor:default}.entry.still .entry-skip{display:none}   /* 프롤로그 카드(이야기 창) 뒤에 깔리는 멈춘 장면 */
