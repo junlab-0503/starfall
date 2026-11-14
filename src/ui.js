@@ -151,10 +151,10 @@ $('adDone').onclick=()=>{$('adModal').hidden=true;const cb=AD_CB;AD_CB=null;if(c
 $('adCancel').onclick=()=>{clearInterval(AD_T);$('adModal').hidden=true;AD_CB=null};
 // 켜 두고 직접 캘 때(탭 + 자동 드릴) 초당 버는 골드
 function playIncome(){const L=S.layer,d=LAYERS[L].drops,tot=d.reduce((s,x)=>s+x[1],0),avg=d.reduce((s,x)=>s+bid(x[0])*x[1],0)/tot;return playRate()*avg}
-// 선물 상자: 켜 두고 15분 동안 캔 만큼의 골드 (하루 5번). 화면엔 시간 환산을 쓰지 않는다
+// 선물 상자: 켜 두고 15분 동안 캔 만큼의 골드 (하루 5번). 화면엔 시간 환산을 쓰지 않는다. 받은 창 아래에 광고 제거 패키지 위치를 알려 주는 한 줄
 function openGift(){if(!giftReady())return;showAd('숯의 선물 상자',()=>{if(!giftReady())return;adsDay().gift++;
   const gold=Math.max(50,Math.round(playIncome()*15*60));S.gold+=gold;
-  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>`}]);renderAll()})}
+  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>${S.noAds?'':'<p class="dim small ad-hint">광고 제거 패키지로 광고 없이 받아 보세요! (관리 → 설정)</p>'}`}]);renderAll()})}
 // 10분 동안 채굴 2배 (하루 10번, 켜져 있는 동안은 다시 못 씀)
 function startBoost(){if(boostOn()||boostLeft()<=0)return;showAd('10분 동안 채굴 2배',()=>{if(boostOn()||boostLeft()<=0)return;adsDay().boost++;S.ads.boostUntil=gtime()+10*60000;A.joy=1;toast(`10분 동안 곡괭이와 자동 드릴이 2배로 강해져요! (오늘 ${boostLeft()}번 남음)`);renderAll()})}
 $('giftBtn').onclick=openGift;$('boostBtn').onclick=startBoost;

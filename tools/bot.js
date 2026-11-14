@@ -71,8 +71,8 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   while(t<maxSec&&!hit){
     {const rate=(tapPower()*TAPS*(1+2*critP())+autoDps())/layerHp(S.layer),k=S.layer+1,o=RS[k]||(RS[k]={n:0,r:0,f:0});o.n++;o.r+=rate;o.f+=cap()/Math.max(rate,1e-6)/60}
     // 황금 광맥(게임과 같은 규칙, opt.vein===false면 끔): 채굴 화면에서 8~14분마다 45초. 그동안은 광석 대신 골드만
-    // 탭 1번 = pot/40, 드릴 0.25초마다 pot/400, 한 번에 pot×1.5까지 (pot = 지금 채굴 수입 4분치)
-    if(S.vein){const v=S.vein,add=Math.round(Math.min(v.pot*1.5-v.got,v.pot*(TAPS/40+(S.auto>0&&S.autoOn?4/400:0))));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
+    // 탭 1번 = pot/40, 드릴 0.25초마다 pot/400, 상한 없음 (pot = 지금 채굴 수입 4분치)
+    if(S.vein){const v=S.vein,add=Math.round(v.pot*(TAPS/40+(S.auto>0&&S.autoOn?4/400:0)));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
     else{if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true);
       if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:VEIN_SEC,pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);veinN++}}
     tickMarket(1,false);S.rentAcc+=rentPerSec();

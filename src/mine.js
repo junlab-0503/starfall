@@ -94,7 +94,7 @@ function gain(id,n,auto){S.mined+=n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&s
   if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else S.lost=(S.lost||0)+rest}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
 let FLOATS=[];
 function floatText(t,c,id){const wrap=$('sceneWrap');const ex=id&&FLOATS.find(f=>f.id===id&&f.life>.3);
-  if(ex){ex.n+=id==='$g'?ex.add:1;ex.el.querySelector('b').textContent=id==='$g'?`+${big(ex.n)}G`:`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}
+  const gid=id==='$g'||id==='$d';if(ex){ex.n+=gid?ex.add:1;ex.el.querySelector('b').textContent=gid?`${id==='$d'?'드릴 ':''}+${big(ex.n)}G`:`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}
   const el=document.createElement('div');el.className='ftxt';el.style.color=c;el.innerHTML=(id&&ITEMS[id]?ico(id):'')+`<b>${t}</b>`;wrap.appendChild(el);
   FLOATS.unshift({el,id,n:1,life:1.3,y:0,slot:0,pop:.2});while(FLOATS.length>4){FLOATS.pop().el.remove()}}
 function stepFloats(dt){if(!FLOATS.length)return;const w=charW(),H=SWH.h,sx=(w.x-camX)*SC,base=(w.y-40-camY)*SC;   // 크기는 sceneResize 때 재 둔 값(매 프레임 레이아웃 강제 계산 안 함)
@@ -228,7 +228,8 @@ function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein
 // 알림 띠: 황금 광맥이 떠 있는데 다른 탭을 보고 있을 때만
 function veinPop(){const el=$('veinPop'),on=!!S.vein&&S.tab!=='mine';if(el.hidden===on){el.hidden=!on}if(on)$('veinPopT').textContent=`${Math.max(0,Math.ceil(S.vein.left))}초`}
 function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;veinPop();if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
-function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.round(Math.min(v.pot*1.5-v.got,v.pot*k));if(amt<=0)return;v.got+=amt;S.gold+=amt;S.earned+=amt;
-  if(!tap){A.vAuto=(A.vAuto||0)+amt;if(gtime()-(A.vAutoT||0)>1000){A.vAutoT=gtime();floatText(`드릴 +${big(A.vAuto)}G`,'#ffd23f');A.vAuto=0}}
+function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.max(1,Math.round(v.pot*k));   // 상한 없음: 캐는 만큼 골드(예전엔 한 번에 pot×1.5까지라 그 뒤엔 탭 · 드릴 모두 0)
+  v.got+=amt;S.gold+=amt;S.earned+=amt;
+  if(!tap){A.vAuto=(A.vAuto||0)+amt;if(gtime()-(A.vAutoT||0)>1000){A.vAutoT=gtime();const ex=FLOATS.find(f=>f.id==='$d'&&f.life>.3);if(ex)ex.add=A.vAuto;floatText(`드릴 +${big(A.vAuto)}G`,'#ffd23f','$d');const f0=FLOATS[0];if(f0&&f0.id==='$d'&&!ex)f0.n=A.vAuto;A.vAuto=0}}   // 드릴 몫은 한 줄에 쌓여 보임(탭 표시에 밀려 사라지지 않게)
   if(tap){const ex=FLOATS.find(f=>f.id==='$g'&&f.life>.3);if(ex)ex.add=amt;floatText(`+${big(amt)}G`,'#ffd23f','$g');const f0=FLOATS[0];if(f0&&f0.id==='$g'&&!ex)f0.n=amt;sfx('coin');const w=charW();for(let i=0;i<5;i++)PARTS.push({x:w.x-12,y:w.y-16,vx:-20+Math.random()*40,vy:-50-Math.random()*30,life:.6,c:'#ffd23f',sz:1,star:Math.random()<.5})}}
 
