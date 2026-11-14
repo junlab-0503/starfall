@@ -1,5 +1,5 @@
 const {chromium,devices}=require('playwright');
-(async()=>{const b=await chromium.launch();const ctx=await b.newContext({...devices['iPhone 13']});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message+' '+(e.stack||'').split('\n')[1]));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
+(async()=>{const b=await chromium.launch();const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message+' '+(e.stack||'').split('\n')[1]));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
 const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');// 게시된 아티팩트처럼 <body> 안에 넣어서 띄움(스타일 순서 문제를 잡으려고)
 h='<!doctype html><html><head><meta charset=utf8><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S,BON});');
 fs.writeFileSync('dbg2.html',h);

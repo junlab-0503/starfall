@@ -336,3 +336,12 @@ body{max-width:var(--appw);margin:0 auto;box-shadow:0 0 0 1px #2a1a0e,0 0 40px r
 .shopc .fr img{position:absolute;left:2px;top:2px;width:calc(100% - 4px);height:calc(100% - 4px);object-fit:cover;object-position:50% 0}
 #setBtn{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .shopc.lock .fr img{background:none}
+
+/* v18 언어팩: 설정의 언어 고르기 · 번체는 俐方體(Cubic 11) 글꼴 */
+.lang{display:flex;align-items:center;gap:8px;margin:0 0 10px}.lang>span{font-size:12px;font-family:var(--f11);color:var(--dim);white-space:nowrap}
+.seg3{flex:1;grid-template-columns:repeat(3,1fr)}
+html[lang="zh-TW"]{--f14:"StarTC","Galmuri14",sans-serif;--f11:"StarTC","Galmuri11",sans-serif;--f9:"StarTC","Galmuri9",sans-serif;--fb:"StarTC","Galmuri11B",sans-serif}
+/* 이야기 창이 화면보다 길어지면(영어처럼 문장이 긴 언어) 창 안에서 스크롤 */
+.story-card{max-height:calc(100vh - 32px);overflow-y:auto;overscroll-behavior:contain}
+@supports (height:100dvh){.story-card{max-height:calc(100dvh - 32px)}}
+html[lang="en"] .shopc .plate{font-family:var(--f9);font-size:10px}

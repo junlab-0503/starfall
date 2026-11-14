@@ -116,7 +116,7 @@ function story(cards){STQ.push(...cards);if($('story').hidden)nextStory()}
 // done: 카드가 뜰 때, after: 그 카드를 넘긴 뒤(창이 닫히거나 다음 카드로)
 let STC=null;
 function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();
-  $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';
+  $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=T(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';
   const p=$('portrait'),pa=$('portraitArt'),art=c.art&&typeof ART!=='undefined'&&ART[c.art];pa.hidden=!art;if(art){pa.src=art;pa.alt=c.t||''}
   if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=c.btn||(STQ.length?'다음':'계속');$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}
 $('storyNext').onclick=nextStory;

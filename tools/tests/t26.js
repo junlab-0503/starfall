@@ -3,7 +3,7 @@ const {chromium,devices}=require('playwright');
 (async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');
 h='<!doctype html><html><head><meta charset=utf8><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});')+'</body></html>';fs.writeFileSync('dbg26.html',h);
 const url='file://'+process.cwd()+'/dbg26.html';
-const ctx=await b.newContext({...devices['iPhone 13']});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
+const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 const closeStory=async()=>{for(let i=0;i<30&&await p.isVisible('#storyNext');i++)await p.click('#storyNext')};
 await p.goto(url);await p.waitForTimeout(800);
@@ -37,7 +37,7 @@ await p.waitForTimeout(300);const k1=await p.evaluate(()=>BGC.k);
 ok(m.k0&&m.dark<.6&&k1!==m.k0,`채굴 배경 캐시: 어두운 칸 ${(m.dark*100).toFixed(0)}%, 판 뒤 다시 그림 ${m.k0} → ${k1}`);
 await p.screenshot({path:'v15_mine.png'});
 // 넓은 화면: 가운데 세로(9:16) 칸
-const dp=await b.newPage({viewport:{width:1280,height:800}});await dp.goto(url);await dp.waitForTimeout(600);
+const dp=await b.newPage({viewport:{width:1280,height:800},locale:'ko-KR'});await dp.goto(url);await dp.waitForTimeout(600);
 const bw=await dp.evaluate(()=>{const r=document.body.getBoundingClientRect(),t=$('titleScr').getBoundingClientRect();return{bw:r.width,bx:r.left,tw:t.width,tx:t.left}});
 ok(Math.abs(bw.bw-450)<2&&Math.abs(bw.tw-450)<2&&Math.abs(bw.bx-415)<2,'넓은 화면 세로 칸: '+JSON.stringify(bw));
 console.log('errors',errs);await b.close()})();

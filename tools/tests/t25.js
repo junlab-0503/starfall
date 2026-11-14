@@ -2,7 +2,7 @@
 const {chromium,devices}=require('playwright');
 (async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');
 h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});');fs.writeFileSync('dbg25.html',h);
-const ctx=await b.newContext({...devices['iPhone 13']});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
+const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);const E=(f,a)=>p.evaluate(f,a);const close=async()=>{while(await p.isVisible('#storyNext'))await p.click('#storyNext')};
 await p.goto('file://'+process.cwd()+'/dbg25.html');await p.waitForTimeout(700);await p.click('#titleScr');await close();await p.waitForTimeout(300);if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
 await E(()=>{const S=__d().S;S.tutDone=true;S.floors=30;refreshBonus();S.inv.copper=6;S.inv.tin=4;S.unlocked=3;S.gold=1e6;renderAll()});

@@ -3,7 +3,7 @@ const {chromium,devices}=require('playwright');
 (async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');
 h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});');fs.writeFileSync('dbg23.html',h);
 const url='file://'+process.cwd()+'/dbg23.html';
-const ctx=await b.newContext({...devices['Galaxy S9+']});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
+const ctx=await b.newContext({...devices['Galaxy S9+'],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 const closeStory=async()=>{while(await p.isVisible('#storyNext'))await p.click('#storyNext')};
 const glow=()=>p.evaluate(()=>[...document.querySelectorAll('.tut-glow')].map(e=>e.id||e.dataset.pk||e.dataset.tab||e.className.split(' ')[0]).join(','));

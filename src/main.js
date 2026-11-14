@@ -1,4 +1,5 @@
 /* ═════════ 시작 ═════════ */
+initLang();   // 언어팩: 화면 글자를 지금 언어로(처음엔 기기 언어)
 buildIcons();navIcons();drawUiIcons();
 const had=load();refreshBonus();
 if(!S.next||!LAYERS[S.layer].drops.some(d=>d[0]===S.next))S.next=rollDrop(S.layer);

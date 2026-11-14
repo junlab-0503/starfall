@@ -62,7 +62,7 @@ const THANKS={"무쇠": ["자, 받아! 이 날 좀 봐, 번쩍번쩍하지?", "�
 // 사람 · 배경: art/shop (tools/shop_art.py), 고르는 액자: 입주자 초상화(art/portraits) + 가게 이름표. flip = 말풍선 쪽을 보게 뒤집기
 const SHOP_ART={'무쇠':{k:'musoe',sign:'대장간'},'핀':{k:'pin',sign:'공방'},'미르':{k:'mir',sign:'용광로'},'셈':{k:'sem',sign:'창고'},'루카':{k:'luka',sign:'정보소'}};
 const shopLine={};let shopType=null,shopPose='idle',shopPoseT=null;
-function shopSay(text,pose){const p=$('npcSay');if(!p)return;clearInterval(shopType);clearTimeout(shopPoseT);let i=0;p.textContent='';
+function shopSay(text,pose){const p=$('npcSay');if(!p)return;text=T(text);clearInterval(shopType);clearTimeout(shopPoseT);let i=0;p.textContent='';
   shopType=setInterval(()=>{i++;p.textContent=text.slice(0,i);npcPose(pose==='happy'?'happy':(i%4<2?'talk':'idle'));if(i>=text.length){clearInterval(shopType);shopPoseT=setTimeout(()=>npcPose('idle'),pose==='happy'?1400:200)}},28)}
 function npcPose(p){if(p===shopPose)return;shopPose=p;const n=$('npcImg');if(n)n.dataset.pose=p}
 let shopShown=-1;

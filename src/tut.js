@@ -21,7 +21,7 @@ const tutOn=()=>S.prologue&&!S.tutDone&&$('story').hidden&&$('titleScr').hidden&
 function tutTick(){if(!tutOn())return tutHide();S.tut=S.tut||0;let st=TUT[S.tut];
   while(st&&!st.last&&!st.next&&st.done()){S.tut++;st=TUT[S.tut];sfx('page')}
   if(!st){S.tutDone=true;return tutHide()}
-  $('tut').hidden=false;const h=st.hint?st.hint():'';$('tutT').textContent=tv(st.t)+(h?' '+h:'');
+  $('tut').hidden=false;const h=st.hint?st.hint():'';$('tutT').textContent=T(tv(st.t))+(h?' '+T(h):'');
   $('tutGo').hidden=!(st.next||st.last);$('tutGo').textContent=st.last?'시작하기':'다음';$('tutNext').hidden=!!st.last;
   tutGlow()}
 // 반짝임: 지금 눌러야 할 것 하나에만. 화면이 다시 그려질 때마다 다시 붙인다

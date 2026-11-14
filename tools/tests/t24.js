@@ -2,7 +2,7 @@
 const {chromium,devices}=require('playwright');
 (async()=>{const b=await chromium.launch();const fs=require('fs');let h=fs.readFileSync(process.argv[2],'utf8');
 h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+h.replace('/* ═════════ 시작 ═════════ */','window.__d=()=>({S});');fs.writeFileSync('dbg24.html',h);
-const ctx=await b.newContext({...devices['iPhone 13']});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
+const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);const S=f=>p.evaluate(f);const tut=()=>p.textContent('#tutT').catch(()=>'');
 await p.goto('file://'+process.cwd()+'/dbg24.html');await p.waitForTimeout(700);
 ok(await p.isVisible('#titleScr'),'시작 화면');await p.screenshot({path:'v13_title.png'});

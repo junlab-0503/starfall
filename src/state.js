@@ -3,9 +3,11 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
 const fmt=n=>Math.floor(n).toLocaleString('ko-KR');
-const big=n=>{if(!isFinite(n)||n>=1e20)return'∞';if(n<1e5)return fmt(n);const u=[[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];for(const[v,k]of u)if(n>=v)return(Math.floor(n/v*10)/10).toLocaleString('ko-KR')+k;return fmt(n)};
+// 큰 수 단위: 한국어 만 · 억 · 조 · 경, 번체 萬 · 億 · 兆 · 京(같은 자릿수), 영어 K · M · B · T
+const UNITS=()=>LANG==='en'?[[1e15,'Q'],[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']]:LANG==='zh'?[[1e16,'京'],[1e12,'兆'],[1e8,'億'],[1e4,'萬']]:[[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];
+const big=n=>{if(!isFinite(n)||n>=1e20)return'∞';if(n<1e5)return fmt(n);for(const[v,k]of UNITS())if(n>=v)return(Math.floor(n/v*10)/10).toLocaleString('ko-KR')+k;return fmt(n)};
 // 좁은 칸용 짧은 표기: 9,999 · 1.2만 · 862만 · 8628만 · 1.5억 …
-const cbig=n=>{if(!isFinite(n)||n>=1e20)return'∞';if(n<1e4)return fmt(n);const u=[[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];for(const[v,k]of u)if(n>=v){const x=n/v;return(x<10?(Math.floor(x*10)/10).toFixed(1):Math.floor(x))+k}return fmt(n)};
+const cbig=n=>{if(!isFinite(n)||n>=1e20)return'∞';if(n<1e4)return fmt(n);for(const[v,k]of UNITS())if(n>=v){const x=n/v;return(x<10?(Math.floor(x*10)/10).toFixed(1):Math.floor(x))+k}return fmt(n)};
 const pf=v=>v<10?(Math.round(v*10)/10).toFixed(1):big(v);
 const jong=w=>{const c=w.charCodeAt(w.length-1);return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0};
 const J=(w,p)=>w+(p==='이가'?(jong(w)?'이':'가'):p==='을를'?(jong(w)?'을':'를'):p==='은는'?(jong(w)?'은':'는'):'');
