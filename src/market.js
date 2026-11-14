@@ -83,7 +83,8 @@ function tickMarket(dt,offline){S.clock+=dt;S.day+=dt/DAY;
   if(!offline){S.rumT=(S.rumT??300)-dt;if(S.rumT<=0){if(S.rum.length<2&&tenantIn('루카'))newRumor();S.rumT=540+Math.random()*120}passDividend(dt)}}
 
 // 앱을 꺼 둔 동안: 소문 발표는 진행되고, 월세 · 드릴 로봇(스위치가 켜져 있을 때만) · 출입권 수입 · 자동 재련은 '켜 두고 1시간'치까지만
-function catchUp(sec){sec=Math.min(sec,16*3600);if(sec<180)return null;   // 3분 이상 비웠을 때부터const steps=Math.min(2000,Math.floor(sec/5)),st=sec/steps;for(let i=0;i<steps;i++)tickMarket(st,true);
+function catchUp(sec){sec=Math.min(sec,16*3600);if(sec<180)return null;   // 3분 이상 비웠을 때부터
+  const steps=Math.min(2000,Math.floor(sec/5)),st=sec/steps;for(let i=0;i<steps;i++)tickMarket(st,true);
   const E=offEquiv(sec),full=sec*offEff()/OFF_FILL>=offCapH()*3600; // E: 켜 두고 플레이한 것으로 치는 초
   const capR=rentPerSec()*rentCapH(ul('safe'))*3600,rent=Math.max(0,Math.min(rentPerSec()*E,capR-S.rentAcc));S.rentAcc+=rent;
   const box0={...(S.box||{})},ofG0=S.ofG||0,ofN0=S.ofN||0;

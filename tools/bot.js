@@ -66,6 +66,8 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   }
   const hitF=()=>stop.type==='L'?unlockT[stop.k]!=null:stop.type==='S'?sectT[stop.k]!=null:endT!=null;
   let hit=hitF();
+  // opt.sess=[[켜 둔 분, 비운 분],...]: 짧게 여러 번 접속하는 사람. 비운 동안은 게임의 catchUp(자리 비움 보상)으로 계산하고, 다시 켜면 보관함 광석을 창고로(넘치면 판매)
+  let wall=snap&&snap.wall||t,si=0,sOn=0,endW=null;
   while(t<maxSec&&!hit){
     {const rate=(tapPower()*TAPS*(1+2*critP())+autoDps())/layerHp(S.layer),k=S.layer+1,o=RS[k]||(RS[k]={n:0,r:0,f:0});o.n++;o.r+=rate;o.f+=cap()/Math.max(rate,1e-6)/60}
     // 황금 광맥(게임과 같은 규칙, opt.vein===false면 끔): 채굴 화면에서 8~14분마다 45초. 그동안은 광석 대신 골드만
@@ -74,8 +76,11 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
     else{if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true);
       if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:VEIN_SEC,pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);veinN++}}
     tickMarket(1,false);S.rentAcc+=rentPerSec();
-    t++;if(t%10===0){decide();hit=hitF()}
+    t++;wall++;if(t%10===0){decide();hit=hitF()}
+    if(opt.sess&&++sOn>=opt.sess[si%opt.sess.length][0]*60){const off=opt.sess[si%opt.sess.length][1]*60;si++;sOn=0;wall+=off;S.vein=null;
+      if(catchUp(off)){for(const id in S.box){const n=S.box[id],ok=Math.min(n,space());if(ok)add(id,ok);if(n>ok)sellOverflow(id,n-ok)}S.box={}}decide();hit=hitF()}
+    if(endT!=null&&endW==null)endW=wall;
     if(t%3600===0)log.push({h:t/3600,gold:Math.round(S.gold),L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh});
   }
-  return{veinG,veinN,RS,hit,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
+  return{veinG,veinN,RS,hit,wall,endW,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT,wall},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
 }
