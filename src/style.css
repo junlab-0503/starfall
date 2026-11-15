@@ -429,3 +429,9 @@ button.matl.mgo:active{transform:translateY(1px)}
 .story.m-full .story-card>:not(.story-ill),.story.m-hero .story-card>:not(.story-ill){position:relative;z-index:1}
 .story.m-full p,.story.m-hero p{max-height:34vh;overflow-y:auto;text-shadow:0 1px 0 #000}
 .story.m-hero .story-ill:has(img[hidden]){height:55%}
+/* v24.2: 삽화는 종류마다 한 규격(지층 194×112 · 엔딩 136×182)으로 똑같이 보이게 */
+.story[data-cat="b"] .story-ill img{width:100%;height:auto;aspect-ratio:194/112;object-fit:cover}
+.story[data-cat="e"] .story-ill img{width:100%;height:auto;aspect-ratio:136/182;object-fit:cover}
+.story[data-cat="p"] .story-ill img{width:100%;height:auto;object-fit:cover}
+/* 빠른 제작이 비어 있을 때 안내 글은 칸 하나가 아니라 상자 너비 전체로 */
+.qc-grid .qc-empty{grid-column:1/-1;margin:2px 2px 0;text-align:left;line-height:1.6}

@@ -44,7 +44,7 @@ function quickNeed(idx){const r=RECIPES[idx],need={};need[r.a]=(need[r.a]||0)+1;
 function quickSmelt(idx){if(!S.found.includes(idx))return null;const r=RECIPES[idx];if(!canSmeltWith([r.a,r.b]))return null;const keep=[...S.slots];S.slots=[r.a,r.b];const res=smeltOnce();S.slots=keep.map(x=>x&&cnt(x)?x:null);return res}
 function renderQuick(){const f=S.found.slice().sort((a,b)=>a-b);$('qcInfo').textContent=f.length?`${f.length}가지`:'';
   if(QSEL!=null&&!f.includes(QSEL))QSEL=null;if(QSEL==null&&f.length)QSEL=f.find(i=>canSmeltWith([RECIPES[i].a,RECIPES[i].b]))??f[0];
-  setHTML($('qcGrid'),f.length?f.map(i=>{const o=RECIPES[i].out,can=canSmeltWith([RECIPES[i].a,RECIPES[i].b]);return`<button class="pk qc${i===QSEL?' in':''}${can?'':' dimk'}" data-qc="${i}" type="button">${ico(o)}<span>${ITEMS[o].n}</span></button>`}).join(''):'<p class="dim small">용광로에서 처음 성공한 레시피가 여기에 모여요. 고르면 필요한 재료를 알아서 넣고 한 번 재련해요.</p>');
+  setHTML($('qcGrid'),f.length?f.map(i=>{const o=RECIPES[i].out,can=canSmeltWith([RECIPES[i].a,RECIPES[i].b]);return`<button class="pk qc${i===QSEL?' in':''}${can?'':' dimk'}" data-qc="${i}" type="button">${ico(o)}<span>${ITEMS[o].n}</span></button>`}).join(''):'<p class="dim small qc-empty">용광로에서 처음 성공한 레시피가 여기에 모여요. 고르면 필요한 재료를 알아서 넣고 한 번 재련해요.</p>');
   if(QSEL==null){setHTML($('qcSel'),'');return}
   const r=RECIPES[QSEL],need=quickNeed(QSEL),can=need.every(x=>!x[2]),mx=quickMax(QSEL);QN=clamp(QN,1,Math.max(1,mx));
   setHTML($('qcSel'),`<div class="qc-sel"><div class="qc-out">${ico(r.out,'lg')}<b>${ITEMS[r.out].n}</b></div>
