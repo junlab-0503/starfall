@@ -19,12 +19,14 @@ function renderMineHud(){
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
   const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
   $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
-  {const cb=$('crBtn'),op=craftOpen(),a=CR().a;cb.hidden=!op;if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
+  {const cb=$('crBtn'),op=craftOpen(),a=CR().a,was=cb.hidden;cb.hidden=!op;if(op&&was)requestAnimationFrame(syncBob);if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
 // 다음 지층까지: 개척에 필요한 골드 · 재료가 얼마나 모였는지 (다 모이면 누르면 바로 개척)
 // v24: 채굴 화면 왼쪽 위 작은 [개척] 버튼 — 다음 지층 이름 · 준비 정도(골드와 재료를 모은 비율의 평균). 누르면 갱도 개척 창(세부 정보 · 개척 버튼)
+// 채굴 화면 아래 단추들이 같은 박자로 둥둥: 나중에 나타난 세공 단추를 창고 단추 애니메이션 시각에 맞춤
+function syncBob(){try{const a=$('whBtn').querySelector('img').getAnimations()[0],b=$('crBtnImg').getAnimations()[0];if(a&&b)b.currentTime=a.currentTime}catch(e){}}
 function renderNextL(){const el=$('nextL'),i=S.unlocked,ic=`<img class="dg-ic" src="${ART.ui_dig}" alt="">`;
   if(i>=LAYERS.length){setHTML(el,`${ic}<span class="dg-t"><b>갱도</b><small>모두 개척</small></span>`);el.classList.remove('ready');return}
   const L=LAYERS[i],ok=reqMet(L),parts=[[S.gold,L.req.g]].concat(Object.entries(L.req.items).map(([id,n])=>[cnt(id),n])),pc=Math.floor(parts.reduce((s,[h,n])=>s+clamp(h/n,0,1),0)/parts.length*100);

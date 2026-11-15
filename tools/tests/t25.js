@@ -5,7 +5,7 @@ h='<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fi
 const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);const E=(f,a)=>p.evaluate(f,a);const close=async()=>{while(await p.isVisible('#storyNext'))await p.click('#storyNext')};
 await p.goto('file://'+process.cwd()+'/dbg25.html');await p.waitForTimeout(700);await p.click('#titleScr');await close();await p.waitForTimeout(300);if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
-await E(()=>{const S=__d().S;S.tutDone=true;S.floors=30;refreshBonus();S.inv.copper=6;S.inv.tin=4;S.unlocked=3;S.gold=1e6;renderAll()});
+await E(()=>{const S=__d().S;S.tutDone=true;S.floors=30;refreshBonus();S.inv.copper=6;S.inv.tin=4;S.unlocked=3;S.gold=1e6;S.seen=[...new Set([...S.seen,...RAW.slice(0,8)])];S.journal=[0,1,2];renderAll()});   // 드릴이 빨라져 시험 중 새 광석 · 일지 창이 끼어들지 않게
 // 1) 레시피 발견 · 도감 · 다시 쓰기
 await p.click('[data-tab="forge"]');await p.waitForTimeout(300);
 await E(()=>{window.__R=Math.random;Math.random=()=>.5});   // 제련은 성공해야 레시피가 남음(v21) → 성공하게 고정
@@ -16,7 +16,8 @@ await p.click('[data-pk="copper"]');await p.click('[data-pk="tin"]');await p.cli
 ok((await E(()=>__d().S.found.length))===r1.n,'같은 레시피는 두 번 등록되지 않음');
 await E(()=>{Math.random=window.__R});
 const q=await E(i=>{const S=__d().S;S.inv.copper=4;S.inv.tin=4;renderForge();return !!document.querySelector(`[data-qc="${i}"]`)},r1.i);ok(q,'도감에 오른 레시피는 빠른 제작에 나옴(v24.1: 자동 제련소 뺌)');
-const dup=await E(()=>{const S=__d().S;S.inv.stone=4;S.slots=['stone','stone'];const a=S.found.length;smeltOnce();smeltOnce();return S.found.length-a});ok(dup===1,'다른 새 레시피(돌+돌)도 한 번만 등록: +'+dup);
+const dup=await E(()=>{const S=__d().S;S.inv.stone=4;S.slots=['stone','stone'];const a=S.found.length,R=Math.random;Math.random=()=>.5;smeltOnce();smeltOnce();Math.random=R;return S.found.length-a});   // 제련 성공을 운에 맡기지 않게(실패하면 레시피가 안 남는 게 정상)
+ok(dup===1,'다른 새 레시피(돌+돌)도 한 번만 등록: +'+dup);
 // 2) 황금 광맥(v17): 어느 탭에 있든 다음 광맥까지 시간이 흐르고 남은 시간도 줄어듦. 골드는 채굴 화면에서 캘 때만
 await close();await p.click('[data-tab="market"]');await p.waitForTimeout(200);
 await E(()=>{const S=__d().S;S.vein=null;S.veinT=3});for(let i=0;i<6;i++){await close();await p.waitForTimeout(800)}

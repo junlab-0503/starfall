@@ -62,5 +62,16 @@ ok(sd.every(x=>x!=='x'),'소리 3종 풀림(초): '+sd.join(' / '));
 // 8) 옛 저장: 3종 기록 → 백금옥 기록 기본값 추가
 const old=await p.evaluate(()=>{const d=JSON.parse(JSON.stringify(S));d.craft={a:null,rec:{silver:{made:2,succ:1,fail:1,best:1,bestSale:10,ten:false}},met:1,sel:'gold'};const s=cleanSave(d);return{rec:Object.keys(s.craft.rec).join(),pl:s.craft.rec.plat.made,sv:s.craft.rec.silver.made,low:s.lowFx}});
 ok(old.rec==='silver,gold,plat,star'&&old.pl===0&&old.sv===2,'옛 저장: 백금옥 기록이 0으로 더해지고 기존 기록 유지');
+// 9) 단계마다 화면의 성공 확률 · 성공하면 값 · 강화 비용 = 실제(5천 번 굴림 · 성공 뒤 판매가 · 실제 차감)
+const od=await p.evaluate(()=>{openSheet('craft');const bad=[];const num=t=>{const m=t.match(/([\d.,]+)\s*(만|억)?/);return m?Math.round(+m[1].replace(/,/g,'')*(m[2]==='억'?1e8:m[2]==='만'?1e4:1)):NaN};
+  for(let lv=0;lv<10;lv++){CR().a={k:'gold',n:10,base:10000,lv,t:0};S.gold=1e15;CRAFT_BUSY=false;CRFX=null;renderCraft();const cells=[...document.querySelectorAll('.cr-info>div')].map(d=>d.textContent);
+    const sp=+(cells.find(t=>/성공 확률/.test(t))||'').match(/(\d+)%/)[1],sv=num((cells.find(t=>/성공하면/.test(t))||'').split('+'+(lv+1))[1]),sc=num((cells.find(t=>/강화 비용/.test(t))||'').replace('강화 비용',''));
+    let s=0;for(let i=0;i<5000;i++){CR().a={k:'gold',n:10,base:10000,lv,t:0};CRAFT_BUSY=false;const x=craftTry();if(x&&x.ok)s++}
+    CR().a={k:'gold',n:10,base:10000,lv,t:0};CRAFT_BUSY=false;const g0=S.gold,R=Math.random;Math.random=()=>0;craftTry();Math.random=R;
+    if(sp!==Math.round(CRAFT_P[lv+1]*100)||Math.abs(s/50-sp)>2.5||sv!==craftPrice(CR().a)||sc!==g0-S.gold)bad.push(lv)}
+  CR().a=null;renderCraft();return bad});
+ok(!od.length,'단계 +1~+10 모두: 화면 성공 확률 = 실제(5천 번) · 성공하면 값 = 실제 판매가 · 강화 비용 = 실제 차감'+(od.length?' 어긋남 '+od:''));
+// 10) 채굴 화면 [세공] 단추도 창고 단추와 같이 둥둥
+ok(await p.evaluate(()=>{closeSheet();setTab('mine');renderAll();const a=getComputedStyle($('crBtnImg')).animationName,b=getComputedStyle($('whBtn').querySelector('img')).animationName;return a==='icb'&&a===b}),'[세공] 단추가 창고 단추와 같은 둥둥 애니메이션');
 ok(errs.length===0,'오류 없음 '+errs.join(' | '));
 await b.close()})();

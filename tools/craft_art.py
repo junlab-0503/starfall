@@ -6,7 +6,7 @@
   효과 팩: manifest.json + frames/{success,failure,legendary}/*.png(512×512, 메달 가운데 256,308 · 지름 184) + sfx_*.wav
 나오는 것: art/craft/{gold,silver,star,plat}{0~5}.png(96×96) · machine.png · icon.png(채굴 화면 단추) · needle.png(세공침)
           · fx_ok/fx_fail/fx_ten.png(프레임을 가로로 이은 한 장, 192×192 칸) · art/sfx/craft_ok/fail/ten.mp3
-          · (v28) lin.png: 장비 탭 사람들(tools/shop_art.py)과 같은 방식 — 칸마다 가장 많은 색 · 40색 · 바깥 윤곽, 키 128"""
+          · (v28) lin.png: 장비 탭 사람들(tools/shop_art.py)과 같은 방식 — 칸마다 가장 많은 색 · 40색 · 바깥 윤곽, 키 144"""
 import sys,os,json,subprocess
 from collections import Counter
 import numpy as np
@@ -107,7 +107,7 @@ print('효과 · 소리')
 
 # 5) 린 상반신: 장비 탭 사람들과 같은 도트(칸마다 가장 많은 색, 어두운 윤곽은 30%만 넘어도 우선) · 40색 · 바깥 윤곽 · 키 128
 if linsrc:
-    OL=(43,27,34);L=Image.open(linsrc).convert('RGBA');a=np.asarray(L).astype(float);mask=a[...,3]>127;H=128;W=round(L.width*H/L.height);rgb=a[...,:3]
+    OL=(43,27,34);L=Image.open(linsrc).convert('RGBA');a=np.asarray(L).astype(float);mask=a[...,3]>127;H=144;W=round(L.width*H/L.height);rgb=a[...,:3]
     pq=Image.fromarray(rgb[mask].reshape(1,-1,3).astype(np.uint8)).quantize(colors=40,method=Image.Quantize.MEDIANCUT)
     pal=np.array(pq.getpalette()[:120]).reshape(-1,3).astype(float);luma=pal@[.3,.59,.11];idx=((rgb[:,:,None,:]-pal)**2).sum(-1).argmin(-1)
     h,w=mask.shape;o=np.zeros((H,W,4),np.uint8)

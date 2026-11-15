@@ -520,7 +520,7 @@ img{-webkit-user-drag:none;-webkit-touch-callout:none}
 .px-btn.ndot::after{top:-5px;right:-5px}
 
 /* v27 세공기: 세공기 그림(103×116칸) 위 자리를 모두 %로 — 구멍 가운데 (49,53.5) · 지름 46, 세공침 받침 아래 (54,29) */
-.cr-mach{position:relative;align-self:center;width:min(100%,172px);aspect-ratio:103/116;margin:0 auto}   /* v28: 172px로 작게 → 작업대 창이 한 화면에 */
+.cr-mach{position:relative;align-self:center;width:min(100%,160px);aspect-ratio:103/116;margin:0 auto}   /* v28: 160px로 작게 → 작업대 창이 한 화면에 */
 .cr-mach>*{position:absolute}
 .cr-back{left:25.24%;top:26.29%;width:44.66%;height:39.66%;border-radius:50%;background:radial-gradient(circle at 50% 42%,#3d2a3d 0 50%,#26161f 72%,#170c12)}
 .cr-slot{left:27.18%;top:28.02%;width:40.78%;height:36.21%;transition:transform .12s steps(2),filter .12s steps(2)}
@@ -547,11 +547,14 @@ img{-webkit-user-drag:none;-webkit-touch-callout:none}
 .set-chk{display:flex;align-items:center;gap:8px;margin:6px 0}.set-chk input{width:20px;height:20px;accent-color:var(--lamp)}
 .rum.slim{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;padding:6px 8px}
 /* v28 작업대 한눈에: 린 무대 낮게(린 128px 그대로), 세공품 고르기 얇게, 정보는 2×2 칸 */
-.cr-stage{height:112px}.cr-stage .npcw{align-self:flex-start}.cr-stage .npc{height:128px;animation:none}   /* 린(128px)은 위를 맞춰 아래만 살짝 가림 */
+.cr-stage{height:138px}.cr-stage .npcw{align-self:flex-start}.cr-stage .npc{height:144px;animation:none}   /* 린(144px)은 위를 맞춰 아래만 살짝 가림 */
 .cr-seg button{padding:3px 2px;gap:1px}.cr-seg button img{height:22px}.cr-seg button span{font-size:12px}
-.cr-body{gap:6px}
+.cr-body{gap:5px}.cr-seg{margin-bottom:4px}.cr-stage{margin-bottom:5px}
 .cr-info{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.cr-info>div{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px 8px;background:var(--panel2);border:2px solid #1a0f08;min-height:42px}
+.cr-info>div{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:3px 8px;background:var(--panel2);border:2px solid #1a0f08;min-height:38px}
 .cr-info .dim{font-size:12px;font-family:var(--f11)}.cr-info b{font-weight:400}.cr-nm{font-size:15px}.cr-nm .cr-lv{font-size:17px}
 .cr-info>div:first-child span{font-size:12px;font-family:var(--f11)}
 .cr-warn{font-size:11px;font-family:var(--f11);margin-left:4px}.cr-body.panel{padding:8px}
+
+.cr-btn img{animation:icb 1.4s steps(2) infinite}
+@media (prefers-reduced-motion:reduce){.cr-btn img{animation:none}}
