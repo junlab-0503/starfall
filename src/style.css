@@ -483,3 +483,5 @@ button.matl.mgo:active{transform:translateY(1px)}
 .story.m-full,.story.m-end{display:flex;align-items:stretch;justify-content:center}   /* 카드 높이를 화면에 고정 → 작은 폰에선 카드 안이 스크롤 */
 .story.m-full .story-card,.story.m-end .story-card{height:auto;max-height:100%;flex:1 1 auto}
 @media (max-height:640px){.story.m-full[data-cat="p"] .story-ill img{height:38vh}.story.m-full p{font-size:14px;line-height:1.6}}
+/* v24.10: 프롤로그 · 지층 그림을 같은 도트 격자(지층 240×140 · 프롤로그 188×265)로 맞춤 → 모두 도트 그대로 확대 */
+.story.m-full[data-cat="p"] .story-ill img{image-rendering:pixelated}
