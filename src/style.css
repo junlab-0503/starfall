@@ -393,3 +393,26 @@ button.matl.mgo:active{transform:translateY(1px)}
 /* 로봇 채굴 보관함: 지층 그림 안 오른쪽 아래(드릴 스위치는 왼쪽 아래) */
 .ov-box{position:absolute;right:6px;bottom:6px;z-index:2}.ov-box img{height:44px}.ov-box .ic-tag{font-size:9px}
 .foot-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+/* v24: 스토리 삽화 연출 — 그림이 있을 때만(.m-full · .m-card), 별의 심장(.m-hero)은 그림 없이도 */
+.story-ill{position:relative;overflow:hidden;background:#140d14;border:3px solid #1a0f08;margin:-6px -6px 12px}
+.story-ill img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.story-ill .ill-fx{display:none}
+.story.m-card .story-ill{aspect-ratio:1/1;max-height:42vh;margin-inline:auto}
+.story.m-card .portrait{display:none}
+.story.m-full,.story.m-hero{padding:0;background:#0d0907}
+.story.m-full .story-card,.story.m-hero .story-card{max-width:none;height:100%;max-height:none;border:0;box-shadow:none;display:flex;flex-direction:column;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 14px);overflow:hidden;background:#0d0907}
+.story.m-full .story-ill,.story.m-hero .story-ill{flex:1 1 auto;min-height:0;margin:0;border:0;border-bottom:3px solid #3a2a1a}
+.story.m-full .story-card>:not(.story-ill),.story.m-hero .story-card>:not(.story-ill){margin-inline:18px}
+.story.m-full .story-kick,.story.m-hero .story-kick{margin-top:12px}
+.story.m-full .portrait,.story.m-hero .portrait{display:none}
+.story.m-full p{max-height:30vh;overflow-y:auto}
+.story.m-hero{background:radial-gradient(ellipse at 50% 35%,#5a3a7a 0%,#24123a 45%,#0a0612 100%)}
+.story.m-hero .story-card{background:transparent}
+.story.m-hero .story-ill{border-bottom-color:#ffd27a}
+.story.m-hero .ill-fx{display:block;position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,230,150,.55) 0,rgba(255,200,110,.18) 22%,transparent 50%);animation:heart 2.4s steps(6) infinite}
+@keyframes heart{50%{opacity:.45;transform:scale(1.06)}}
+.story.m-hero h3{color:#ffe9a8;text-shadow:0 0 8px rgba(255,210,120,.6)}
+@media (prefers-reduced-motion:reduce){.story.m-hero .ill-fx{animation:none}}
+.jp.has-ill{display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center}
+.jp-th{width:56px;height:56px;object-fit:cover;image-rendering:pixelated;border:2px solid #1a0f08}
+.story.m-hero .story-ill{background:transparent}

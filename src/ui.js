@@ -95,16 +95,16 @@ $('sellRaw').onclick=()=>askSellAll('raw');$('sellRef').onclick=()=>askSellAll('
 $('storyX').addEventListener('click',e=>{if(!e.target.closest('#sellGo')||!SELLG)return;const g=SELLG;SELLG=null;sellAll(g);sfx('coin');nextStory()});
 function renderLog(){const el=$('log');if(el)setHTML(el,S.log.slice(0,40).map(l=>`<div>${l}</div>`).join(''))}
 /* 도감·일지·기록 */
-function revealJournal(i){if(S.journal.includes(i))return;S.journal.push(i);const ev=LAYER_EVENT[i+1];
-  story([{gold:1,k:`할아버지의 일지 · ${S.journal.length}/13`,t:`B${i+1} ${LAYERS[i].n}`,b:(ev?ev+'\n\n':'')+`"${JOURNAL[i]}"`}])}
+const journalCard=(i,k)=>{const ev=LAYER_EVENT[i+1];return{gold:1,k,t:`B${i+1} ${LAYERS[i].n}`,b:(ev?ev+'\n\n':'')+`"${JOURNAL[i]}"`,ill:'b'+(i+1),mode:i===LAYERS.length-1?'hero':'card'}};
+function revealJournal(i){if(S.journal.includes(i))return;S.journal.push(i);story([journalCard(i,`할아버지의 일지 · ${S.journal.length}/13`)])}
 function renderBookTab(){
   $('jCount').textContent=`${S.journal.length}/13`;
-  setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp" data-jp="${i}" type="button"><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</button>`:`<div class="jp unk">B${i+1} · 아직 찾지 못한 장</div>`).join(''));
+  setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp${storyArt('b'+(i+1))?' has-ill':''}" data-jp="${i}" type="button">${storyArt('b'+(i+1))?`<img class="jp-th" src="${storyArt('b'+(i+1))}" alt="">`:''}<span><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</span></button>`:`<div class="jp unk">B${i+1} · 아직 찾지 못한 장</div>`).join(''));
   $('dexCount').textContent=`${S.seen.length}/${ORDER.length}`;
   setHTML($('dex'),ORDER.map(id=>`<button class="dx${S.seen.includes(id)?'':' unk'}" data-dx="${id}" type="button" aria-label="${S.seen.includes(id)?ITEMS[id].n:'아직 모르는 광물'}">${ico(id)}</button>`).join(''));
   const mins=Math.round((S.playT||0)/60);   // 게임을 켜 두고 있던 시간만(자리 비운 시간 · 앱이 뒤로 간 시간은 빼고)
   setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['재련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
-$('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([{k:'할아버지의 일지',t:`B${i+1} ${LAYERS[i].n}`,b:`"${JOURNAL[i]}"`}])});
+$('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([journalCard(i,'할아버지의 일지')])});   // 다시 보기: 개척할 때와 같은 삽화 · 글
 /* 장터: [지층 출입권] 소문을 읽고 사고팔기 · [광물 거래] 정해진 값 */
 const pctHtml=v=>{const p=Math.round((v-1)*100);if(p===0)return'<span class="pct dim">평소</span>';return`<span class="pct ${p>0?'good':'bad'}">${p>0?'▲':'▼'}${Math.abs(p)}%</span>`};
 const mm=s=>{s=Math.max(0,Math.ceil(s/60));return s>=60?`${Math.floor(s/60)}시간 ${s%60}분`:`${s}분`};
@@ -138,7 +138,13 @@ const STQ=[];
 function story(cards){STQ.push(...cards);if($('story').hidden)nextStory()}
 // done: 카드가 뜰 때, after: 그 카드를 넘긴 뒤(창이 닫히거나 다음 카드로)
 let STC=null;
-function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();
+/* 스토리 삽화(art/story → ART.story_p1~p6 · b1~b13 · e1~e6). c.ill = 그림 이름, c.mode = 연출:
+   full = 큰 삽화 + 아래 글(프롤로그 · 엔딩), card = 게임을 어둡게 하고 가운데 삽화+일지 카드(B1~B12), hero = 별의 심장 특별 전체 화면(B13).
+   그림이 아직 없으면 full · card는 예전 이야기 창 그대로(글만), hero는 그림 없이도 특별 화면 */
+const storyArt=k=>k&&typeof ART!=='undefined'?ART['story_'+k]||null:null;
+function storyMode(c){const src=storyArt(c.ill),m=c.mode&&(src||c.mode==='hero')?c.mode:'';const st=$('story');['full','card','hero'].forEach(k=>st.classList.toggle('m-'+k,m===k));
+  const w=$('storyIll'),im=$('storyIllImg');w.hidden=!src&&m!=='hero';im.hidden=!src;if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=c.t||''}else im.removeAttribute('src')}
+function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;storyMode({});if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();storyMode(c);
   $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=T(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';
   const p=$('portrait'),pa=$('portraitArt'),art=c.art&&typeof ART!=='undefined'&&ART[c.art];pa.hidden=!art;if(art){pa.src=art;pa.alt=c.t||''}
   if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=c.btn||(STQ.length?'다음':'계속');$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}

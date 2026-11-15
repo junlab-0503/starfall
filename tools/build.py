@@ -13,8 +13,9 @@ for f in FILES:
 # 직접 그린 그림 → ART.<이름> (data URL)
 #   art/portraits/<입주자>.png(탭 카드 초상화), art/hero/hero.png(주인공), art/shop/<가게>.png · bg_<가게>.png(장비 탭 사람 · 배경 → ART.shop_…),
 #   art/strata/*.webp(채굴 화면 지층 → ART.strata_…), art/scene/*.webp(시작 화면 · 광맥 입구 → ART.scene_…)
+#   art/story/p1~p6 · b1~b13 · e1~e6 (.png/.webp, 스토리 삽화 → ART.story_…; 없으면 글만 나옴)
 art={}
-for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_'),('strata','strata_'),('scene','scene_'),('sprites','spr_'),('ui','ui_')):
+for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_'),('strata','strata_'),('scene','scene_'),('sprites','spr_'),('ui','ui_'),('story','story_')):
     d_=os.path.join(R,'art',sub_)
     if os.path.isdir(d_):
         for f in sorted(os.listdir(d_)):

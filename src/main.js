@@ -23,7 +23,7 @@ drawPortrait($('tutPor'),{name:'이장 할머니',art:'granny',hair:'#d8d4cc',ha
 setTab(S.tab);sceneResize();newWall();renderAll();
 addEventListener('resize',()=>{document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');fitScene()});
 // 프롤로그: 편지 → 할아버지의 재련소(유산: 골드 · 낡은 곡괭이 · 느린 채굴 기계) → 일지 → 광맥 입구 → 주인공이 입구로 걸어 들어가는 장면 → B1
-function startPrologue(){entryScene(true);story(PROLOGUE.map((c,i)=>Object.assign({gold:1,k:'프롤로그'},c,
+function startPrologue(){entryScene(true);story(PROLOGUE.map((c,i)=>Object.assign({gold:1,k:'프롤로그',ill:'p'+(i+1),mode:'full'},c,
   c.legacy?{extra:`<div class="rcard"><span>할아버지의 유산</span><span>+${big(LEGACY.gold)}G</span><span>낡은 곡괭이</span><span>손에 익은 녹슨 곡괭이</span><span>채굴 기계</span><span>느리게 도는 자동 드릴</span></div>`,
     done:()=>{if(!S.legacy){S.legacy=1;S.gold+=LEGACY.gold;S.auto=Math.max(S.auto,LEGACY.auto);S.autoOn=true;sfx('coin');renderAll()}}}:{},
   i===PROLOGUE.length-1?{done:()=>{S.prologue=true;save()},after:()=>entryScene()}:{})))}

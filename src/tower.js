@@ -29,7 +29,7 @@ function collectRent(){if(S.rentAcc<1)return;S.gold+=S.rentAcc;log(`입주자들
 function finale(){if(S.floors<99||S.ended)return;if(cnt('philo')<1||cnt('starshard')<10){toast('현자의 원석 1개와 별의 파편 10개가 필요해요.');return}
   add('philo',-1);add('starshard',-10);S.ended=true;refreshBonus();
   const mins=Math.round((S.playT||0)/60);
-  story(ENDING.map((c,i)=>Object.assign({gold:1,k:'에필로그'},c)).concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>재련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
+  story(ENDING.map((c,i)=>Object.assign({gold:1,k:'에필로그',ill:'e'+(i+1),mode:'full'},c)).concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>재련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
   renderAll()}
 // 탑 그림(사용자 그림 art/scene/tower.png): 쌓은 층만큼 아래부터 색이 들어오고, 위는 어두운 실루엣. 하늘 · 오로라 · 별은 깊이 내려갈수록 짙어짐
 let towerKey='',TOWER_IMG=null;
