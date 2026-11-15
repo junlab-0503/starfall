@@ -454,3 +454,5 @@ button.matl.mgo:active{transform:translateY(1px)}
 .dig-btn{padding:4px 9px 4px 4px;gap:6px}.dig-btn .dg-ic{height:32px}.dg-t b{font-size:13px}.dg-t small{font-size:11px}.dg-bar{width:76px;height:5px}
 .wh-btn img{animation:icb 1.4s steps(2) infinite}
 @media (prefers-reduced-motion:reduce){.wh-btn img{animation:none}}
+/* 업스케일한 큰 삽화(가로 400px 넘음)는 도트 확대 대신 부드럽게 줄여서 */
+.story .story-ill img.hi,.jp-th.hi{image-rendering:auto}

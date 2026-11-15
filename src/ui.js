@@ -99,7 +99,7 @@ const journalCard=(i,k)=>{const ev=LAYER_EVENT[i+1];return{gold:1,k,t:`B${i+1} $
 function revealJournal(i){if(S.journal.includes(i))return;S.journal.push(i);story([journalCard(i,`할아버지의 일지 · ${S.journal.length}/13`)])}
 function renderBookTab(){
   $('jCount').textContent=`${S.journal.length}/13`;
-  setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp${storyArt('b'+(i+1))?' has-ill':''}" data-jp="${i}" type="button">${storyArt('b'+(i+1))?`<img class="jp-th" src="${storyArt('b'+(i+1))}" alt="">`:''}<span><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</span></button>`:`<div class="jp unk">B${i+1} · 아직 찾지 못한 장</div>`).join(''));
+  setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp${storyArt('b'+(i+1))?' has-ill':''}" data-jp="${i}" type="button">${storyArt('b'+(i+1))?`<img class="jp-th" src="${storyArt('b'+(i+1))}" alt="" onload="this.classList.toggle('hi',this.naturalWidth>400)">`:''}<span><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</span></button>`:`<div class="jp unk">B${i+1} · 아직 찾지 못한 장</div>`).join(''));
   $('dexCount').textContent=`${S.seen.length}/${ORDER.length}`;
   setHTML($('dex'),ORDER.map(id=>`<button class="dx${S.seen.includes(id)?'':' unk'}" data-dx="${id}" type="button" aria-label="${S.seen.includes(id)?ITEMS[id].n:'아직 모르는 광물'}">${ico(id)}</button>`).join(''));
   const mins=Math.round((S.playT||0)/60);   // 게임을 켜 두고 있던 시간만(자리 비운 시간 · 앱이 뒤로 간 시간은 빼고)
@@ -143,7 +143,7 @@ let STC=null;
    그림이 아직 없으면 full · card는 예전 이야기 창 그대로(글만), hero는 그림 없이도 특별 화면 */
 const storyArt=k=>k&&typeof ART!=='undefined'?ART['story_'+k]||null:null;
 function storyMode(c){const src=storyArt(c.ill),m=c.mode&&(src||c.mode==='hero')?c.mode:'';const st=$('story');['full','card','hero'].forEach(k=>st.classList.toggle('m-'+k,m===k));st.dataset.cat=src&&c.ill?c.ill[0]:'';   // 그림 종류(p · b · e)마다 같은 규격으로 보이게
-  const w=$('storyIll'),im=$('storyIllImg');w.hidden=!src&&m!=='hero';im.hidden=!src;if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=c.t||''}else im.removeAttribute('src')}
+  const w=$('storyIll'),im=$('storyIllImg');w.hidden=!src&&m!=='hero';im.hidden=!src;im.onload=()=>im.classList.toggle('hi',im.naturalWidth>400);if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=c.t||''}else im.removeAttribute('src')}
 function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;storyMode({});if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();storyMode(c);
   $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=T(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';
   const p=$('portrait'),pa=$('portraitArt'),art=c.art&&typeof ART!=='undefined'&&ART[c.art];pa.hidden=!art;if(art){pa.src=art;pa.alt=c.t||''}
