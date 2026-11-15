@@ -1,6 +1,6 @@
 """사용자 그림(art/source/sprites/) → 게임용 도트 (art/sprites, art/ui, art/scene/tower.png)
   robot_cat.webp : 드릴 로봇 켜짐 · 꺼짐 · 가득 × 3, 숯(앉기 · 꼬리 · 잠), 선물 상자
-  ui_icons.webp  : 아래 탭 6개(채굴 · [장비 자리의 굴착기는 안 쓰고 우리 드릴 로봇] · 재련 · 장터 · 탑 · 관리), 로봇 보관함 · 숯의 선물 · 채굴 2배 (검은 바탕은 지움)
+  ui_icons.webp  : 아래 탭 6개(채굴 · [장비 자리의 굴착기는 안 쓰고 우리 드릴 로봇] · 제련 · 장터 · 탑 · 관리), 로봇 보관함 · 숯의 선물 · 채굴 2배 (검은 바탕은 지움)
   shop_emoji.webp: 장비 탭 가게 무대에 서는 사람(핀 · 무쇠 · 루카 · 미르 · 셈) → art/shop/<키>.png, 높이 192(화면 1:1)
   tower.webp     : 탑 (흰 바탕은 지움)
 크기는 "화면 픽셀"(게임 월드 1px = 화면 2px) 기준. 사용: python3 tools/sprite_art.py"""

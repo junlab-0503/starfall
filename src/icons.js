@@ -150,10 +150,10 @@ const ICON_DEF={
     ICON_SH.glow(c,'rgba(255,225,140,A)',3);SPARK_IN(c,[[17,14,3],[7,8,1],[26,8,1]])},
   stardust:c=>{c.add(T3(mLathe([[.5,-.95],[.62,-.8],[.64,.2],[.4,.4],[.32,.55]],12),{y:-.02}),{...MAT.glass('#e8f0ff',{ex:18}),tex:(x,y,i,col,R)=>{if(y/c.u<15.5)return col;const h=H32(x,y,3);return h<.18?'#ffffff':h<.45?'#ffd86a':h<.7?'#ffc040':'#e8a030'}});
     c.add(T3(mLathe([[.34,.5],[.36,.85]],10),{y:-.02}),MAT.rock('#a87a4a',{}));ICON_SH.glow(c,'rgba(255,236,170,A)',2);SPARK_IN(c,[[8,9,2],[25,12,1],[23,4,1],[6,21,1]])},
-  /* ── 재련: 돌·건축 ── */
+  /* ── 제련: 돌·건축 ── */
   brick:c=>{c.add(T3(mBox(1.5,.95,1.05),{ry:-.55,y:-.62}),MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>H32(x,y,2)<.1?R[Math.max(0,i-1)]:(H32(x>>1,y,4)<.05?R[Math.min(4,i+1)]:col)}))},
   tile:c=>{const m=MAT.rock(c.it.c,{dk:.12,lt:.05});[[-.48,-.72,0],[.5,-.72,.05],[0,-.18,.02]].forEach(([x,y,z])=>c.add(T3(mBox(.92,.5,.62),{ry:-.5,x,y,z}),m))},
-  /* ── 재련: 금속 ── */
+  /* ── 제련: 금속 ── */
   bronze:c=>ICON_SH.ingot(c),
   steel:c=>ICON_SH.ingot(c),
   silverbar:c=>ICON_SH.ingot(c),
@@ -166,14 +166,14 @@ const ICON_DEF={
   wire:c=>{c.add(T3(mLathe([[.95,-.85],[.95,-.68],[.55,-.68],[.55,.5],[.95,.5],[.95,.67]],14),{y:.05,rx:.1}),MAT.rock('#8a5a34',{dk:.05}));
     c.add(T3(mLathe([[.82,-.66],[.86,-.4],[.86,.2],[.82,.48]],14),{y:.05,rx:.1}),MAT.metal(c.it.c,{zb:.01,tex:(x,y,i,col,R)=>(y/c.u|0)%2===0&&i>0?R[i-1]:col}))},
   gear:c=>c.fx0.push(pb=>gear2D(pb,c.u,{cx:15.5,cy:15,R:13.5,col:c.it.c,T:3})),
-  /* ── 재련: 가루·통·병 ── */
+  /* ── 제련: 가루·통·병 ── */
   coke:c=>{const m=MAT.rock(c.it.c,{tex:(x,y,i,col,R)=>H32(x>>1,y>>1,3)<.22?'#24201c':col});c.add(T3(mRock(c.seed,{rings:3,segs:6,j:.3,flat:.5}),{sx:.85,sy:.7,sz:.8,x:-.25}),m);c.add(T3(mRock(c.seed+4,{rings:3,segs:6,j:.3,flat:.5}),{s:.55,x:.55,y:-.32,z:.3}),m)},
   lime:c=>{const m=MAT.rock(c.it.c,{dk:.1,lt:.02,b:-.2});[[-.4,-.25,.0,.5],[.42,-.3,.1,.44],[0,.05,-.35,.48],[.05,-.55,.45,.32]].forEach(([x,y,z,s],k)=>c.add(T3(mRock(c.seed+k*3,{rings:3,segs:6,j:.22,flat:.6}),{s,x,y,z}),m))},
   polish:c=>ICON_SH.powder(c,c.it.c,'#c8c0d8'),
   ultramarine:c=>{c.add(T3(mLathe([[.7,-.9],[.78,-.75],[.78,.2],[.6,.4],[.58,.52]],12),{}),MAT.glass(c.it.c,{ex:16,b:-.2,tex:(x,y,i,col,R)=>H32(x,y,2)<.12?R[Math.max(0,i-1)]:col}));c.add(T3(mLathe([[.6,.5],[.64,.85]],12),{}),MAT.rock('#a87a4a',{}))},
-  /* ── 재련: 렌즈·유리 ── */
+  /* ── 제련: 렌즈·유리 ── */
   glass:c=>{c.add(T3(mBox(1.5,1.6,.14),{ry:-.6,rz:.08,y:-.85}),MAT.glass(c.it.c,{b:.2,tex:(x,y,i,col)=>{const v=(x+y)/c.u;return(v>26&&v<27.5)||(v>30&&v<31)?'#ffffff':col}}))},
-  /* ── 재련: 보석 ── */
+  /* ── 제련: 보석 ── */
   resonant:c=>{c.add(T3(mPrism(6,.38,.95,{tip:.5}),{rz:.18,x:-.25,y:-.95}),MAT.gem(c.it.c,{}));c.fx.push(pb=>{[[4,0],[7,.7]].forEach(([r,o])=>{for(let a=-.9;a<=.9;a+=.12){pb.set((21+o+Math.cos(a)*r)*c.u,(16+Math.sin(a)*r)*c.u,'rgba(220,190,255,.85)')}})})},
   cutemerald:c=>ICON_SH.gem(c,'step',{out:OCT(.72,.9,.24)}),
   cutruby:c=>ICON_SH.gem(c,'oval',{spin:1.3}),

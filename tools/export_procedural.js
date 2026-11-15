@@ -47,10 +47,10 @@ const res=await p.evaluate(()=>{S.tab='manage';const out={},K=2,cw=STX*K,ch=33*K
   // 채굴 화면 UI 아이콘(보관함 · 숯의 선물 · 2배)
   Object.entries({box:'로봇보관함',gift:'숯의선물',ff:'채굴2배'}).forEach(([k,n])=>put(`6_UI아이콘/${n}`,UI_IC[k]().canvas(1)));
   // 아래 탭 아이콘(16px)
-  const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');const NM={mine:'채굴',equip:'장비',forge:'재련',market:'장터',tower:'탑',manage:'관리'};
+  const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');const NM={mine:'채굴',equip:'장비',forge:'제련',market:'장터',tower:'탑',manage:'관리'};
   for(const m of css.matchAll(/\.ni-(\w+)\{background-image:url\((data:image\/png;base64,[^)]+)\)\}/g))out[`6_UI아이콘/탭_${NM[m[1]]||m[1]}`]=m[2];
   // 광물 아이콘(32px)
-  ORDER.forEach(id=>{const it=ITEMS[id],g2=it.L?'원석':INS[id]?'재련품':'기타';put(`7_광물아이콘/${g2}/${it.n}`,drawIcon(id,32).canvas(1))});
+  ORDER.forEach(id=>{const it=ITEMS[id],g2=it.L?'원석':INS[id]?'제련품':'기타';put(`7_광물아이콘/${g2}/${it.n}`,drawIcon(id,32).canvas(1))});
   // 탑 그림(탑 탭)
   const f0=S.floors,e0=S.ended;[[0,0],[15,0],[50,0],[99,0],[99,1]].forEach(([f,e])=>{S.floors=f;S.ended=!!e;refreshBonus();towerKey='';drawTower();put(`8_탑그림/탑_${f}층${e?'_엔딩':''}`,$('towerCv'))});S.floors=f0;S.ended=e0;refreshBonus();
   // 이장 할머니 초상화(코드로 그린 것, 튜토리얼 얼굴)

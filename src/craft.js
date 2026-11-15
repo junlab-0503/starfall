@@ -1,6 +1,6 @@
 /* ═════════ 세공 (v25): 떠돌이 세공사 린 ═════════
    B4 석회 동굴을 열면 린이 찾아와 창고 옆에 작업대를 차린다(탑 입주자 13명과는 따로, 탑 · 엔딩에 영향 없음).
-   재련품(은괴 · 금괴 · 별빛강)을 원하는 만큼 넣어 세공품 하나(+0)를 만들고, +10까지 두드린다. 실패하면 세공품과 재료가 모두 부서진다.
+   제련품(은괴 · 금괴 · 별빛강)을 원하는 만큼 넣어 세공품 하나(+0)를 만들고, +10까지 두드린다. 실패하면 세공품과 재료가 모두 부서진다.
    판매가 = 만들 때 정해진 기준 가치(재료 수 × 그때의 개당 판매가) × 지금 단계의 배율. 단계마다 도전의 기대값은 1보다 작다(일반 판매보다 평균 수익이 낮음).
    강화 결과는 연출보다 먼저 정하고 저장한다 → 연출 중에 앱을 꺼도 결과는 그대로.
    그림: art/craft/(lin · gold|silver|star 0~5 · bench · hammer, 있으면 bg · fx_ok · fx_fail · fx_ten) → ART.craft_… */
@@ -49,7 +49,7 @@ function renderCraft(){if($('sub-craft').hidden)return;const c=CR(),a=c.a;
     ${have?`<div class="cr-q"><span class="dim">넣을 재료</span><input id="crQ" type="number" inputmode="numeric" min="1" max="${have}" step="1" value="${CRQ}"><button class="px-btn sm" data-crq="1" type="button">+1</button><button class="px-btn sm" data-crq="10" type="button">+10</button><button class="px-btn sm" data-crq="100" type="button">+100</button><button class="px-btn sm" data-crq="max" type="button">최대</button></div>
     <div class="cr-v"><span class="dim">기준 가치</span><b class="gold-t">${big(base)}G</b></div>
     <div class="row-btns"><button class="px-btn lamp grow" id="crMake" type="button">제작</button></div>`
-    :`<p class="dim small cr-none">재료가 없어요. 재련 탭에서 만들 수 있어요.</p>`}
+    :`<p class="dim small cr-none">재료가 없어요. 제련 탭에서 만들 수 있어요.</p>`}
     ${craftOddsHtml()}`)}
 function craftShowHtml(a,anim){const K=craftKind(a.k),M=ITEMS[K.mat],to=a.lv+1,top=a.lv>=CRAFT_MAX,pr=craftPrice(a);
   return`<div class="cr-medal${anim?' anim':''}" id="crMedal"><img src="${craftArt(a.k,a.lv)}" alt=""><img class="cr-hammer" src="${ART.craft_hammer}" alt=""><i class="cr-flash"></i></div>
@@ -70,7 +70,7 @@ function craftDoTry(){const r=craftTry();if(!r)return;CRAFT_BUSY=true;CRFX=r;ren
 function openCraft(){if(!craftOpen())return;if(!CR().met){linIntro(true);return}openSheet('craft')}
 // 린 첫 등장(한 번만): B4를 열 때 일지 다음에, 옛 저장이면 작업대를 처음 누를 때
 function linIntro(thenOpen){const L=['"여기가 별빛골이야? 광산이 다시 열린다기에 와 봤는데… 꽤 괜찮은 금속들이 있네!"','"나는 린. 이곳저곳 떠돌며 금속을 세공하는 장인이야."','"창고 옆에 작업대를 하나 차려도 될까? 평범한 금속도 어떻게 두드리느냐에 따라 엄청난 가치를 가질 수 있거든."','"하지만 조심해야 해. 욕심내서 너무 두드리면… 그대로 깨져 버릴 수도 있으니까!"'];
-  story(L.map((b,i)=>({k:'떠돌이 세공사',t:'린',b,art:'lin',...(i===L.length-1?{done:()=>{CR().met=1;save();renderMineHud()},after:()=>{toast('창고 옆에 린의 세공 작업대가 생겼어요.');if(thenOpen)openSheet('craft')}}:{})})))}
+  story(L.map((b,i)=>({k:'떠돌이 세공사',t:'린',b,art:'lin',...(i===L.length-1?{done:()=>{CR().met=1;npcTutQueue('린');save();renderMineHud()},after:()=>{toast('창고 옆에 린의 세공 작업대가 생겼어요.');if(thenOpen)openSheet('craft')}}:{})})))}
 $('crBtn').addEventListener('click',openCraft);
 $('sub-craft').addEventListener('click',e=>{const c=CR();
   const kb=e.target.closest('[data-crk]');if(kb&&!c.a){c.sel=kb.dataset.crk;CRQ=1;sfx('click');renderCraft();return}

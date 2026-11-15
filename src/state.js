@@ -15,7 +15,7 @@ const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function fresh(){return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
   found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},shop:0,ofN:0,ofG:0,prologue:false,
-  clock:0,day:0,playT:0,whHint:0,fgSub:'furn',craft:{a:null,rec:{},met:0,sel:'silver'},pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
+  clock:0,day:0,playT:0,whHint:0,mr:0,ntq:[],ntDone:[],nts:0,fgSub:'furn',craft:{a:null,rec:{},met:0,sel:'silver'},pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store'}}
 /* 시계 조작 방지
    게임 시간 = 기기 시계 + 보정값(CLK.off).
@@ -37,7 +37,7 @@ async function syncTime(ms){try{if(!/^https?:$/.test(location.protocol)||/^(loca
   const off=d+age+500-(t0+t1)/2;CLK.srv=off;if(Math.abs(off-CLK.off)>60000){CLK.off=off;clockRebase()}return true}catch(e){return false}}
 let S,BON;
 // 저장 정리: 예전 시제품 저장 지우기, 지금 안 쓰는 필드 · 없어진 광물 · 잘못된 숫자 정리, 옛 이름이 남은 일지·소문 비우기
-const SAVE_VER=4,KEEP_EXTRA=['lost'];
+const SAVE_VER=5,KEEP_EXTRA=['lost'];
 function cleanSave(d){const f=fresh(),S2={};
   for(const k in f)S2[k]=k in d?d[k]:f[k];KEEP_EXTRA.forEach(k=>{if(k in d)S2[k]=d[k]});
   const num=v=>typeof v==='number'&&isFinite(v);for(const k in f)if(typeof f[k]==='number'&&!num(S2[k]))S2[k]=f[k];
@@ -47,17 +47,18 @@ function cleanSave(d){const f=fresh(),S2={};
   S2.seen=[...new Set((S2.seen||[]).filter(id=>ITEMS[id]))];S2.found=[...new Set((S2.found||[]).filter(i=>RECIPES[i]))];S2.journal=[...new Set((S2.journal||[]).filter(i=>LAYERS[i]))];
   S2.slots=[0,1].map(i=>{const id=(S2.slots||[])[i];return ITEMS[id]?id:null});
   const a=S2.ads||{};S2.ads={boostUntil:num(a.boostUntil)?a.boostUntil:0,day:num(a.day)?a.day:0,gift:num(a.gift)?a.gift:0,boost:num(a.boost)?a.boost:0};
-  const pass={};for(const i in S2.pass||{}){const h=S2.pass[i];if(LAYERS[i]&&h&&num(h.n)&&h.n>0&&num(h.c))pass[i]={n:h.n|0,c:h.c}}S2.pass=pass;
+  const pass={};for(const i in S2.pass||{}){const h=S2.pass[i];if(LAYERS[i]&&h&&num(h.n)&&h.n>0&&num(h.c)){pass[i]={n:h.n|0,c:h.c};if(num(h.bt))pass[i].bt=h.bt;if(num(h.bm))pass[i].bm=h.bm}}S2.pass=pass;
   const pm={};for(const i in S2.pm||{}){const P=S2.pm[i];if(LAYERS[i]&&P&&num(P.m))pm[i]={m:clamp(P.m,.15,8),a:num(P.a)?clamp(P.a,.15,8):1,imp:num(P.imp)?P.imp:0}}S2.pm=pm;
   S2.rum=(Array.isArray(S2.rum)?S2.rum:[]).filter(r=>r&&LAYERS[r.L]&&SOURCES[r.src]&&num(r.t)&&num(r.dur));S2.rumDone=(Array.isArray(S2.rumDone)?S2.rumDone:[]).slice(0,4);
   S2.unlocked=clamp(S2.unlocked|0,1,LAYERS.length);S2.layer=clamp(S2.layer|0,0,S2.unlocked-1);
   if(!['pass','ore'].includes(S2.mkSub))S2.mkSub='pass';
   const up={};for(const k in S2.up||{})if(UPS[k]&&num(S2.up[k])&&S2.up[k]>0)up[k]=Math.min(S2.up[k]|0,UPS[k].max??999);S2.up=up;
-  // v24.1: 자동 재련소를 뺌 → 미르의 '자동 재련 칸' · '센 불꽃'에 썼던 골드를 돌려줌(한 번만: 그 단계는 저장에서 사라짐)
+  // v24.1: 자동 제련소를 뺌 → 미르의 '자동 제련 칸' · '센 불꽃'에 썼던 골드를 돌려줌(한 번만: 그 단계는 저장에서 사라짐)
   {const old=d.up||{};let g=0;for(const k of ['qslot','qspeed']){const lv=num(old[k])?Math.max(0,old[k]|0):0;const c=BAL.ups[k];if(c)for(let i=0;i<lv;i++)g+=Math.round(c[0]*Math.pow(c[1],Math.min(i,c[3]??1e9))*Math.pow(c[2]||1,Math.max(0,i-(c[3]??1e9))))}
    if(g>0){S2.gold=(num(S2.gold)?S2.gold:0)+g;S2.rqRefund=g}}
-  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.slots=[null,null]}   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움
+  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.slots=[null,null]}if((d.v|0)<5){S2.intel=[0,6,8,9][clamp(S2.intel|0,0,3)];S2.ntq=[];S2.ntDone=['셈','핀','루카','미르'].filter(w=>SECTIONS[SECTIONS.findIndex(s=>s.t.name===w)].to<=(S2.floors|0));if(d.craft&&d.craft.met)S2.ntDone.push('린')}   // v5: 소문 감정 3단계(75·88·97%) → 9단계(50~90%), 쓰던 정확도에 가까운 단계로   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움
   S2.log=(S2.log||[]).slice(0,60);
+  {const W=['셈','핀','루카','미르','린'],ok=a=>[...new Set((Array.isArray(a)?a:[]).filter(w=>W.includes(w)))];S2.ntDone=ok(S2.ntDone);S2.ntq=ok(S2.ntq).filter(w=>!S2.ntDone.includes(w));if(!S2.ntq.length)S2.nts=0}   // 주민 안내 줄 · 본 사람
   // 세공(v25): 지금 다듬는 세공품 하나(a) · 종류별 기록(rec) · 린을 만났는지(met). 이상한 값은 버리고 안전한 기본값으로
   {const c=d.craft&&typeof d.craft==='object'?d.craft:{},K=['silver','gold','star'],o={a:null,rec:{},met:c.met?1:0,sel:K.includes(c.sel)?c.sel:'silver'};
    const a=c.a;if(a&&K.includes(a.k)&&num(a.n)&&a.n>=1&&num(a.base)&&a.base>=0&&num(a.lv)&&a.lv>=0&&a.lv<=10)o.a={k:a.k,n:Math.floor(a.n),base:a.base,lv:Math.floor(a.lv),t:num(a.t)?a.t:0};
@@ -81,7 +82,7 @@ function log(msg,toastIt){S.log.unshift(msg);S.log=S.log.slice(0,60);if(toastIt)
 function toast(msg){const box=$('toasts');if(!box)return;const t=document.createElement('div');t.className='toast';t.textContent=msg;box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),450)},2600)}
 
 /* 보너스: 탑 구간 완공(입주자) + 층수 */
-// 입주 효과는 그 구간 입주자의 것: 0 무쇠(재련 성공 · 금속값) 1 셈 2 핀 3 바우(탭) 4 루카 5 미르(대성공 · 연료값) 6 서린 7 하멜 8 도담 9 강철 10 엘라(사는 값 · 보석값) 11 노을(황금 광맥 간격) 12 아르덴
+// 입주 효과는 그 구간 입주자의 것: 0 무쇠(제련 성공 · 금속값) 1 셈 2 핀 3 바우(탭) 4 루카 5 미르(대성공 · 연료값) 6 서린 7 하멜 8 도담 9 강철 10 엘라(사는 값 · 보석값) 11 노을(황금 광맥 간격) 12 아르덴
 function bonus(){const done=SECTIONS.filter(s=>S.floors>=s.to).length,has=i=>done>i,all=has(12)?1.1:1,sky=Math.max(0,S.floors-99);
   return{done,tap:(1+(has(3)?.1:0))*all*(1+.02*sky),wh:1+(has(1)?.5:0),auto:(1+(has(2)?.25:0)+(has(9)?.5:0))*all,success:has(0)?.05:0,
     sell:(1+(has(4)?.05:0)+(has(7)?.1:0))*(1+.01*Math.min(S.floors,99))*all*(1+.01*ul('haggle')),spread:has(10)?.7:1,rare:has(6)?1.2:1,rockHp:has(8)?.85:1,great:has(5)?.05:0,
@@ -98,7 +99,7 @@ const autoCost=n=>Math.round(BAL.auto[0]*Math.pow(BAL.auto[1],n));
 const autoDps=()=>S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto*boostMul();
 const furnCost=n=>Math.round(BAL.furn[0]*Math.pow(BAL.furn[1],n));
 const whCost=n=>Math.round(BAL.wh[0]*Math.pow(BAL.wh[1],n));
-const intelCost=n=>BAL.intel[n]??Infinity;
+const intelCost=n=>n>=INTEL_MAX?Infinity:Math.round(BAL.intel[0]*Math.pow(BAL.intel[1],n));
 const offlineH=()=>S.noAds?16:8;
 // 광고 보상 하루 횟수: 한국 시간 자정에 초기화 (기기 시간대를 바꿔도 같은 날)
 const GIFT_MAX=5,BOOST_MAX=10;

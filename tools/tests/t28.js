@@ -13,7 +13,7 @@ for(const[loc,want,title,tap]of[['ko-KR','ko','별빛광맥','터치하여 시�
 const p=await open('en-US');const close=async()=>{for(let i=0;i<30&&await p.isVisible('#storyNext');i++)await p.click('#storyNext')};
 await p.click('#titleScr');await p.waitForTimeout(300);const pro=await p.evaluate(()=>$('storyT').textContent+' | '+$('storyB').textContent.slice(0,40));ok(/A Letter/.test(pro)&&/torn down this winter/.test(await p.evaluate(()=>$('storyB').textContent)),'영어 프롤로그: '+pro);
 await close();await p.waitForTimeout(500);if(await p.isVisible('#entry')){await p.click('#entry');await p.waitForTimeout(700)}
-await p.evaluate(()=>{S.tutDone=true;S.gold=2.5e6;S.floors=30;S.unlocked=6;refreshBonus();renderAll()});await close();
+await p.evaluate(()=>{S.tutDone=true;S.gold=2.5e6;S.floors=30;S.unlocked=6;S.seen=RAW.slice(0,12);S.journal=[0,1,2,3,4,5];refreshBonus();renderAll()});await close();
 const vis=()=>p.evaluate(()=>{const o=[];const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){const e=n.parentElement;if(!e||e.closest('script,style,#langSeg'))continue;if(e.offsetParent===null)continue;if(/[ㄱ-ㆎ가-힣]/.test(n.nodeValue))o.push(n.nodeValue.trim().slice(0,30))}return o});
 let left=[];for(const t of ['forge','market','mine','tower','equip','store','shaft','book','set']){if(['store','shaft','book','set'].includes(t))await p.evaluate(t=>openSheet(t),t);else await p.click(`[data-tab="${t}"]`);await p.waitForTimeout(350);left=left.concat((await vis()).map(x=>t+': '+x))}await p.evaluate(()=>closeSheet());
 ok(left.length===0,'영어: 다섯 탭 · 네 창에 한글이 남지 않음'+(left.length?' → '+left.slice(0,5).join(' / '):''));
@@ -29,7 +29,7 @@ ok(await p.evaluate(()=>document.fonts.check('12px StarTC','挖礦')),'번체 �
 // 4) 한국어로 → 원문 그대로 돌아옴
 await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.click('[data-lang="ko"]');await p.waitForTimeout(300);
 const k=await p.evaluate(()=>({g:$('gold').textContent,nav:[...document.querySelectorAll('.nb span')].map(e=>e.textContent).join(),set:document.querySelector('#sub-set h2').textContent,miss:MISS.size}));
-ok(k.g==='250만G'&&k.nav==='재련,장터,채굴,탑,장비'&&k.set==='설정','한국어로 되돌리기: '+JSON.stringify(k));
+ok(k.g==='250만G'&&k.nav==='제련,장터,채굴,탑,장비'&&k.set==='설정','한국어로 되돌리기: '+JSON.stringify(k));
 // 5) 다시 열어도 고른 언어 그대로(기기 언어보다 우선)
 await p.click('[data-lang="en"]');await p.reload();await p.waitForTimeout(700);ok(await p.evaluate(()=>LANG==='en'&&document.querySelector('.t-name').textContent==='Starlight Vein'),'다시 열어도 고른 언어(영어) 그대로');
 await p.context().close();

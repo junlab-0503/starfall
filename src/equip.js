@@ -16,13 +16,13 @@ const UPS={
   box:{n:'채굴 보관함',ic:()=>'brick',d:l=>`창고가 차면 로봇이 여기에 모아요 · ${big(boxCapOf(l))}칸 → ${big(boxCapOf(l+1))}칸`},
   refiner:{n:'자동 판매 장치',ic:()=>'crysteel',max:10,d:l=>`보관함이 넘치면 넘친 광석을 원석 값의 ${Math.round(ofMul(l)*100)}%로 팔아요${l<10?` → ${Math.round(ofMul(l+1)*100)}%`:''}`},
   night:{n:'밤샘 근무',ic:()=>'moonstone',max:10,d:l=>`자리 비운 보상이 ${pc(nightAt(l))}% 더 빨리 차요${l<10?` → ${pc(nightAt(l+1))}%`:''}`},
-  furn:{n:'풀무',ic:()=>'coke',lv:()=>S.furnace,max:5,cost:()=>furnCost(S.furnace),buy:()=>{S.furnace++},d:()=>`재련 성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`},
+  furn:{n:'풀무',ic:()=>'coke',lv:()=>S.furnace,max:5,cost:()=>furnCost(S.furnace),buy:()=>{S.furnace++},d:()=>`제련 성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`},
   great:{n:'별빛 불씨',ic:()=>'stardust',max:10,d:l=>`대성공 확률 +${l}%${l<10?` → +${l+1}%`:''}`},
   vheat:{n:'별빛 여운',ic:()=>'gold',max:10,d:l=>`황금 광맥이 ${veinSecAt(l)}초 머물러요${l<10?` → ${veinSecAt(l+1)}초`:''}`},
   wh:{n:'창고 늘리기',ic:()=>'tile',lv:()=>S.wh,cost:()=>whCost(S.wh),buy:()=>{S.wh++},d:()=>`용량 ${big(cap())}칸 → ${big(capOf(S.wh+1))}칸`},
   autosell:{n:'알뜰 정리',ic:()=>'gear',max:1,d:l=>l?'창고가 가득 차면 가장 싼 원석을 팔아 자리를 만들어요':'창고가 가득 차도 가장 싼 원석을 팔며 계속 캐요'},
   safe:{n:'월세 금고',ic:()=>'silverbar',max:5,d:l=>`월세를 ${rentCapH(l)}시간치까지 모아 둬요${l<5?` → ${rentCapH(l+1)}시간`:''}`},
-  intel:{n:'소문 감정',ic:()=>'cutsapph',lv:()=>S.intel,max:3,cost:()=>intelCost(S.intel),buy:()=>{S.intel++},d:()=>['소문의 진위를 알 수 없어요','소문 신뢰도 표시 (적중 75%)','소문 신뢰도 표시 (적중 88%)','소문 신뢰도 표시 (적중 97%)'][Math.min(S.intel,3)]},
+  intel:{n:'소문 감정',ic:()=>'cutsapph',lv:()=>S.intel,max:INTEL_MAX,cost:()=>intelCost(S.intel),buy:()=>{S.intel++},d:()=>{const l=S.intel,a=Math.round(intelAcc(l)*100),b=Math.round(intelAcc(l+1)*100);return l?`소문 신뢰도 표시 (적중 ${a}%)${l<INTEL_MAX?` → ${b}%`:''}`:`소문의 진위를 알 수 없어요 → 적중 ${b}%`}},
   haggle:{n:'흥정 솜씨',ic:()=>'cutgarnet',max:20,d:l=>`광물 판매가 +${l}%${l<20?` → +${l+1}%`:''}`},
   bulk:{n:'큰손 거래처',ic:()=>'platbar',max:10,d:l=>`지층마다 출입권을 ${BAL.pass.max+10*l}장까지${l<10?` → ${BAL.pass.max+10*(l+1)}장`:''}`}};
 // 고르는 칸 순서 = 탑 층이 낮은 순서(무쇠 1층 · 셈 6층 · 핀 10층 · 루카 21층 · 미르 28층)

@@ -11,7 +11,7 @@ const D=await p.evaluate(()=>{const o={};
   o.tut=[];TUT.forEach(st=>{if(typeof st.t==='string')o.tut.push(st.t)});
   o.intro=[];Object.values(TENANT_INTRO).forEach(a=>a.forEach(c=>{o.intro.push(c.t);o.intro.push(c.b)}));
   o.shopLines=[].concat(...SHOPS.map(s=>s.lines));o.thanks=[].concat(...SHOPS.map(s=>THANKS[s.who]));o.signs=SHOPS.map(s=>SHOP_ART[s.who].sign);
-  o.ups=Object.values(UPS).map(u=>u.n);o.shape=Object.values(SHAPE_TXT);o.sect=Object.values(SECT).map(s=>s.n);o.hints=RECIPES.map(r=>r.hint);o.picks=PICK_TIERS.map(t=>t[1]);o.seasons=SEASONS.map(s=>s.n);o.src=Object.keys(SOURCES);
+  o.ups=Object.values(UPS).map(u=>u.n);o.shape=Object.values(SHAPE_TXT);o.sect=Object.values(SECT).map(s=>s.n);o.hints=RECIPES.map(r=>r.hint);o.picks=PICK_TIERS.map(t=>t[1]);o.src=Object.keys(SOURCES);
   return o});
 let n=0;for(const k in D){n+=D[k].length}console.log(Object.entries(D).map(([k,v])=>k+':'+v.length).join(' '),'total',n,errs);
 fs.writeFileSync('/home/user/starfall/lang/ko.json',JSON.stringify(D,null,0).replace(/\],"/g,'],\n"'));await b.close()})();

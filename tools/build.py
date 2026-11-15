@@ -41,8 +41,10 @@ def sub(src,out,chars,rename=None):
         t.flavor='woff2';t.save(os.path.join(TMP,out))
     return base64.b64encode(open(os.path.join(TMP,out),'rb').read()).decode()
 kc=set(c for c in allc if not isTC(c));tc=set(c for c in allc if not isKO(c))
-FONTS=[('Galmuri14','Galmuri14.woff2'),('Galmuri11','Galmuri11.woff2'),('Galmuri11B','Galmuri11-Bold.woff2'),('Galmuri9','Galmuri9.woff2')]
-fonts='\n'.join(f'@font-face{{font-family:"{n}";src:url(data:font/woff2;base64,{sub(f,n+".woff2",kc)}) format("woff2");font-display:swap}}' for n,f in FONTS)
-fonts+=f'\n@font-face{{font-family:"StarTC";src:url(data:font/woff2;base64,{sub("Cubic_11.ttf","StarTC.woff2",tc,"Starfall TC Pixel")}) format("woff2");font-display:swap}}'
+# 글자 세로 가운데: 픽셀 글꼴은 글자 상자 위쪽에 붙어 그려진다(한글 잉크 위 92~94% · 아래 0%, 상자 위 100% · 아래 10~20%).
+# 위·아래 여백의 합(줄 높이)은 그대로 두고 비율만 바꿔 잉크 한가운데 = 상자 한가운데 (버튼 · 줄 글씨가 위로 뜨지 않게)
+FONTS=[('Galmuri14','Galmuri14.woff2',(107,13)),('Galmuri11','Galmuri11.woff2',(104.5,12.5)),('Galmuri11B','Galmuri11-Bold.woff2',(104.5,12.5)),('Galmuri9','Galmuri9.woff2',(100,10))]
+fonts='\n'.join(f'@font-face{{font-family:"{n}";src:url(data:font/woff2;base64,{sub(f,n+".woff2",kc)}) format("woff2");font-display:swap;ascent-override:{a}%;descent-override:{d}%;line-gap-override:0%}}' for n,f,(a,d) in FONTS)
+fonts+=f'\n@font-face{{font-family:"StarTC";src:url(data:font/woff2;base64,{sub("Cubic_11.ttf","StarTC.woff2",tc,"Starfall TC Pixel")}) format("woff2");font-display:swap;ascent-override:87.5%;descent-override:28.5%;line-gap-override:0%}}'
 html=f'<meta charset="utf-8">\n<title>별빛광맥</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<style>\n/* 글꼴: Galmuri (갈무리) — SIL Open Font License 1.1 / 번체: 俐方體 Cubic 11 (ACh-K, M+ BITMAP FONTS 기반)을 줄여 이름을 바꾼 것 — SIL Open Font License 1.1 (fonts/OFL.txt · fonts/Cubic_11-OFL.txt) */\n{fonts}\n{css}</style>\n{body}\n<script>\n{js}</script>\n'
 open(OUT,'w',encoding='utf-8').write(html);print('dist/starfall.html',len(html)//1024,'KB')

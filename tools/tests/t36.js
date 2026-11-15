@@ -1,4 +1,4 @@
-// v24 3단계: 아래 탭 5개(재련 · 장터 · 채굴(가운데 · 크게) · 탑 · 장비), 관리 탭 기능 → 채굴 화면 단추와 창, 옛 저장(tab=manage) 복구, 튜토리얼 대상, 작은 화면
+// v24 3단계: 아래 탭 5개(제련 · 장터 · 채굴(가운데 · 크게) · 탑 · 장비), 관리 탭 기능 → 채굴 화면 단추와 창, 옛 저장(tab=manage) 복구, 튜토리얼 대상, 작은 화면
 const {chromium,devices}=require('playwright');const fs=require('fs');
 (async()=>{const b=await chromium.launch();let h=fs.readFileSync(process.argv[2],'utf8');
 fs.writeFileSync('dbg36.html','<!doctype html><html><head><meta charset=utf8><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>'+h+'</body></html>');

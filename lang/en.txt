@@ -513,11 +513,6 @@ Steel Pickaxe
 Crystal Pickaxe
 Lava Pickaxe
 Starlight Pickaxe
-## seasons
-Spring
-Summer
-Autumn
-Winter
 ## src
 Luka
 Bau

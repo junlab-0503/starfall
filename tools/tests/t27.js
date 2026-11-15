@@ -22,7 +22,7 @@ ok(fr.who==='무쇠,셈,핀,루카,미르'&&/탑 1층.*탑 6층.*탑 10층.*탑 
 ok(new Set(fr.hs).size===1&&fr.hs[0]===fr.ws[0],'잠긴 액자 5칸 모두 같은 정사각: '+fr.hs.join());
 // 강화 한도 · 출입권 한도
 const up=await p.evaluate(()=>({crit:UPS.crit.max,c20:critAt(20),m20:extraAt(20),hag:UPS.haggle.max,night:UPS.night.max,n10:nightAt(10),ref:ofMul(10),q:UPS.vheat.max,pm:passMax(),bulk:UPS.bulk.max,c11:upCostOf('crit',11)/upCostOf('crit',10),c5:upCostOf('crit',5)/upCostOf('crit',4)}));
-ok(up.crit===20&&Math.abs(up.c20-.4)<1e-9&&Math.abs(up.m20-.7)<1e-9&&up.hag===20&&up.night===10&&Math.abs(up.n10-1)<1e-9&&Math.abs(up.ref-1.75)<1e-9&&up.q===10,'강화 한도: 힘껏 내려치기 20(40%) · 쇠맥/보석 20(70%) · 흥정 20 · 밤샘 10(+100%) · 자동 재련 장치 10(175%) · 자동 재련 칸 5');
+ok(up.crit===20&&Math.abs(up.c20-.4)<1e-9&&Math.abs(up.m20-.7)<1e-9&&up.hag===20&&up.night===10&&Math.abs(up.n10-1)<1e-9&&Math.abs(up.ref-1.75)<1e-9&&up.q===10,'강화 한도: 힘껏 내려치기 20(40%) · 쇠맥/보석 20(70%) · 흥정 20 · 밤샘 10(+100%) · 자동 제련 장치 10(175%) · 자동 제련 칸 5');
 ok(Math.abs(up.c5-2.1)<.01&&Math.abs(up.c11-1.4)<.01,`강화 값: 예전 한도까지 ×${up.c5.toFixed(2)}, 그 뒤 ×${up.c11.toFixed(2)}`);
 ok(up.pm===50&&up.bulk===10,'출입권 한도: 지층마다 50장(큰손 거래처 1단계마다 +10장, 10단계)');
 ok(await p.evaluate(()=>{const S=__d().S,f=S.floors;S.floors=88;refreshBonus();const a=BON.veinFast;S.floors=f;refreshBonus();return a===.7&&BON.veinFast===1&&/황금 광맥/.test(SECTIONS[11].t.bonus)}),'노을 입주 효과: 황금 광맥 간격 ×0.7');

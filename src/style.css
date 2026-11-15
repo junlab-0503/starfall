@@ -25,7 +25,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 /* 상단 */
 .hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);padding-block:8px 6px;border-bottom:2px solid var(--line)}
 /* 제목: 위는 흙빛 돌 글씨, 갈라진 틈으로 아래 잠든 오로라가 드러난다 (지층을 개척할수록 금이 늘어남) */
-@keyframes aur{to{background-position:200% 0}}
+
 .stats{display:grid;grid-template-columns:1.25fr 1fr 1fr .8fr;gap:6px;margin-top:4px}
 .stat{display:flex;flex-direction:column;min-width:0}
 .stat .k{font-size:12px;font-family:var(--f11);color:var(--dim)}
@@ -168,7 +168,7 @@ main.mine-mode{overflow:hidden;display:flex;flex-direction:column}
 .toasts{bottom:calc(var(--navH,64px) + 8px)}
 body{margin:0}
 
-.sc-bot .qty{display:flex;gap:4px;justify-content:center;align-items:center;margin:4px 0 8px}
+
 .qty input{width:96px;text-align:center;background:#18120d;border:2px solid var(--line);color:var(--text);font:inherit;font-size:15px;font-family:var(--f14);line-height:1.2;padding:6px 0;border-radius:0;-moz-appearance:textfield;appearance:textfield;text-indent:0}
 .qty input::-webkit-outer-spin-button,.qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .qty .px-btn{padding:6px 8px}
@@ -186,9 +186,9 @@ body{margin:0}
 @media (prefers-reduced-motion:reduce){.tut-glow{animation:none}}
 
 /* 긴 목록: 화면 밖 줄은 그리지 않는다 */
-.rqj{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:7px;border:2px solid var(--line);background:var(--panel2);margin-bottom:6px;font-size:12px;font-family:var(--f11)}
-.rqj.wait{opacity:.75}.rqj.empty{display:block;border-style:dashed;background:transparent;text-align:center}
-.rq-btns{display:flex;flex-direction:column;gap:4px}.rec-btns{display:flex;flex-direction:column;gap:4px}
+
+
+
 /* 장비: 가게 고르기 → 그 사람이 서서 말하고, 아래에 강화 목록 */
 .shop-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px}
 .shopc{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:0;background:none;border:0;color:var(--dim);min-width:0}
@@ -222,18 +222,18 @@ body{margin:0}
 /* 도트 테두리: 모든 선 · 모서리를 2px 단위로. 큰 상자는 8px 도트 밧줄(꼬인 무늬 반복, 모서리는 매듭), 버튼 · 작은 칸은 2px 윤곽 + 2px 빛/그늘, 모서리는 2px 계단으로 깎기 */
 :root{--notch:polygon(0 3px,3px 3px,3px 0,calc(100% - 3px) 0,calc(100% - 3px) 3px,100% 3px,100% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,3px calc(100% - 3px),0 calc(100% - 3px));
 }
-.px-btn,.chip,.slot,.sect,.layer,.pk,.seg button,.say,.rcard,.rum,.rqj,.jp,.dx,.toast,.qty input,.dev input,.ad-box,.portrait,.tut-por,#towerCv,.sc-auto,.px-btn{border-color:#1a0f08;box-shadow:inset 0 2px 0 rgba(255,230,190,.16),inset 0 -2px 0 rgba(0,0,0,.35)}
+.px-btn,.chip,.slot,.sect,.layer,.pk,.seg button,.say,.rcard,.rum,.jp,.dx,.toast,.qty input,.dev input,.ad-box,.portrait,.tut-por,#towerCv,.px-btn{border-color:#1a0f08;box-shadow:inset 0 2px 0 rgba(255,230,190,.16),inset 0 -2px 0 rgba(0,0,0,.35)}
 .px-btn:active:not(:disabled){box-shadow:inset 0 2px 0 rgba(0,0,0,.3)}
 .px-btn.lamp{border-color:#3a1e06;box-shadow:inset 0 2px 0 #ffe0a0,inset 0 -2px 0 #b06a10}
-.chip,.sect,.layer,.pk,.seg button,.rqj,.dx{box-shadow:inset 0 2px 0 rgba(255,230,190,.07),inset 0 -2px 0 rgba(0,0,0,.28)}
+.chip,.sect,.layer,.pk,.seg button,.dx{box-shadow:inset 0 2px 0 rgba(255,230,190,.07),inset 0 -2px 0 rgba(0,0,0,.28)}
 .tier,.tg{border-width:2px}
 /* 채굴 화면: 다음 지층까지 · 보관함 아이콘 · 드릴 스위치 · 광고 아이콘 · 확률 보기 */
-.next-l{display:flex;flex-direction:column;gap:4px;width:100%;margin:6px 0;padding:6px 8px;background:var(--panel);border:2px solid #1a0f08;box-shadow:inset 0 2px 0 rgba(255,230,190,.07),inset 0 -2px 0 rgba(0,0,0,.28);text-align:left;color:var(--text)}
-.next-l .nl-h{font-size:12px;font-family:var(--f11);color:var(--dim)}.next-l .nl-h b{font-weight:400;color:var(--lamp)}
-.next-l .nl-r{display:flex;flex-wrap:wrap;gap:4px 10px}
-.nl-i{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-family:var(--f11)}.nl-i.ok{color:var(--good)}
-.nl-bar{display:inline-block;width:22px;height:4px;background:#3a2a1c}.nl-bar i{display:block;height:100%;background:var(--lamp)}.nl-i.ok .nl-bar i{background:var(--good)}
-.next-l.ready{border-color:var(--lamp);animation:nlg 1.2s steps(2) infinite}@keyframes nlg{50%{background:#3a2a14}}
+
+
+
+
+
+@keyframes nlg{50%{background:#3a2a14}}
 .box-btn b{position:absolute;right:-2px;top:-2px;font-weight:400;font-size:10px;font-family:var(--f9);line-height:12px;padding:0 3px;background:var(--bad);color:#fff}
 .box-btn b:empty{display:none}.box-btn.has img{animation:bxb 1s steps(2) infinite}@keyframes bxb{50%{transform:translateY(-2px)}}
 .sc-sw{position:absolute;left:8px;bottom:8px;display:flex;align-items:center;gap:6px;padding:4px 8px 4px 4px;background:rgba(14,10,8,.72);border:2px solid #1a0f08;font-size:12px;font-family:var(--f11);color:var(--dim)}
@@ -249,9 +249,9 @@ body{margin:0}
 .ic-btn.ready img{animation:icb 1.4s steps(2) infinite}@keyframes icb{50%{transform:translateY(-2px)}}
 .ic-btn.live .ic-tag{color:#8fffc0}.ic-btn:disabled img{filter:grayscale(.85) brightness(.6)}.ic-btn.live:disabled img{filter:none}
 .odds-list span{display:inline-flex;align-items:center;gap:4px}
-@media (prefers-reduced-motion:reduce){.next-l.ready,.box-btn.has img,.ic-btn.ready img{animation:none}}
+@media (prefers-reduced-motion:reduce){.box-btn.has img,.ic-btn.ready img{animation:none}}
 /* 윤곽선 한 단계 굵게: 버튼 · 칸 · 작은 상자는 3px */
-.px-btn,.chip,.slot,.sect,.layer,.pk,.seg button,.say,.rcard,.rum,.rqj,.jp,.dx,.next-l,.sc-sw,.toast,.bubble,.portrait,.tut-por,.irow .px-btn{border-width:3px}
+.px-btn,.chip,.slot,.sect,.layer,.pk,.seg button,.say,.rcard,.rum,.jp,.dx,.sc-sw,.toast,.bubble,.portrait,.tut-por,.irow .px-btn{border-width:3px}
 .vein-bn{position:absolute;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:4px 10px;background:#3a2408;border:3px solid #ffd23f;color:#ffe9a8;font-size:15px;font-family:var(--f14);pointer-events:none;clip-path:var(--notch);animation:vbn .6s steps(2) infinite}
 .vein-bn .vb{display:block;width:60px;height:6px;background:#1a0f08}.vein-bn .vb i{display:block;height:100%;background:#ffd23f}
 @keyframes vbn{50%{border-color:#fff3c4}}
@@ -301,12 +301,12 @@ body{margin:0}
 .shopc .fr{box-sizing:border-box}
 .shopc .fr img{background:#2a1d12}
 /* 버튼 · 칸: 단순한 짙은 갈색 윤곽 */
-.px-btn,.chip,.slot,.sect,.layer,.pk,.seg button,.say,.rcard,.rum,.rqj,.jp,.dx,.toast,.qty input,.dev input,.ad-box,.next-l,.sc-sw,.irow .px-btn{border-width:3px;border-color:var(--b-out)}
+.px-btn,.chip,.slot,.sect,.layer,.pk,.seg button,.say,.rcard,.rum,.jp,.dx,.toast,.qty input,.dev input,.ad-box,.sc-sw,.irow .px-btn{border-width:3px;border-color:var(--b-out)}
 .px-btn{box-shadow:inset 0 -2px 0 rgba(0,0,0,.3)}.px-btn:active:not(:disabled){box-shadow:inset 0 2px 0 rgba(0,0,0,.3)}
 .px-btn.lamp{border-color:#5a3608;box-shadow:inset 0 -2px 0 #b06a10}
-.chip,.sect,.layer,.pk,.seg button,.rqj,.dx,.next-l{box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.chip,.sect,.layer,.pk,.seg button,.dx{box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
 .chip.on,.seg button.on,.layer.on,.pk.in,.sect.cur{border-color:var(--lamp)}
-#rqPanel.locked{opacity:.7}#rqPanel.locked h2 small{color:var(--dim)}
+
 /* 보상 카드 줄: 아이콘과 글자를 가운데 줄에 맞춤 */
 .rcard>span{display:flex;align-items:center;gap:4px;min-height:24px}.rcard>span:nth-child(even){justify-content:flex-end}
 .dev-b{color:#ffd23f;border-color:#7a5a10}
@@ -382,7 +382,7 @@ button.matl.mgo:active{transform:translateY(1px)}
 .ov-btn img{height:30px;image-rendering:pixelated}.book-btn{right:6px}.ov-btn .dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--bad)}
 .vein-bn{top:46px}
 .wh-btn img{height:56px}
-.mine-sub{display:flex;align-items:center;gap:6px;margin-top:2px}.mine-sub .odds{margin-left:auto}
+
 .sheet{position:fixed;inset:0;bottom:calc(var(--navH,64px) + env(safe-area-inset-bottom,0px));z-index:11;background:rgba(6,4,10,.7);left:calc(50% - var(--appw,100vw)/2);right:auto;width:var(--appw,100vw)}
 .sheet-card{position:absolute;left:6px;right:6px;top:calc(env(safe-area-inset-top,0px) + 8px);bottom:6px;display:flex;flex-direction:column;background:var(--bg);border:3px solid var(--line);box-shadow:0 0 0 3px #1a0f08}
 .sheet-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:2px solid var(--line);font-family:var(--f14);font-size:15px;color:var(--lamp)}
@@ -396,39 +396,39 @@ button.matl.mgo:active{transform:translateY(1px)}
 /* v24: 스토리 삽화 연출 — 그림이 있을 때만(.m-full · .m-card), 별의 심장(.m-hero)은 그림 없이도 */
 .story-ill{position:relative;overflow:hidden;background:#140d14;border:3px solid #1a0f08;margin:-6px -6px 12px}
 .story-ill img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
-.story-ill .ill-fx{display:none}
+
 .story.m-card .story-ill{aspect-ratio:1/1;max-height:42vh;margin-inline:auto}
 .story.m-card .portrait{display:none}
-.story.m-full,.story.m-hero{padding:0;background:#0d0907}
-.story.m-full .story-card,.story.m-hero .story-card{max-width:none;height:100%;max-height:none;border:0;box-shadow:none;display:flex;flex-direction:column;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 14px);overflow:hidden;background:#0d0907}
-.story.m-full .story-ill,.story.m-hero .story-ill{flex:1 1 auto;min-height:0;margin:0;border:0;border-bottom:3px solid #3a2a1a}
-.story.m-full .story-card>:not(.story-ill),.story.m-hero .story-card>:not(.story-ill){margin-inline:18px}
-.story.m-full .story-kick,.story.m-hero .story-kick{margin-top:12px}
-.story.m-full .portrait,.story.m-hero .portrait{display:none}
+.story.m-full{padding:0;background:#0d0907}
+.story.m-full .story-card{max-width:none;height:100%;max-height:none;border:0;box-shadow:none;display:flex;flex-direction:column;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 14px);overflow:hidden;background:#0d0907}
+.story.m-full .story-ill{flex:1 1 auto;min-height:0;margin:0;border:0;border-bottom:3px solid #3a2a1a}
+.story.m-full .story-card>:not(.story-ill){margin-inline:18px}
+.story.m-full .story-kick{margin-top:12px}
+.story.m-full .portrait{display:none}
 .story.m-full p{max-height:30vh;overflow-y:auto}
-.story.m-hero{background:radial-gradient(ellipse at 50% 35%,#5a3a7a 0%,#24123a 45%,#0a0612 100%)}
-.story.m-hero .story-card{background:transparent}
-.story.m-hero .story-ill{border-bottom-color:#ffd27a}
-.story.m-hero .ill-fx{display:block;position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,230,150,.55) 0,rgba(255,200,110,.18) 22%,transparent 50%);animation:heart 2.4s steps(6) infinite}
-@keyframes heart{50%{opacity:.45;transform:scale(1.06)}}
-.story.m-hero h3{color:#ffe9a8;text-shadow:0 0 8px rgba(255,210,120,.6)}
-@media (prefers-reduced-motion:reduce){.story.m-hero .ill-fx{animation:none}}
+
+
+
+
+
+
+
 .jp.has-ill{display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center}
 .jp-th{width:56px;height:56px;object-fit:cover;image-rendering:pixelated;border:2px solid #1a0f08}
-.story.m-hero .story-ill{background:transparent}
+
 .qc-qty{justify-content:center;align-items:center;gap:4px;margin-top:6px}.qc-qty .px-btn{min-width:38px;padding-inline:6px}.qc-n{min-width:40px;text-align:center;font-family:var(--f14);font-size:16px;color:var(--lamp)}
 /* v24.1: 실제 삽화 비율에 맞춤 — 지층(가로로 긴 그림)은 자르지 않고, 프롤로그 · 엔딩 · 별의 심장은 그림을 위에 깔고 글을 아래 어두운 곳에 */
 .story.m-card .story-ill{aspect-ratio:auto;max-height:none}
 .story.m-card .story-ill img{height:auto;object-fit:contain}
-.story.m-full .story-card,.story.m-hero .story-card{position:relative;justify-content:flex-end;background:#241c2c}
-.story.m-hero .story-card{background:transparent}
-.story.m-full .story-ill,.story.m-hero .story-ill{position:absolute;left:0;right:0;top:0;bottom:auto;flex:none;border:0;background:transparent;z-index:0}
-.story.m-full .story-ill img,.story.m-hero .story-ill img{height:auto;max-height:78vh;object-fit:contain;object-position:top}
-.story.m-full .story-ill::after,.story.m-hero .story-ill::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(transparent,#241c2c);pointer-events:none}
-.story.m-hero .story-ill::after{background:linear-gradient(transparent,rgba(36,18,58,.95))}
-.story.m-full .story-card>:not(.story-ill),.story.m-hero .story-card>:not(.story-ill){position:relative;z-index:1}
-.story.m-full p,.story.m-hero p{max-height:34vh;overflow-y:auto;text-shadow:0 1px 0 #000}
-.story.m-hero .story-ill:has(img[hidden]){height:55%}
+.story.m-full .story-card{position:relative;justify-content:flex-end;background:#241c2c}
+
+.story.m-full .story-ill{position:absolute;left:0;right:0;top:0;bottom:auto;flex:none;border:0;background:transparent;z-index:0}
+.story.m-full .story-ill img{height:auto;max-height:78vh;object-fit:contain;object-position:top}
+.story.m-full .story-ill::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(transparent,#241c2c);pointer-events:none}
+
+.story.m-full .story-card>:not(.story-ill){position:relative;z-index:1}
+.story.m-full p{max-height:34vh;overflow-y:auto;text-shadow:0 1px 0 #000}
+
 /* v24.2: 삽화는 종류마다 한 규격(지층 194×112 · 엔딩 136×182)으로 똑같이 보이게 */
 .story[data-cat="b"] .story-ill img{width:100%;height:auto;aspect-ratio:194/112;object-fit:cover}
 .story[data-cat="e"] .story-ill img{width:100%;height:auto;aspect-ratio:136/182;object-fit:cover}
@@ -516,3 +516,21 @@ button.matl.mgo:active{transform:translateY(1px)}
 .cr-medal{width:120px;height:120px}.cr-medal>img:first-child{width:120px;height:120px}
 .cr-q{flex-wrap:nowrap;gap:3px}.cr-q input{width:64px}.cr-q .px-btn{padding:4px 6px;min-width:0}
 .cr-rec .rcard{grid-template-columns:auto 1fr auto 1fr;gap:2px 10px;padding:6px 8px}.cr-rec .rcard>span{min-height:20px}
+/* v26 장터 광물: 이름 · 개수 · 값 칸을 따로(부분 갱신이 이름을 지우지 않게), 판매/구매 버튼은 손가락 크기로
+   아이콘 · 개수 · 버튼은 줄 높이 한가운데, 이름과 값은 두 줄 한 묶음으로 가운데 */
+.orow{grid-template-columns:auto 1fr auto auto;grid-template-areas:"ic nm ct ac" "ic pr ct ac";grid-template-rows:auto auto;align-items:center;row-gap:3px;column-gap:10px;padding:8px 2px;min-height:60px}
+.orow>.ico{grid-area:ic;align-self:center}.orow .onm{grid-area:nm;align-self:end;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
+.orow .ocnt{grid-area:ct;align-self:center;text-align:right;line-height:1}.orow .opr{grid-area:pr;align-self:start;line-height:1.2}
+.orow .acts{grid-area:ac;align-self:center;display:flex;align-items:center;gap:6px}
+.orow .acts .px-btn{min-width:58px;height:40px;padding:0 10px;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+/* v26 휴대폰: 누를 때 뜨는 파란 강조 상자 · 길게 눌러 그림/글자가 선택되는 것 끄기(입력 칸은 그대로) */
+html{-webkit-tap-highlight-color:transparent}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+img{-webkit-user-drag:none;-webkit-touch-callout:none}
+.npc{touch-action:manipulation}
+/* v26 목록 버튼(창고 · 로봇 보관함 · 출입권): 손가락 크기 + 글씨 한가운데 */
+.irow .acts .px-btn,.boxr .px-btn,.prow .pbtn .px-btn{min-width:54px;height:38px;padding:0 10px;font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center;touch-action:manipulation}
+.prow .pbtn{gap:6px;margin-top:2px}
+/* 알림 점은 버튼 모서리 밖에(글씨를 가리지 않게) */
+.px-btn.ndot::after{top:-5px;right:-5px}

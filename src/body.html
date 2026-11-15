@@ -40,7 +40,7 @@
       <button class="slot" id="slotB" type="button" aria-label="재료 칸 2"></button>
     </div>
     <div class="preview" id="preview"></div>
-    <div class="row-btns"><button class="px-btn lamp grow" id="smelt" type="button">재련</button><button class="px-btn" id="smeltMax" type="button">가능한 만큼</button></div>
+    <div class="row-btns"><button class="px-btn lamp grow" id="smelt" type="button">제련</button><button class="px-btn" id="smeltMax" type="button">가능한 만큼</button></div>
     <div class="result" id="result"></div>
     <h3 class="sub-h">재료 고르기 <span class="dim">눌러서 빈 칸에 넣기</span></h3>
     <div class="pick-grid" id="pickGrid"></div>
@@ -72,7 +72,7 @@
 </main>
 
 <nav class="bnav" role="tablist">
-  <button class="nb" data-tab="forge" type="button"><i class="ni ni-forge"></i><span>재련</span></button>
+  <button class="nb" data-tab="forge" type="button"><i class="ni ni-forge"></i><span>제련</span></button>
   <button class="nb" data-tab="market" type="button"><i class="ni ni-market"></i><span>장터</span><i class="dot" id="newsDot" hidden></i></button>
   <button class="nb nb-main on" data-tab="mine" type="button"><i class="ni ni-mine"></i><span>채굴</span></button>
   <button class="nb" data-tab="tower" type="button"><i class="ni ni-tower"></i><span>탑</span><i class="dot" id="towerDot" hidden></i></button>
@@ -82,9 +82,9 @@
 <div class="sheet" id="sheet" hidden><div class="sheet-card"><div class="sheet-h"><b id="sheetT"></b><button class="px-btn sm" id="sheetX" type="button">닫기</button></div><div class="sheet-body" id="sheetBody">
   <div id="sub-store" class="view">
     <div class="panel"><h2>창고 <small id="invCap"></small></h2>
-      <div class="seg seg2" id="invSeg"><button data-invf="raw" type="button">원석 · 광재 <span class="c" id="invNRaw"></span></button><button data-invf="ref" type="button">재련품 <span class="c" id="invNRef"></span></button></div>
+      <div class="seg seg2" id="invSeg"><button data-invf="raw" type="button">원석 · 광재 <span class="c" id="invNRaw"></span></button><button data-invf="ref" type="button">제련품 <span class="c" id="invNRef"></span></button></div>
       <div class="inv" id="inv"></div>
-      <div class="row-btns"><button class="px-btn grow" id="sellRaw" type="button">원석 전체 판매</button><button class="px-btn grow" id="sellRef" type="button">재련품 전체 판매</button></div></div>
+      <div class="row-btns"><button class="px-btn grow" id="sellRaw" type="button">원석 전체 판매</button><button class="px-btn grow" id="sellRef" type="button">제련품 전체 판매</button></div></div>
     <div class="panel"><h2>작업 일지</h2><div class="log" id="log"></div></div>
   </div>
   <div id="sub-shaft" class="view" hidden><div class="panel"><h2>갱도 <small>개척하고 내려갈 지층</small></h2><div class="layers" id="layers"></div></div></div>
@@ -116,11 +116,12 @@
   </div>
 </div></div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
-<div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="48" height="48"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
+<div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="48" height="48"></canvas><div class="tut-b"><div class="tut-who" id="tutWho">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
 </div>
 
 <div class="story" id="adModal" hidden><div class="story-card"><div class="story-kick">광고</div><h3 id="adT"></h3><div class="ad-box">광고 자리<br><span class="dim small">프로토타입이라 실제 광고 대신 이 화면이 나와요</span><div class="ad-cnt" id="adCnt">5</div></div><div class="row-btns"><button class="px-btn" id="adCancel" type="button">그만두기</button><button class="px-btn lamp grow" id="adDone" type="button" disabled>보상 받기</button></div><p class="dim small" style="margin:10px 0 0">광고 제거 패키지가 있으면 바로 받아요</p></div></div>
 <div class="story" id="shopModal" hidden><div class="story-card"><div class="story-kick">상점</div><h3>광고 제거 패키지 · <span id="pkgPrice2"></span></h3><p>프로토타입이라 실제 결제는 되지 않아요. 구매한 것으로 처리할까요? 나중에 앱으로 출시하면 이 자리에 스토어 결제가 연결돼요.</p><div class="row-btns"><button class="px-btn" id="shopCancel" type="button">취소</button><button class="px-btn lamp grow" id="shopOk" type="button">구매한 것으로 처리</button></div></div></div>
+<div class="story" id="exitModal" hidden><div class="story-card"><div class="story-kick">종료</div><h3>게임을 종료할까요?</h3><p class="dim">지금까지 한 것은 모두 저장돼요.</p><div class="row-btns"><button class="px-btn" id="exitNo" type="button">계속하기</button><button class="px-btn lamp grow" id="exitYes" type="button">종료하기</button></div></div></div>
 <div class="story" id="qtyModal" hidden><div class="story-card"><div class="story-kick" id="qtyKick">판매</div><h3 id="qtyT"></h3>
   <div class="qty"><button class="px-btn" data-q="-10" type="button">−10</button><button class="px-btn" data-q="-1" type="button">−1</button><input id="qtyIn" type="number" inputmode="numeric" min="1" value="1" aria-label="수량"><button class="px-btn" data-q="1" type="button">+1</button><button class="px-btn" data-q="10" type="button">+10</button></div>
   <div class="row-btns" style="justify-content:center"><button class="px-btn sm" data-q="half" type="button">절반</button><button class="px-btn sm" data-q="all" type="button">전부</button></div>
@@ -128,7 +129,7 @@
   <div class="row-btns"><button class="px-btn" id="qtyCancel" type="button">취소</button><button class="px-btn lamp grow" id="qtyOk" type="button">판매하기</button></div></div></div>
 <div class="story" id="story" hidden>
   <div class="story-card">
-    <div class="story-ill" id="storyIll" hidden><img id="storyIllImg" alt=""><i class="ill-fx"></i><i class="ep-cl ep-cl1"></i><i class="ep-cl ep-cl2"></i></div>
+    <div class="story-ill" id="storyIll" hidden><img id="storyIllImg" alt=""><i class="ep-cl ep-cl1"></i><i class="ep-cl ep-cl2"></i></div>
     <canvas class="portrait" id="portrait" width="48" height="48" hidden></canvas><img class="portrait art" id="portraitArt" alt="" hidden>
     <div class="story-kick" id="storyKick"></div>
     <h3 id="storyT"></h3>

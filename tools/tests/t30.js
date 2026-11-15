@@ -1,4 +1,4 @@
-// v21 확인: 출입권 사고 바로 팔면 본전(무위험 수익 없음), 재련 실패 땐 레시피가 도감에 안 남음, 플레이 시간은 켜 둔 시간만, 루카 안내에 "많이 사면 값이 올라요" 없음
+// v21 확인: 출입권 사고 바로 팔면 본전(무위험 수익 없음), 제련 실패 땐 레시피가 도감에 안 남음, 플레이 시간은 켜 둔 시간만, 루카 안내에 "많이 사면 값이 올라요" 없음
 const {chromium,devices}=require('playwright');const fs=require('fs');
 (async()=>{const b=await chromium.launch();fs.writeFileSync('dbg30.html','<!doctype html><html><head><meta charset=utf8><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+fs.readFileSync(process.argv[2],'utf8')+'</body></html>');
 const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
@@ -11,10 +11,10 @@ const r=await p.evaluate(()=>{const out=[];for(const n of [1,10,50,150]){S.up.bu
 ok(r.slice(0,4).every(x=>Math.abs(x.diff)<=1&&Math.abs(x.imp)<1e-9),'사자마자 팔면 본전: '+r.slice(0,4).map(x=>`${x.n}장 ${x.diff}G`).join(', '));
 ok(Math.abs(r[4].mix)<=2,'나눠 사고 팔기를 섞어도 본전: '+r[4].mix+'G');
 ok(await p.evaluate(()=>!TENANT_INTRO['루카'].some(c=>/많이 사면|값이 조금씩 올라/.test(c.b))),'루카 안내에 "많이 사면 값이 올라요" 없음');
-// 2) 재련 실패 → 레시피 안 남음, 성공 → 남음
+// 2) 제련 실패 → 레시피 안 남음, 성공 → 남음
 const f=await p.evaluate(()=>{const R=Math.random,idx=RMAP[key('copper','tin')];S.found=S.found.filter(i=>i!==idx);S.inv.copper=10;S.inv.tin=10;S.slots=['copper','tin'];
   Math.random=()=>.999;const a=smeltOnce();const f1=S.found.includes(idx);Math.random=()=>.5;const b=smeltOnce();const f2=S.found.includes(idx);Math.random=R;return{a:a.kind,f1,b:b.kind,f2}});
-ok(f.a==='bad'&&!f.f1&&f.b==='ok'&&f.f2,`재련 실패(${f.a}) → 레시피 안 남음 ${!f.f1}, 성공(${f.b}) → 남음 ${f.f2}`);
+ok(f.a==='bad'&&!f.f1&&f.b==='ok'&&f.f2,`제련 실패(${f.a}) → 레시피 안 남음 ${!f.f1}, 성공(${f.b}) → 남음 ${f.f2}`);
 // 3) 플레이 시간: 화면이 켜져 있는 동안만
 const t0=await p.evaluate(()=>S.playT);await p.waitForTimeout(2000);const t1=await p.evaluate(()=>S.playT);
 await p.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true})});await p.waitForTimeout(1500);const t2=await p.evaluate(()=>S.playT);

@@ -4,7 +4,6 @@
         값 = 기본값 × 분위기 × (1 + 매수 압력). 소문이 돌면 분위기가 움직이고, 조사단 발표로 크게 오르거나 내린다.
  소문  켜 둔 동안 9~11분마다 하나(동시에 최대 2개), 6~8분 뒤 발표. 발표된 값이 그 지층의 새 기준이 된다(저절로 1로 돌아가지 않음). 진짜인지는 처음에 정해져 저장된다.
         추리 단서: 출처의 적중 기록, 다른 사람의 같은 말(진짜일수록 잦음, 1분에 18% 대 4.5%), 그 지층을 캘 때 나오는 흔적, 값의 미리 움직임, 정보원 감정 */
-function seasonIdx(){return Math.floor(S.day/7)%4}
 const sellBon=id=>BON.sell*((BON.dem&&BON.dem[ITEMS[id].s])||1);
 function bid(id){return ITEMS[id].p*sellBon(id)}
 function ask(id){return bid(id)*(1+.3*BON.spread)}
@@ -30,11 +29,18 @@ const passPrice=i=>passBase(i)*PM(i).m*(1+PM(i).imp);
 const passHeld=i=>(S.pass[i]&&S.pass[i].n)||0;
 // 사고팔기: 한 장 살 때마다 값이 0.1%씩 밀리고(시간이 지나면 풀림), 팔 때는 밀린 만큼 먼저 되돌리고 값을 매긴다
 //  → 산 그 자리에서 되팔면 정확히 본전(값이 밀린 덕에 생기는 무위험 수익 없음)
+// 매크로 막기: 그 지층 출입권을 마지막으로 산 뒤 1분 동안은 산 때보다 오른 분위기(시세)를 +1%까지만 쳐 준다 → 이익은 최대 약 +1%(내린 값 · 손해는 그대로)
+const PASS_LOCK=60,PASS_LOCK_MAX=.01;
+const passLock=i=>{const h=S.pass[i];return h&&h.bt!=null?Math.max(0,PASS_LOCK-(S.clock-h.bt)):0};
 function passBuy(i,n){const P=PM(i);n=Math.min(n,passMax()-passHeld(i));let k=0,t=0;while(k<n){const c=passPrice(i);if(S.gold<c)break;S.gold-=c;t+=c;P.imp+=.001;k++}
-  if(k){const h=S.pass[i]||(S.pass[i]={n:0,c:0});h.n+=k;h.c+=t}return{k,t}}
-function passSell(i,n){const P=PM(i),h=S.pass[i];if(!h)return{k:0,t:0};n=Math.min(n,h.n);let t=0;const avg=h.c/h.n;for(let k=0;k<n;k++){P.imp-=.001;t+=passPrice(i)}
-  S.gold+=t;S.earned+=t;h.c-=avg*n;h.n-=n;if(!h.n)delete S.pass[i];return{k:n,t,gain:t-avg*n}}
-const passValue=()=>Object.keys(S.pass||{}).reduce((s,i)=>s+passHeld(i)*passPrice(+i),0);
+  if(k){const h=S.pass[i]||(S.pass[i]={n:0,c:0});h.n+=k;h.c+=t;h.bt=S.clock;h.bm=P.m}return{k,t}}
+// 판매 견적: 실제로 팔 때와 똑같은 계산 → 화면의 수익률 = 팔았을 때 수익률
+function passQuote(i,n){const P=PM(i),h=S.pass[i];if(!h||!h.n)return{k:0,t:0,gain:0,cost:0,lock:0};n=Math.min(n,h.n);
+  const lock=passLock(i),m=lock>0?Math.min(P.m,(h.bm??P.m)*(1+PASS_LOCK_MAX)):P.m,v=passBase(i)*m;let t=0,imp=P.imp;for(let k=0;k<n;k++){imp-=.001;t+=v*(1+imp)}
+  const cost=h.c/h.n*n;return{k:n,t,gain:t-cost,cost,lock}}
+function passSell(i,n){const q=passQuote(i,n);if(!q.k)return q;const h=S.pass[i];PM(i).imp-=.001*q.k;
+  S.gold+=q.t;S.earned+=q.t;h.c-=q.cost;h.n-=q.k;if(!h.n)delete S.pass[i];return q}
+const passValue=()=>Object.keys(S.pass||{}).reduce((s,i)=>s+passQuote(+i,passHeld(i)).t,0);   // 지금 다 팔면 받는 값
 // 출입권 수입: 보유한 출입권만큼 그 지층 광석이 천천히 채굴 보관함으로
 function passDividend(sec){for(const i in S.pass||{}){const v=passHeld(i)*passDiv(+i)*sec/layerAvg(+i);S.pdv=S.pdv||{};S.pdv[i]=(S.pdv[i]||0)+v;const n=Math.floor(S.pdv[i]);if(n>0){S.pdv[i]-=n;const o=splitDrops(n,+i);for(const id in o)toBox(id,o[id])}}}
 
@@ -42,10 +48,12 @@ function passDividend(sec){for(const i in S.pass||{}){const v=passHeld(i)*passDi
 const SOURCES={'루카':{rel:.74,end:['대요!','대요. 제 감은 틀린 적이 없거든요!']},'바우':{rel:.8,end:['다는구먼.','다니께, 믿어 보슈.']},'서린':{rel:.86,end:['다는 기록이 있어요.','을 가능성이 높아요.']},
   '꼬마 핀':{rel:.6,end:['대요!! 진짜예요!','대요! 제가 들었어요!']},'술집 손님':{rel:.45,end:['다더라!','다던데? 히끅.']},'낯선 여행자':{rel:.33,end:['다던데… 글쎄.','다는 소문이 있지.']}};
 const SRC_N=Object.keys(SOURCES);
+// 루카의 소문 감정: Lv.1 적중 50% → 레벨마다 +5% → Lv.9 90%
+const INTEL_MAX=9,intelAcc=l=>l>0?.45+.05*Math.min(l,INTEL_MAX):0;
 const short=id=>ITEMS[id].n.replace(/ (원석|광석)$/,'');
 // 소문 크기: 작음 · 중간 · 큼. good = 좋은 소식(진짜면 값이 오름), 나쁜 소식은 진짜면 내림
 // up: 좋은 소문이 사실일 때 오르는 폭, dn: 나쁜 소문이 사실일 때 내리는 폭(좋은 소문이 헛소문이면 dn의 절반만큼 내리고, 나쁜 소문이 헛소문이면 dn의 0.4배만큼 오름)
-const RUM_SIZE=[{p:.4,up:[.15,.3],dn:[.08,.15]},{p:.42,up:[.4,.7],dn:[.15,.25]},{p:.18,up:[.9,1.5],dn:[.28,.38]}];
+const RUM_SIZE=[{p:.4,up:[.1,.2],dn:[.06,.1]},{p:.42,up:[.28,.5],dn:[.1,.18]},{p:.18,up:[.63,1.05],dn:[.2,.27]}];   // v26: 등락폭 30% 줄임(출입권 수익이 너무 커서)
 // 그 지층의 가장 귀한 고유 광석(소문 · 단서에 씀)
 const layerGem=L=>RAW.filter(id=>ITEMS[id].L===L+1).sort((a,b)=>ITEMS[b].p-ITEMS[a].p)[0];
 function rumorText(r){const L=LAYERS[r.L],top=short(layerGem(r.L)),pre=`B${r.L+1} ${L.n}`;
@@ -57,7 +65,7 @@ function newRumor(){if(S.unlocked<1)return;const w=[];for(let i=0;i<S.unlocked;i
   let u=Math.random(),size=0;for(let k=0;k<3;k++){if((u-=RUM_SIZE[k].p)<0){size=k;break}}
   const src=SRC_N[Math.random()*SRC_N.length|0],good=Math.random()<clamp(.37-.35*Math.log(PM(L).a||1),.12,.9),truth=Math.random()<SOURCES[src].rel,R=RUM_SIZE[size],rnd=a=>a[0]+Math.random()*(a[1]-a[0]);
   const r={id:(S.rumN=(S.rumN||0)+1),L,size,good,truth,src,v:Math.random()*6|0,t:0,dur:360+Math.random()*120,echo:[],clue:0,up:rnd(R.up),dn:rnd(R.dn),m0:PM(L).m};
-  const acc=[0,.75,.88,.97][Math.min(S.intel,3)];r.hint=acc?(Math.random()<acc?r.truth:!r.truth):null;
+  const acc=intelAcc(S.intel);r.hint=acc?(Math.random()<acc?r.truth:!r.truth):null;
   S.rum.push(r);log(`소문: ${r.src} "${rumorSay(r)}"`,true);const nd=$('newsDot');if(nd&&S.tab!=='market')nd.hidden=false}
 // 진짜·가짜일 때 발표 순간의 값 변화(분위기 배율)
 const rumMove=r=>r.good?(r.truth?1+r.up:1-r.dn*.5):(r.truth?1-r.dn*1.1:1+r.dn*.4);

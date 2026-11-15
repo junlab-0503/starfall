@@ -1,10 +1,18 @@
-/* ═════════ 소리 (파일 없이 재련하는 8비트 소리 + 칩튠 배경음악) ═════════ */
+/* ═════════ 소리 (파일 없이 제련하는 8비트 소리 + 칩튠 배경음악) ═════════ */
 let AC=null,SFXG=null,BGMG=null,NOISE=null;const lastPlay={};
 function audioInit(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();SFXG=AC.createGain();BGMG=AC.createGain();SFXG.connect(AC.destination);BGMG.connect(AC.destination);applyVol();
   const len=AC.sampleRate*.5,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;NOISE=buf;bgmStart()}catch(e){AC=null}}
 function applyVol(){if(!AC)return;const s=S.sound||{sfx:.6,bgm:.3};SFXG.gain.value=s.sfx*.5;BGMG.gain.value=s.bgm*.25}
-['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>{audioInit();if(AC&&AC.state==='suspended')AC.resume()},{capture:true}));
-document.addEventListener('visibilitychange',()=>{if(!AC)return;if(document.hidden)AC.suspend();else AC.resume()});
+/* 무음 이유: 화면이 숨겨짐 · 창이 포커스를 잃음(전화 알림 등) · 앱이 뒤로 감(Capacitor pause) · 앱이 알려 준 오디오 포커스 잃음 · 종료 중
+   하나라도 남아 있으면 소리를 멈추고, 모두 풀리면 다시 켠다 */
+const MUTE=new Set();
+function audioHold(why,on){if(on)MUTE.add(why);else MUTE.delete(why);if(!AC)return;if(MUTE.size){if(AC.state!=='closed')AC.suspend()}else if(!document.hidden)AC.resume()}
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>{audioInit();MUTE.delete('blur');if(AC&&AC.state!=='running'&&!MUTE.size)AC.resume()},{capture:true}));
+document.addEventListener('visibilitychange',()=>audioHold('hidden',document.hidden));
+addEventListener('pagehide',()=>audioHold('hidden',true));addEventListener('pageshow',()=>audioHold('hidden',document.hidden));
+document.addEventListener('freeze',()=>audioHold('hidden',true));document.addEventListener('resume',()=>audioHold('hidden',document.hidden));
+addEventListener('blur',()=>audioHold('blur',true));addEventListener('focus',()=>audioHold('blur',false));
+window.starfallAudio=on=>audioHold('native',!on);   // 안드로이드 앱 쪽에서 오디오 포커스를 잃을 때(전화가 울림 등) starfallAudio(false), 되찾으면 true
 function tone(f,dur,type='square',vol=.3,at=0,slide=0){if(!AC)return;const t=AC.currentTime+at,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f*slide),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(SFXG);o.start(t);o.stop(t+dur+.02)}
 function noise(dur,vol=.3,at=0,lp=3000){if(!AC||!NOISE)return;const t=AC.currentTime+at,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=NOISE;f.type='lowpass';f.frequency.value=lp;

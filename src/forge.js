@@ -1,4 +1,4 @@
-/* ═════════ 재련 ═════════ */
+/* ═════════ 제련 ═════════ */
 function placeInSlot(id){if(!cnt(id))return;const i=S.slots[0]==null?0:S.slots[1]==null?1:1;if(S.slots[1-i]===id&&cnt(id)<2){toast(`${J(ITEMS[id].n,'이가')} 2개 필요해요.`);return}S.slots[i]=id;renderForge()}
 const canSmeltWith=sl=>{const[a,b]=sl;if(!a||!b)return false;return a===b?cnt(a)>=2:cnt(a)>=1&&cnt(b)>=1};
 function smeltOnce(){const[a,b]=S.slots;if(!canSmeltWith(S.slots))return null;add(a,-1);add(b,-1);S.crafts++;const idx=RMAP[key(a,b)];
@@ -13,7 +13,7 @@ function smeltOnce(){const[a,b]=S.slots;if(!canSmeltWith(S.slots))return null;ad
 function showResult(r){const el=$('result');el.className='result '+r.kind;el.textContent=r.msg;const p=$('forgePanel');p.classList.remove('flash');void p.offsetWidth;p.classList.add('flash')}
 $('smelt').onclick=()=>{const k=[...S.slots],r=smeltOnce();if(r){S.slots=canSmeltWith(k)?k:S.slots.map(x=>x&&cnt(x)?x:null);showResult(r);renderForge();renderBook();renderHeader()}};
 $('smeltMax').onclick=()=>{const k=[...S.slots];let ok=0,gr=0,bd=0,n=0;while(canSmeltWith(k)&&n<999){S.slots=[...k];const r=smeltOnce();n++;if(r.kind==='ok')ok++;else if(r.kind==='great')gr++;else bd++}
-  S.slots=canSmeltWith(k)?k:k.map(x=>x&&cnt(x)?x:null);if(n){showResult({kind:bd>ok+gr?'bad':'ok',msg:`${n}번 재련: 성공 ${ok} · 대성공 ${gr} · 실패 ${bd}`});renderForge();renderBook();renderHeader()}};
+  S.slots=canSmeltWith(k)?k:k.map(x=>x&&cnt(x)?x:null);if(n){showResult({kind:bd>ok+gr?'bad':'ok',msg:`${n}번 제련: 성공 ${ok} · 대성공 ${gr} · 실패 ${bd}`});renderForge();renderBook();renderHeader()}};
 $('slotA').onclick=()=>{S.slots[0]=null;renderForge()};$('slotB').onclick=()=>{S.slots[1]=null;renderForge()};
 $('pickGrid').addEventListener('click',e=>{const b=e.target.closest('[data-pk]');if(b)placeInSlot(b.dataset.pk)});
 function renderForge(){
@@ -32,7 +32,7 @@ function renderBook(){
     if(r.L>S.unlocked)return`<div class="rec unk"><span class="ico sm" style="opacity:.2"></span><span>? + ? · 더 깊은 곳의 비밀<span class="tier">B${r.L}</span></span><span></span></div>`;
     return`<div class="rec unk">${'<i class="ico sm ic-'+r.out+'" style="filter:brightness(0) opacity(.35)"></i>'}<span>? + ? · ${r.hint}<span class="tier">B${r.L}</span></span><span></span></div>`}).join(''));
 }
-/* 빠른 제작: 한 번이라도 성공해 도감에 있는 레시피만. 고르면 재료를 알아서 넣고 1회 재련(확률 · 재료 소비는 용광로와 같음: smeltOnce) */
+/* 빠른 제작: 한 번이라도 성공해 도감에 있는 레시피만. 고르면 재료를 알아서 넣고 1회 제련(확률 · 재료 소비는 용광로와 같음: smeltOnce) */
 let QSEL=null,QN=1;
 const quickMax=idx=>{const r=RECIPES[idx];return Math.min(999,r.a===r.b?Math.floor(cnt(r.a)/2):Math.min(cnt(r.a),cnt(r.b)))};
 const recipeFor=id=>RECIPES.findIndex(r=>r.out===id);
@@ -40,7 +40,7 @@ function quickNeed(idx){const r=RECIPES[idx],need={};need[r.a]=(need[r.a]||0)+1;
 function quickSmelt(idx){if(!S.found.includes(idx))return null;const r=RECIPES[idx];if(!canSmeltWith([r.a,r.b]))return null;const keep=[...S.slots];S.slots=[r.a,r.b];const res=smeltOnce();S.slots=keep.map(x=>x&&cnt(x)?x:null);return res}
 function renderQuick(){const f=S.found.slice().sort((a,b)=>a-b);$('qcInfo').textContent=f.length?`${f.length}가지`:'';
   if(QSEL!=null&&!f.includes(QSEL))QSEL=null;if(QSEL==null&&f.length)QSEL=f.find(i=>canSmeltWith([RECIPES[i].a,RECIPES[i].b]))??f[0];
-  setHTML($('qcGrid'),f.length?f.map(i=>{const o=RECIPES[i].out,can=canSmeltWith([RECIPES[i].a,RECIPES[i].b]);return`<button class="pk qc${i===QSEL?' in':''}${can?'':' dimk'}" data-qc="${i}" type="button">${ico(o)}<span>${ITEMS[o].n}</span></button>`}).join(''):'<p class="dim small qc-empty">용광로에서 처음 성공한 레시피가 여기에 모여요. 고르면 필요한 재료를 알아서 넣고 한 번 재련해요.</p>');
+  setHTML($('qcGrid'),f.length?f.map(i=>{const o=RECIPES[i].out,can=canSmeltWith([RECIPES[i].a,RECIPES[i].b]);return`<button class="pk qc${i===QSEL?' in':''}${can?'':' dimk'}" data-qc="${i}" type="button">${ico(o)}<span>${ITEMS[o].n}</span></button>`}).join(''):'<p class="dim small qc-empty">용광로에서 처음 성공한 레시피가 여기에 모여요. 고르면 필요한 재료를 알아서 넣고 한 번 제련해요.</p>');
   if(QSEL==null){setHTML($('qcSel'),'');return}
   const r=RECIPES[QSEL],need=quickNeed(QSEL),can=need.every(x=>!x[2]),mx=quickMax(QSEL);QN=clamp(QN,1,Math.max(1,mx));
   setHTML($('qcSel'),`<div class="qc-sel"><div class="qc-out">${ico(r.out,'lg')}<b>${ITEMS[r.out].n}</b></div>
@@ -48,22 +48,22 @@ function renderQuick(){const f=S.found.slice().sort((a,b)=>a-b);$('qcInfo').text
     ${can?'':`<div class="small bad"><span>재료가 모자라요</span>: ${need.filter(x=>x[2]).map(([id,q,m])=>`<span>${ITEMS[id].n}</span> <span>${m}개</span>`).join(' · ')}</div>`}
     <div class="dim small">${`성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`}</div></div>
     <div class="row-btns qc-qty"><button class="px-btn sm" data-qn="-10" type="button">−10</button><button class="px-btn sm" data-qn="-1" type="button">−</button><b class="qc-n">${QN}</b><button class="px-btn sm" data-qn="1" type="button">+</button><button class="px-btn sm" data-qn="10" type="button">+10</button><button class="px-btn sm" data-qn="max" type="button">최대</button></div>
-    <div class="row-btns"><button class="px-btn lamp grow" id="qcGo" type="button" ${can?'':'disabled'}>${QN}회 재련</button></div><div class="result" id="qcRes"></div></div>`)}
+    <div class="row-btns"><button class="px-btn lamp grow" id="qcGo" type="button" ${can?'':'disabled'}>${QN}회 제련</button></div><div class="result" id="qcRes"></div></div>`)}
 $('qcPanel').addEventListener('click',e=>{const b=e.target.closest('[data-qc]');if(b){if(+b.dataset.qc!==QSEL)QN=1;QSEL=+b.dataset.qc;sfx('click');renderQuick();return}
   const q=e.target.closest('[data-qn]');if(q&&QSEL!=null){const mx=Math.max(1,quickMax(QSEL)),v=q.dataset.qn;QN=v==='max'?mx:clamp(QN+(+v),1,mx);sfx('click');renderQuick();return}
-  // [n회 재련]: 같은 레시피를 n번(재료가 떨어지면 거기서 멈춤). 한 번씩은 용광로와 같은 smeltOnce
+  // [n회 제련]: 같은 레시피를 n번(재료가 떨어지면 거기서 멈춤). 한 번씩은 용광로와 같은 smeltOnce
   if(e.target.closest('#qcGo')){let n=0,ok=0,gr=0,bd=0,last=null;while(n<QN){const r=quickSmelt(QSEL);if(!r)break;n++;last=r;if(r.kind==='ok')ok++;else if(r.kind==='great')gr++;else bd++}
-    if(!n)return;QN=1;renderForge();renderBook();renderHeader();const el=$('qcRes');if(el){el.className='result '+(n===1?last.kind:bd>ok+gr?'bad':'ok');el.textContent=n===1?last.msg:`${n}번 재련: 성공 ${ok} · 대성공 ${gr} · 실패 ${bd}`}}});
-// 탑에서 모자란 재련품을 누르면: 아는 레시피면 빠른 제작에서 골라 두고, 모르면 용광로와 도감 힌트로 안내(조합법은 알려 주지 않음)
+    if(!n)return;QN=1;renderForge();renderBook();renderHeader();const el=$('qcRes');if(el){el.className='result '+(n===1?last.kind:bd>ok+gr?'bad':'ok');el.textContent=n===1?last.msg:`${n}번 제련: 성공 ${ok} · 대성공 ${gr} · 실패 ${bd}`}}});
+// 탑에서 모자란 제련품을 누르면: 아는 레시피면 빠른 제작에서 골라 두고, 모르면 용광로와 도감 힌트로 안내(조합법은 알려 주지 않음)
 function goForgeFor(id){const idx=recipeFor(id);setTab('forge');
   if(idx>=0&&S.found.includes(idx)){S.fgSub='quick';QSEL=idx;QN=1;renderFgSub();renderQuick();return}
   const r=RECIPES[idx];S.fgSub='furn';renderFgSub();
-  story([{k:'재련',t:S.seen.includes(id)?ITEMS[id].n:'???',b:'아직 만드는 법을 몰라요. 용광로에 재료 두 가지를 넣어 직접 찾아보세요.',extra:r?`<div class="say"><span class="who">도감 힌트</span> ${r.L>S.unlocked?'더 깊은 곳의 비밀':r.hint}</div>`:''}])}
-// 재련 탭 고르는 칸: 용광로 · 빠른 제작 · 레시피(목록만). 튜토리얼 중엔 용광로에 고정
+  story([{k:'제련',t:S.seen.includes(id)?ITEMS[id].n:'???',b:'아직 만드는 법을 몰라요. 용광로에 재료 두 가지를 넣어 직접 찾아보세요.',extra:r?`<div class="say"><span class="who">도감 힌트</span> ${r.L>S.unlocked?'더 깊은 곳의 비밀':r.hint}</div>`:''}])}
+// 제련 탭 고르는 칸: 용광로 · 빠른 제작 · 레시피(목록만). 튜토리얼 중엔 용광로에 고정
 const FG_SUBS=['furn','quick','rec'];
 function renderFgSub(){if(!S.tutDone||!FG_SUBS.includes(S.fgSub))S.fgSub=S.tutDone&&FG_SUBS.includes(S.fgSub)?S.fgSub:'furn';const k=S.fgSub;
   $('forgePanel').hidden=k!=='furn';$('qcPanel').hidden=k!=='quick';$('recPanel').hidden=k!=='rec';$('fgSeg').hidden=!S.tutDone;document.querySelectorAll('#fgSeg button').forEach(b=>b.classList.toggle('on',b.dataset.fgs===k))}
 $('fgSeg').addEventListener('click',e=>{const b=e.target.closest('[data-fgs]');if(!b)return;S.fgSub=b.dataset.fgs;sfx('click');renderFgSub();renderForge();renderBook();document.querySelector('main').scrollTop=0});
 
-// (v24.1) 자동 재련소는 뺌: 빠른 제작 · 가능한 만큼으로 바로 재련
+// (v24.1) 자동 제련소는 뺌: 빠른 제작 · 가능한 만큼으로 바로 제련
 

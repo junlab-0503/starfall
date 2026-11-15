@@ -1,7 +1,7 @@
 /* ═════════ 채굴 장면 (옆에서 본 굴) ═════════
  저해상도 캔버스에 그리고 픽셀 그대로 키운다. 주인공은 왼쪽 암벽을 파고, 굴은 오른쪽 위에서부터 계단처럼 이어진다.
  암벽에 박힌 광석이 다음에 나올 광물이다. */
-const cv=$('scene'),g=cv.getContext('2d'),SCENE_G=g;
+const cv=$('scene'),g=cv.getContext('2d');
 let IW=0,IH=0,SC=3;   // IW·IH = 보이는 월드 크기(월드 1px = 화면 SC px). 캔버스는 화면 해상도(IW·SC)로 → 그림은 2배 촘촘
 const STX=24,STY=9,SL=STY/STX,REACH=34,NOSE_W=22; // 굴 한 칸의 가로/세로 이동, 바닥 기울기, 주인공 발 → 곡괭이가 막장에 닿는 거리(화면 px)
 const SWH={w:360,h:500};   // 채굴 화면 크기(떠오르는 글씨 자리 계산용)
@@ -15,8 +15,6 @@ const STRATA={};
 function strata(L){const o=STRATA[L]||(STRATA[L]={});if(o.ok)return o;if(o.wait)return null;o.wait=1;const n=L+1,keys=['r'+n,'dg'+n].filter(k=>ART['strata_'+k]);let left=keys.length;
   keys.forEach(k=>{const im=new Image();im.onload=()=>{if(!--left)buildStrata(L,o)};im.src=ART['strata_'+k];o[k.replace(/\d+/,'')]=im});return null}
 function cvs(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return[c,x]}
-function mirror(im){const w=im.width,h=im.height,[c,x]=cvs(w*2,h*2);x.drawImage(im,0,0);x.save();x.scale(-1,1);x.drawImage(im,-w*2,0);x.restore();
-  x.save();x.scale(1,-1);x.drawImage(c,0,0,w*2,h,0,-h*2,w*2,h);x.restore();return c}   // 위아래 · 좌우로 뒤집어 이어 붙임(이음매 없게)
 function buildStrata(L,o){o.rockC=o.r;o.prock=g.createPattern(o.r,'repeat');
   if(o.dg){const W=o.dg.width,H=o.dg.height,[c,x]=cvs(W,H);x.drawImage(o.dg,0,0);const im=x.getImageData(0,0,W,H),rim=new ImageData(W,H),cave=new ImageData(W,H);   // 알파 255 = 굴 안, 200 = 둘레
     for(let p=0;p<im.data.length;p+=4){const a=im.data[p+3];if(!a)continue;for(let k=0;k<3;k++){rim.data[p+k]=im.data[p+k];if(a>230)cave.data[p+k]=im.data[p+k]}rim.data[p+3]=255;if(a>230)cave.data[p+3]=255}
@@ -27,7 +25,6 @@ function goldStrata(){if(GOLD.ok)return GOLD;if(!GOLD.im&&ART.strata_gold){GOLD.
 // 사용자 그림 스프라이트(art/sprites, 화면 픽셀 크기)
 const SPR={};const spr=k=>{if(!SPR[k]&&ART['spr_'+k])SPR[k]=Object.assign(new Image(),{src:ART['spr_'+k]});const im=SPR[k];return im&&im.complete&&im.naturalWidth?im:null};
 // 캔버스 좌표로 무늬 채우기: (ax,ay)에 무늬 원점을 두고 사각형을 채움
-function fillPat(p,tw,th,ax,ay,x,y,w,h){const ox=((Math.round(ax)%tw)+tw)%tw,oy=((Math.round(ay)%th)+th)%th;g.save();g.translate(ox,oy);g.fillStyle=p;g.fillRect(x-ox,y-oy,w,h);g.restore()}
 const digOf=L=>S.digs[L]||0;
 let camX=0,camY=0,camInit=false;
 const A={joy:0,yawn:0,yawnT:9,sw:-1,step:0,stepT:0,bobT:0,blinkT:2.5,blink:0,shake:0,crackSeed:1,head:0,autoT:0,autoPh:0,botPh:0};
@@ -97,7 +94,10 @@ function breakWall(auto){
 }
 // 캔 광석: 창고 → (드릴 로봇이면) 채굴 보관함 → 넘치면 판매
 let ofFxT=0;
-function gain(id,n,auto){S.mined+=n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&space()<n&&ul('autosell'))autoSellRoom();let ok=Math.min(n,space());
+// 최근 채굴 수입(숯의 선물에 씀): 캔 광석 값 + 황금 광맥 골드를 모아 1초마다 10분 평균(지수 평균)으로
+let MR_ACC=0;
+function mrTick(){S.mr=(S.mr||0)+(MR_ACC-(S.mr||0))/600;MR_ACC=0}
+function gain(id,n,auto){S.mined+=n;MR_ACC+=bid(id)*n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&space()<n&&ul('autosell'))autoSellRoom();let ok=Math.min(n,space());
   if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else S.lost=(S.lost||0)+rest}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
 let FLOATS=[];
 function floatText(t,c,id){const wrap=$('sceneWrap');const ex=id&&FLOATS.find(f=>f.id===id&&f.life>.3);
@@ -168,7 +168,7 @@ function rockChunks(o,im){if(o.chunks)return o.chunks;const out=[],R=rng(77);
     x.putImageData(d,0,0);out.push(c)}
   return o.chunks=out}
 function draw(t){
-  const L=S.layer,lk=LOOK[L],d=digOf(L);
+  const L=S.layer,d=digOf(L);
   const sh=A.shake>0?Math.round((Math.random()-.5)*2):0;
   const K=SC,CW=cv.width,CH=cv.height,st=strata(L);g.setTransform(1,0,0,1,sh*K,0);
   // 굴 띠(사용자 그림 dg/dc). DUG_META[L] = [막장 x, 막장 바닥 y, 굴 높이](띠 그림 안 px)
@@ -238,7 +238,7 @@ function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein
 function veinPop(){const el=$('veinPop'),on=!!S.vein&&S.tab!=='mine';if(el.hidden===on){el.hidden=!on}if(on)$('veinPopT').textContent=`${Math.max(0,Math.ceil(S.vein.left))}초`}
 function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;veinPop();if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
 function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.max(1,Math.round(v.pot*k));   // 상한 없음: 캐는 만큼 골드(예전엔 한 번에 pot×1.5까지라 그 뒤엔 탭 · 드릴 모두 0)
-  v.got+=amt;S.gold+=amt;S.earned+=amt;
+  v.got+=amt;S.gold+=amt;S.earned+=amt;MR_ACC+=amt;
   if(!tap){A.vAuto=(A.vAuto||0)+amt;if(gtime()-(A.vAutoT||0)>1000){A.vAutoT=gtime();const ex=FLOATS.find(f=>f.id==='$d'&&f.life>.3);if(ex)ex.add=A.vAuto;floatText(`드릴 +${big(A.vAuto)}G`,'#ffd23f','$d');const f0=FLOATS[0];if(f0&&f0.id==='$d'&&!ex)f0.n=A.vAuto;A.vAuto=0}}   // 드릴 몫은 한 줄에 쌓여 보임(탭 표시에 밀려 사라지지 않게)
   if(tap){const ex=FLOATS.find(f=>f.id==='$g'&&f.life>.3);if(ex)ex.add=amt;floatText(`+${big(amt)}G`,'#ffd23f','$g');const f0=FLOATS[0];if(f0&&f0.id==='$g'&&!ex)f0.n=amt;sfx('coin');const w=charW();for(let i=0;i<5;i++)PARTS.push({x:w.x-12,y:w.y-16,vx:-20+Math.random()*40,vy:-50-Math.random()*30,life:.6,c:'#ffd23f',sz:1,star:Math.random()<.5})}}
 

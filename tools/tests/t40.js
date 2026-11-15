@@ -9,7 +9,7 @@ const start=async()=>{await p.waitForTimeout(800);if(await p.isVisible('#titleSc
 const reopen=async(fn)=>{const raw=await p.evaluate(()=>localStorage.getItem(SAVE_KEY));const c=await b.newContext({...devices['Pixel 5']});await c.addInitScript(r=>{if(!sessionStorage.getItem('i')){localStorage.setItem('starfall-v1',r);localStorage.setItem('starfall.lang','ko');sessionStorage.setItem('i','1')}},raw);const q=await c.newPage();
   await q.goto('file://'+process.cwd()+'/dbg40t.html');await q.waitForTimeout(800);if(await q.isVisible('#titleScr'))await q.click('#titleScr');await q.waitForTimeout(300);const r=await q.evaluate(fn);await c.close();return r};
 await p.goto('file://'+process.cwd()+'/dbg40t.html');await start();
-await p.evaluate(()=>{S.tutDone=true;S.whHint=1;S.unlocked=3;S.review='done';renderAll()});
+await p.evaluate(()=>{S.tutDone=true;S.ntDone=['셈','핀','루카','미르','린'];S.whHint=1;S.unlocked=3;S.review='done';renderAll()});
 ok(await p.evaluate(()=>$('crBtn').hidden&&!craftOpen()),'B4 전: 세공 작업대 안 보임');
 ok(await p.evaluate(()=>document.querySelectorAll('.bnav .nb').length===5&&SECTIONS.length===13&&SECTIONS.every(s=>s.t.name!=='린')),'하단 탭 5개 그대로, 탑 입주자 13명 그대로(린은 따로)');
 // B4 개척 → 일지 → 린 4장(한 번)
@@ -71,7 +71,7 @@ ok(errs.length===0,'오류 없음 '+errs.join(' | '));await ctx.close();
 // 영어 · 번체
 for(const L of ['en','zh']){const c2=await b.newContext({...devices['Pixel 5']});await c2.addInitScript(l=>localStorage.setItem('starfall.lang',l),L);const q2=await c2.newPage();const e2=[];q2.on('pageerror',e=>e2.push(e.message));
   await q2.goto('file://'+process.cwd()+'/dbg40t.html');await q2.waitForTimeout(800);if(await q2.isVisible('#titleScr'))await q2.click('#titleScr');await q2.waitForTimeout(200);for(let i=0;i<20&&await q2.isVisible('#storyNext');i++)await q2.click('#storyNext');if(await q2.isVisible('#entry')){await q2.waitForTimeout(500);await q2.click('#entry');await q2.waitForTimeout(700)}for(let i=0;i<20&&await q2.isVisible('#storyNext');i++)await q2.click('#storyNext');
-  await q2.evaluate(()=>{S.tutDone=true;S.unlocked=4;S.craft.met=0;S.inv.silverbar=30;renderAll()});await q2.click('#crBtn');await q2.waitForTimeout(150);
+  await q2.evaluate(()=>{S.tutDone=true;S.ntDone=['셈','핀','루카','미르','린'];S.unlocked=4;S.craft.met=0;S.inv.silverbar=30;renderAll()});await q2.click('#crBtn');await q2.waitForTimeout(150);
   const intro=await q2.evaluate(()=>$('story').innerText);for(let i=0;i<6&&await q2.isVisible('#storyNext');i++)await q2.click('#storyNext');await q2.waitForTimeout(200);
   const t1=await q2.evaluate(()=>$('sheet').innerText);await q2.click('#crMake');await q2.waitForTimeout(150);const t2=await q2.evaluate(()=>$('sheet').innerText);
   const ko=s=>(s.match(/[가-힣][^\n]{0,20}/g)||[]).slice(0,3).join(' / ');

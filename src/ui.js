@@ -33,19 +33,19 @@ function renderNextL(){const el=$('nextL'),i=S.unlocked,ic=`<img class="dg-ic" s
 $('nextL').onclick=()=>openSheet('shaft');
 ['autoBtn','boxBtn'].forEach(k=>$(k).addEventListener('pointerdown',e=>e.stopPropagation()));
 $('boxBtn').onclick=e=>{e.stopPropagation();openBox()};
-/* 채굴 보관함 창: 종류별로 골라 [저장](창고로) 또는 [팔기](지금 파는 값으로 골드). 맨 아래 [모두 저장] */
+/* 채굴 보관함 창: 종류별로 골라 [저장](창고로) 또는 [판매](지금 파는 값으로 골드). 맨 아래 [모두 저장] */
 function boxHtml(){const ids=ORDER.filter(id=>(S.box||{})[id]>0),sp=space();
-  return(ids.length?`<div class="boxl">${ids.map(id=>`<div class="boxr">${ico(id,'sm')}<span class="bn">${ITEMS[id].n}</span><span class="dim">×${big(S.box[id])}</span><button class="px-btn sm" data-boxget="${id}" type="button" ${sp>0?'':'disabled'}>저장</button><button class="px-btn sm" data-boxsell="${id}" type="button">팔기</button></div>`).join('')}</div>`:'<p class="dim" style="margin:0 0 8px">보관함이 비어 있어요. 드릴 로봇과 출입권이 모은 광석이 여기에 쌓여요.</p>')
+  return(ids.length?`<div class="boxl">${ids.map(id=>`<div class="boxr">${ico(id,'sm')}<span class="bn">${ITEMS[id].n}</span><span class="dim">×${big(S.box[id])}</span><button class="px-btn sm" data-boxget="${id}" type="button" ${sp>0?'':'disabled'}>저장</button><button class="px-btn sm" data-boxsell="${id}" type="button">판매</button></div>`).join('')}</div>`:'<p class="dim" style="margin:0 0 8px">보관함이 비어 있어요. 드릴 로봇과 출입권이 모은 광석이 여기에 쌓여요.</p>')
     +`<div class="row-btns" style="margin-top:8px"><span class="dim grow small" style="text-align:left">창고 빈칸 ${big(sp)}칸</span><button class="px-btn lamp" data-boxget="all" type="button" ${ids.length&&sp>0?'':'disabled'}>모두 저장</button></div>`}
 const boxCard=()=>({box:1,btn:'닫기',k:'로봇 채굴 보관함',t:`${big(boxUsed())} / ${big(boxCap())}칸`,b:'종류별로 골라서 창고에 저장하거나 바로 팔 수 있어요.',extra:boxHtml()});
 function openBox(){story([boxCard()])}
 function boxRefresh(){if(STC&&STC.box&&!$('story').hidden){$('storyT').textContent=`${big(boxUsed())} / ${big(boxCap())}칸`;$('storyX').innerHTML=boxHtml()}renderAll()}
 $('storyX').addEventListener('click',e=>{const b=e.target.closest('[data-boxget]'),sl=e.target.closest('[data-boxsell]');
   if(b){if(b.dataset.boxget==='all'){collectBox();boxRefresh();return}
-    const id=b.dataset.boxget,k=Math.min(S.box[id]||0,space());if(k>0){add(id,k);S.box[id]-=k;if(S.box[id]<=0)delete S.box[id];sfx('gain')}else toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.');boxRefresh()}
+    const id=b.dataset.boxget,k=Math.min(S.box[id]||0,space());if(k>0){add(id,k);S.box[id]-=k;if(S.box[id]<=0)delete S.box[id];sfx('gain')}else toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 제련해 보세요.');boxRefresh()}
   if(sl){const id=sl.dataset.boxsell,n=S.box[id]||0;if(n>0){const t=bid(id)*n;delete S.box[id];S.gold+=t;S.earned+=t;S.bestSale=Math.max(S.bestSale,t);sfx('coin');log(`채굴 보관함의 ${ITEMS[id].n} ${big(n)}개 판매: +${big(t)}G`)}boxRefresh()}});
 function collectBox(){let moved=0,left=0;for(const id of Object.keys(S.box||{})){const k=Math.min(S.box[id],space());if(k>0){add(id,k);S.box[id]-=k;moved+=k}if(S.box[id]<=0)delete S.box[id];else left+=S.box[id]}
-  if(moved)toast(`채굴 보관함의 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.');else toast('채굴 보관함이 비어 있어요.');renderAll()}
+  if(moved)toast(`채굴 보관함의 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 제련해 보세요.');else toast('채굴 보관함이 비어 있어요.');renderAll()}
 $('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;sfx('click');toast(S.autoOn?'드릴 로봇을 켰어요. 켜 두면 자리를 비운 동안에도 캐요.':'드릴 로봇을 껐어요. 자리를 비운 동안에도 쉬어요.');renderMineHud()};
 // 개발자: 황금 광맥 바로 부르기
 $('veinPop').onclick=()=>setTab('mine');
@@ -75,23 +75,23 @@ function renderLayers(){
 }
 $('layers').addEventListener('click',e=>{const g2_=e.target.closest('[data-go]');if(g2_){setLayer(+g2_.dataset.go);setTab('mine');return}const u=e.target.closest('[data-unlock]');if(u)unlockLayer(+u.dataset.unlock)});
 /* 창고 */
-// 창고 나눠 보기: 원석 · 광재(재련으로 만들지 않는 것 — 원석과 광재 같은 부산물) / 재련품. 어떤 품목도 둘 중 하나에 들어감
+// 창고 나눠 보기: 원석 · 광재(제련으로 만들지 않는 것 — 원석과 광재 같은 부산물) / 제련품. 어떤 품목도 둘 중 하나에 들어감
 let INVF='raw';const isRef=id=>!!ITEMS[id].cr;
 const invGroup=g=>ORDER.filter(id=>cnt(id)>0&&(g==='ref')===isRef(id));
 function renderInv(){const ids=invGroup(INVF);$('invCap').textContent=`${big(used())}/${big(cap())}칸`;
   const nr=invGroup('raw').length,nf=invGroup('ref').length;$('invNRaw').textContent=nr||'';$('invNRef').textContent=nf||'';
   document.querySelectorAll('#invSeg [data-invf]').forEach(b=>b.classList.toggle('on',b.dataset.invf===INVF));$('sellRaw').disabled=!nr;$('sellRef').disabled=!nf;
-  patchList($('inv'),ids,ids.map(id=>[`×${big(cnt(id))}`,`${pf(bid(id))}G`]),(id,P)=>`<div class="irow"><button class="nmb" data-mk="${id}" type="button">${ico(id,'sm')}<span>${ITEMS[id].n}</span></button><span class="dim">${P[0]}</span><span>${P[1]}</span><span class="acts"><button class="px-btn sm" data-sellq="${id}" type="button">판매</button></span></div>`,INVF==='ref'?'<p class="dim">재련품이 없어요.</p>':'<p class="dim">원석이 없어요.</p>',[1,2])}
+  patchList($('inv'),ids,ids.map(id=>[`×${big(cnt(id))}`,`${pf(bid(id))}G`]),(id,P)=>`<div class="irow"><button class="nmb" data-mk="${id}" type="button">${ico(id,'sm')}<span>${ITEMS[id].n}</span></button><span class="dim">${P[0]}</span><span>${P[1]}</span><span class="acts"><button class="px-btn sm" data-sellq="${id}" type="button">판매</button></span></div>`,INVF==='ref'?'<p class="dim">제련품이 없어요.</p>':'<p class="dim">원석이 없어요.</p>',[1,2])}
 function doSell(id,n){const k=n==='all'?cnt(id):+n;const t=sell(id,k);if(t){log(`${ITEMS[id].n} ${k}개 판매: +${big(t)}G`);S.slots=S.slots.map(x=>x&&cnt(x)?x:null)}renderAll()}
 $('inv').addEventListener('click',e=>{const s=e.target.closest('[data-sellq]');if(s){openQty(s.dataset.sellq);return}const m=e.target.closest('[data-mk]');if(m){S.mkSub='ore';setTab('market')}});
 $('invSeg').addEventListener('click',e=>{const b=e.target.closest('[data-invf]');if(!b)return;INVF=b.dataset.invf;sfx('click');renderInv()});
 // 전체 판매: 먼저 대상 · 예상 금액을 보여 주고, [판매하기]를 눌러야 판다(취소하면 아무것도 안 바뀜). 값은 장터 파는 값(bid: 판매 보너스 포함) 그대로
 let SELLG=null;
 function askSellAll(g){const ids=invGroup(g);if(!ids.length)return;const tot=ids.reduce((s,id)=>s+bid(id)*cnt(id),0),n=ids.reduce((s,id)=>s+cnt(id),0);SELLG=g;
-  story([{k:'창고',t:g==='ref'?'재련품 전체 판매':'원석 전체 판매',b:'아래 품목을 모두 팔까요? 취소하면 아무것도 바뀌지 않아요.',btn:'취소',
+  story([{k:'창고',t:g==='ref'?'제련품 전체 판매':'원석 전체 판매',b:'아래 품목을 모두 팔까요? 취소하면 아무것도 바뀌지 않아요.',btn:'취소',
     extra:`<div class="rcard sell-list">${ids.map(id=>`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(cnt(id))}</span>`).join('')}<span><b>예상 판매 금액</b></span><span class="gold-t">+${big(tot)}G</span></div>
       <div class="row-btns" style="justify-content:center;margin:6px 0 2px"><button class="px-btn lamp" id="sellGo" type="button">판매하기</button></div>`,after:()=>{SELLG=null}}])}
-function sellAll(g){const ids=invGroup(g);let t=0,n=0;ids.forEach(id=>{n+=cnt(id);t+=sell(id,cnt(id))});if(t)log(`${g==='ref'?'재련품':'원석'} 전체 판매: +${big(t)}G`,true);S.slots=S.slots.map(x=>x&&cnt(x)?x:null);renderAll();return t}
+function sellAll(g){const ids=invGroup(g);let t=0,n=0;ids.forEach(id=>{n+=cnt(id);t+=sell(id,cnt(id))});if(t)log(`${g==='ref'?'제련품':'원석'} 전체 판매: +${big(t)}G`,true);S.slots=S.slots.map(x=>x&&cnt(x)?x:null);renderAll();return t}
 $('sellRaw').onclick=()=>askSellAll('raw');$('sellRef').onclick=()=>askSellAll('ref');
 $('storyX').addEventListener('click',e=>{if(!e.target.closest('#sellGo')||!SELLG)return;const g=SELLG;SELLG=null;sellAll(g);sfx('coin');nextStory()});
 function renderLog(){const el=$('log');if(el)setHTML(el,S.log.slice(0,40).map(l=>`<div>${l}</div>`).join(''))}
@@ -104,9 +104,11 @@ function renderBookTab(){
   $('dexCount').textContent=`${S.seen.length}/${ORDER.length}`;
   setHTML($('dex'),ORDER.map(id=>`<button class="dx${S.seen.includes(id)?'':' unk'}" data-dx="${id}" type="button" aria-label="${S.seen.includes(id)?ITEMS[id].n:'아직 모르는 광물'}">${ico(id)}</button>`).join(''));
   const mins=Math.round((S.playT||0)/60);   // 게임을 켜 두고 있던 시간만(자리 비운 시간 · 앱이 뒤로 간 시간은 빼고)
-  setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['재련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
+  setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['제련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
 $('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([journalCard(i,'할아버지의 일지')])});   // 다시 보기: 개척할 때와 같은 삽화 · 글
 /* 장터: [지층 출입권] 소문을 읽고 사고팔기 · [광물 거래] 정해진 값 */
+// 수익률 글자: 10% 아래는 소수 한 자리(+0.8%), 그 위는 정수. 출입권 줄과 판매 알림이 같은 함수를 써서 숫자가 똑같다
+const retPct=r=>{const a=Math.abs(r)<.1?Math.round(r*1000)/10:Math.round(r*100);return a===0?'0%':(a>0?'+':'-')+Math.abs(a)+'%'};
 const pctHtml=v=>{const p=Math.round((v-1)*100);if(p===0)return'<span class="pct dim">평소</span>';return`<span class="pct ${p>0?'good':'bad'}">${p>0?'▲':'▼'}${Math.abs(p)}%</span>`};
 const mm=s=>{s=Math.max(0,Math.ceil(s/60));return s>=60?`${Math.floor(s/60)}시간 ${s%60}분`:`${s}분`};
 function srcRecTxt(n){const r=S.srcRec[n];return r&&r.n?`지금까지 ${r.n}번 중 ${r.h}번 맞음`:'아직 기록 없음'}
@@ -122,17 +124,17 @@ function renderMarket(){if(S.tab!=='market')return;const luka=tenantIn('루카')
     setHTML($('rumors'),h);$('rumInfo').textContent=S.rum.length<2?`다음 소문 약 ${mm(S.rumT)} 뒤`:'';
     // 출입권 목록
     const L=[...Array(S.unlocked).keys()],mx=passMax(),pv=passValue();$('passInfo').textContent=pv?`가진 출입권 ${big(pv)}G`:`지층마다 ${mx}장까지`;
-    patchList($('passes'),L,L.map(i=>{const v=passPrice(i),hd=S.pass[i],n=passHeld(i),ret=n?v*n/hd.c-1:null,ch=v/passBase(i);
-      return[`${pf(v)}G ${pctHtml(ch)}`,n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${ret>=0?'+':''}${Math.round(ret*100)}%</span>`:`0/${mx}장`,
-        `1장마다 시간당 약 ${pf(passDiv(i)*3600)}G어치 광석이 들어와요`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>팔기</button>`]}),
+    patchList($('passes'),L,L.map(i=>{const v=passPrice(i),n=passHeld(i),q=n?passQuote(i,n):null,ret=q?q.gain/q.cost:0,ch=v/passBase(i);
+      return[`${pf(v)}G ${pctHtml(ch)}`,n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${retPct(ret)}</span>${q.lock>0?`<span class="dim small"> · ${Math.ceil(q.lock)}초 동안 이익 최대 +1%</span>`:''}`:`0/${mx}장`,
+        `1장마다 시간당 약 ${pf(passDiv(i)*3600)}G어치 광석이 들어와요`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>판매</button>`]}),
       (i,P)=>`<div class="prow"><span class="pn"><b>B${i+1}</b> ${LAYERS[i].n}</span><span class="pv">${P[0]}</span><span class="ph">${P[1]}</span><span class="pd dim">${P[2]}</span><span class="pbtn">${P[3]}</span></div>`,'',[1,2,3,4])}
   else{const ids=ORDER.filter(id=>S.seen.includes(id));
     patchList($('oreList'),ids,ids.map(id=>[`×${big(cnt(id))}`,`<span class="good">${pf(bid(id))}</span> / <span class="lamp">${pf(ask(id))}</span>G`]),
-      (id,P)=>`<div class="orow">${ico(id,'sm')}<span>${ITEMS[id].n} <span class="dim">${P[0]}</span></span><span class="small">${P[1]}</span><span class="acts"><button class="px-btn sm" data-osell="${id}" type="button">팔기</button><button class="px-btn sm" data-obuy="${id}" type="button">사기</button></span></div>`,'<p class="dim">광물을 캐면 여기에 나와요.</p>',[1,2])}}
+      (id,P)=>`<div class="orow">${ico(id,'sm')}<span class="onm">${ITEMS[id].n}</span><span class="ocnt dim">${P[0]}</span><span class="opr small">${P[1]}</span><span class="acts"><button class="px-btn" data-osell="${id}" type="button">판매</button><button class="px-btn" data-obuy="${id}" type="button">구매</button></span></div>`,'<p class="dim">광물을 캐면 여기에 나와요.</p>',[2,3])}}
 $('mkSeg').addEventListener('click',e=>{const b=e.target.closest('[data-mks]');if(b){S.mkSub=b.dataset.mks;renderMarket()}});
 $('passes').addEventListener('click',e=>{const b=e.target.closest('[data-pb]'),s_=e.target.closest('[data-ps]');
   if(b){const i=+b.dataset.pb,r=passBuy(i,b.dataset.n==='max'?999:1);if(r.k){sfx('buy');toast(`B${i+1} 출입권 ${r.k}장을 ${big(r.t)}G에 샀어요.`)}renderAll()}
-  if(s_){const i=+s_.dataset.ps,r=passSell(i,999);if(r.k){sfx('coin');toast(`B${i+1} 출입권 ${r.k}장을 ${big(r.t)}G에 팔았어요 (${r.gain>=0?'+':''}${big(r.gain)}G).`)}renderAll()}});
+  if(s_){const i=+s_.dataset.ps,r=passSell(i,999);if(r.k){sfx('coin');toast(`B${i+1} 출입권 ${r.k}장을 ${big(r.t)}G에 팔았어요 (${r.gain>=0?'+':''}${big(r.gain)}G, ${retPct(r.gain/r.cost)}).`)}renderAll()}});
 $('oreList').addEventListener('click',e=>{const s_=e.target.closest('[data-osell]'),b=e.target.closest('[data-obuy]');if(s_)openQty(s_.dataset.osell,'sell');if(b)openQty(b.dataset.obuy,'buy')});
 /* 이야기 창 */
 const STQ=[];
@@ -145,15 +147,15 @@ let STC=null;
 const storyArt=k=>k&&typeof ART!=='undefined'?ART['story_'+k]||null:null;
 // 에필로그 그림 위로 흐르는 구름 두 겹(art/story/end_cloud1 · 2)
 {const cl=document.createElement('style');cl.textContent=typeof ART!=='undefined'&&ART.story_end_cloud1?`.ep-cl1{background-image:url(${ART.story_end_cloud1})}.ep-cl2{background-image:url(${ART.story_end_cloud2})}`:'';document.head.appendChild(cl)}
-function storyMode(c){const src=storyArt(c.ill),m=c.mode&&(src||c.mode==='hero')?c.mode:'';const st=$('story');['full','card','hero','end'].forEach(k=>st.classList.toggle('m-'+k,m===k));st.dataset.cat=src&&c.ill?c.ill[0]:'';   // 그림 종류(p · b · e)마다 같은 규격으로 보이게
-  const w=$('storyIll'),im=$('storyIllImg');w.hidden=!src&&m!=='hero';im.hidden=!src;im.onload=()=>im.classList.toggle('hi',im.naturalWidth>400);if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=c.t||''}else im.removeAttribute('src')}
+function storyMode(c){const src=storyArt(c.ill),m=c.mode&&src?c.mode:'';const st=$('story');['full','card','end'].forEach(k=>st.classList.toggle('m-'+k,m===k));st.dataset.cat=src&&c.ill?c.ill[0]:'';   // 그림 종류(p · b · e)마다 같은 규격으로 보이게
+  const w=$('storyIll'),im=$('storyIllImg');w.hidden=!src;im.hidden=!src;im.onload=()=>im.classList.toggle('hi',im.naturalWidth>400);if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=c.t||''}else im.removeAttribute('src')}
 function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;storyMode({});if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();storyMode(c);
   $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=T(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';
   const p=$('portrait'),pa=$('portraitArt'),art=c.art&&typeof ART!=='undefined'&&ART[c.art];pa.hidden=!art;if(art){pa.src=art;pa.alt=c.t||''}
   if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=c.btn||(STQ.length?'다음':'계속');$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}
 $('storyNext').onclick=nextStory;
 /* 탭 */
-// v24: 아래 탭 다섯 개(재련 · 장터 · 채굴 · 탑 · 장비). 예전 '관리' 탭은 채굴 화면 버튼이 여는 창(시트)으로 옮김. 저장된 tab이 manage면 채굴로
+// v24: 아래 탭 다섯 개(제련 · 장터 · 채굴 · 탑 · 장비). 예전 '관리' 탭은 채굴 화면 버튼이 여는 창(시트)으로 옮김. 저장된 tab이 manage면 채굴로
 const TABS=['forge','market','mine','tower','equip'];
 const SHEET_T={store:'창고',shaft:'갱도 개척',book:'도감 · 할아버지의 일지',set:'설정',craft:'린의 세공 작업대'};
 function openSheet(sub){if(!SHEET_T[sub])sub='store';if(S.tab!=='mine')setTab('mine');S.sub=sub;$('sheetT').textContent=SHEET_T[sub];$('sheet').hidden=false;$('sheetBody').scrollTop=0;sfx('click');renderManage();tutGlow()}
@@ -182,10 +184,15 @@ function showAd(title,cb){if(S.noAds){cb();return}AD_CB=cb;$('adT').textContent=
 $('adDone').onclick=()=>{$('adModal').hidden=true;const cb=AD_CB;AD_CB=null;if(cb)cb()};
 $('adCancel').onclick=()=>{clearInterval(AD_T);$('adModal').hidden=true;AD_CB=null};
 // 켜 두고 직접 캘 때(탭 + 자동 드릴) 초당 버는 골드
-function playIncome(){const L=S.layer,d=LAYERS[L].drops,tot=d.reduce((s,x)=>s+x[1],0),avg=d.reduce((s,x)=>s+bid(x[0])*x[1],0)/tot;return playRate()*avg}
-// 선물 상자: 켜 두고 15분 동안 캔 만큼의 골드 (하루 5번). 화면엔 시간 환산을 쓰지 않는다. 받은 창 아래에 광고 제거 패키지 위치를 알려 주는 한 줄
+// 보통 플레이(탭 2.5번/초 + 드릴) 수입. L을 주면 그 지층 기준
+function playIncomeAt(L){const d=LAYERS[L].drops,tot=d.reduce((s,x)=>s+x[1],0),avg=d.reduce((s,x)=>s+bid(x[0])*x[1],0)/tot;return playRate()*layerHp(S.layer)/layerHp(L)*avg}
+const playIncome=()=>playIncomeAt(S.layer);
+// 선물 상자(하루 5번): 채굴 수입 GIFT_MIN분치. 수입 = 가장 깊이 연 지층의 보통 플레이 수입과 최근 10분 실제 채굴 수입(S.mr) 중 큰 쪽
+//  → 열심히 탭하는 사람에게도 '잠깐 캐면 버는 만큼'이 아니라 확실한 보상. 화면엔 시간 환산을 쓰지 않는다. 받은 창 아래에 광고 제거 패키지 위치를 알려 주는 한 줄
+const GIFT_MIN=15;
+const giftGold=()=>Math.max(50,Math.round(Math.max(playIncomeAt(S.unlocked-1),S.mr||0)*GIFT_MIN*60));
 function openGift(){if(!giftReady())return;showAd('숯의 선물 상자',()=>{if(!giftReady())return;adsDay().gift++;
-  const gold=Math.max(50,Math.round(playIncome()*15*60));S.gold+=gold;
+  const gold=giftGold();S.gold+=gold;
   A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>${S.noAds?'':'<p class="dim small ad-hint">광고 제거 패키지로 광고 없이 받아 보세요! (관리 → 설정)</p>'}`}]);renderAll()})}
 // 10분 동안 채굴 2배 (하루 10번, 켜져 있는 동안은 다시 못 씀)
 function startBoost(){if(boostOn()||boostLeft()<=0)return;showAd('10분 동안 채굴 2배',()=>{if(boostOn()||boostLeft()<=0)return;adsDay().boost++;S.ads.boostUntil=gtime()+10*60000;A.joy=1;toast(`10분 동안 곡괭이와 자동 드릴이 2배로 강해져요! (오늘 ${boostLeft()}번 남음)`);renderAll()})}
@@ -210,7 +217,7 @@ $('qtyModal').addEventListener('click',e=>{const b=e.target.closest('[data-q]');
 $('qtyCancel').onclick=()=>{$('qtyModal').hidden=true;QTY=null};
 $('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){if(QM==='sell')doSell(QTY,n);else{const r=buy(QTY,n);if(r.k){sfx('buy');toast(`${ITEMS[QTY].n} ${r.k}개를 ${big(r.t)}G에 샀어요.`)}renderAll()}}$('qtyModal').hidden=true;QTY=null};
 /* 도감: 광물 설명 */
-const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'재련에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
+const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'제련에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
 // 광석 발견 후광: 도트로 찍은 빛 2장(40×40칸, 화면에선 3배). 계단식 둥근 빛 + 빛살 8갈래(십자 · 대각선 길이가 번갈아) + 작은 별
 let HALO_URL='';
 function haloUrl(){if(HALO_URL)return HALO_URL;const N=40,[c,x]=cvs(N*2,N),C=19.5;
@@ -227,7 +234,7 @@ function discover(id){const it=ITEMS[id],L=it.L;sfx('sparkle');
 function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 찾지 못한 광물이에요. 더 깊이 파 내려가거나 새로운 조합을 시도해 보세요.'}]);return}
   const it=ITEMS[id],L=itemLayer(id),src=it.cr?(()=>{const i=RMAP[key(INS[id][0],INS[id][1])];return S.found.includes(i)?`${ITEMS[INS[id][0]].n} + ${ITEMS[INS[id][1]].n}로 만들어요.`:'만드는 법은 아직 몰라요.'})():id==='slag'?'':`B${L} ${LAYERS[L-1].n}에서 캘 수 있어요.`;
   const uses=OUTS[id].filter(o=>S.found.some(i=>RECIPES[i].out===o)).map(o=>ITEMS[o].n);
-  story([{k:`도감 · ${SECT[it.s].n}`,t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${src}`,extra:`<div style="display:flex;justify-content:center;margin-bottom:8px">${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${it.cr?'재련품':id==='slag'?'찌꺼기':'원석'}</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>지금 팔면</span><span>${pf(bid(id))}G</span>${uses.length?`<span>쓰이는 곳</span><span>${uses.join(', ')}</span>`:''}</div>`}])}
+  story([{k:`도감 · ${SECT[it.s].n}`,t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${src}`,extra:`<div style="display:flex;justify-content:center;margin-bottom:8px">${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${it.cr?'제련품':id==='slag'?'찌꺼기':'원석'}</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>지금 팔면</span><span>${pf(bid(id))}G</span>${uses.length?`<span>쓰이는 곳</span><span>${uses.join(', ')}</span>`:''}</div>`}])}
 $('dex').addEventListener('click',e=>{const b=e.target.closest('[data-dx]');if(b)itemInfo(b.dataset.dx)});
 // 채굴 화면 아이콘(사용자 그림 art/ui: 채굴 보관함 · 숯의 선물 · 채굴 2배)
 function drawUiIcons(){document.querySelectorAll('img[data-ic]').forEach(im=>{im.src=ART['ui_'+im.dataset.ic]})}

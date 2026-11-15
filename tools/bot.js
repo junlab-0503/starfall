@@ -9,7 +9,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   else{S=fresh();S.prologue=true;S.tutDone=true;S.legacy=1;S.gold+=LEGACY.gold;S.auto=LEGACY.auto;S.autoOn=true;refreshBonus();S.hp=layerHp(0);for(let i=0;i<120;i++)tickMarket(2,true)}
   const recipeOf={};RECIPES.forEach((r,i)=>recipeOf[r.out]=i);
   // 캔 광석: 창고에, 넘치면 드릴 몫은 판매(로봇 보관함 → 넘침 판매를 한 번에), 탭 몫은 버려짐. 쇠맥 찾기 · 보석 눈썰미 포함
-  function mine(d,auto){S.hp-=d;const L=S.layer,hp=layerHp(L);let n=0;while(S.hp<=0&&n<5000){S.hp+=hp;n++;rumorClue(L);const id=rollDrop(L),k=1+(Math.random()<extraP(ITEMS[id].s)?1:0);S.mined+=k;const ok=Math.min(k,space());if(ok)add(id,ok);if(k>ok){if(auto)sellOverflow(id,k-ok);else lost+=k-ok}}}
+  function mine(d,auto){S.hp-=d;const L=S.layer,hp=layerHp(L);let n=0;while(S.hp<=0&&n<5000){S.hp+=hp;n++;rumorClue(L);const id=rollDrop(L),k=1+(Math.random()<extraP(ITEMS[id].s)?1:0);S.mined+=k;MR_ACC+=bid(id)*k;const ok=Math.min(k,space());if(ok)add(id,ok);if(k>ok){if(auto)sellOverflow(id,k-ok);else lost+=k-ok}}}
   function needs(){const N={},a=(id,q)=>N[id]=(N[id]||0)+q;const L=LAYERS[S.unlocked];if(L&&L.req)for(const[id,n]of Object.entries(L.req.items))a(id,n);
     if(!towerBlocked())for(let k=1;k<=1;k++)floorCost(S.floors+k).mats.forEach(([id,q])=>a(id,q));
     if(S.unlocked>=13){a('philo',1);a('starshard',10)}
@@ -20,7 +20,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   // 소문 읽기: 출처 적중 기록 + 정보원 감정 + 다른 사람의 같은 말 + 캐면서 나온 단서로 진짜일 확률을 어림잡는다
   const SZ=RUM_SIZE.map(R=>[(R.up[0]+R.up[1])/2,(R.dn[0]+R.dn[1])/2]);   // 크기별 평균 오름폭 · 내림폭
   function pTrue(r){const rec=S.srcRec[r.src]||{h:0,n:0};let o=(rec.h+1.5)/(rec.n-rec.h+1.5);
-    const acc=[0,.75,.88,.97][Math.min(S.intel,3)];if(r.hint!=null&&acc)o*=r.hint?acc/(1-acc):(1-acc)/acc;
+    const acc=intelAcc(S.intel);if(r.hint!=null&&acc)o*=r.hint?acc/(1-acc):(1-acc)/acc;
     const mins=r.t/60;o*=Math.pow(4,r.echo.length)*Math.exp(-.135*mins);const b=r.brk||0;o*=Math.pow(.03/.0075,r.clue)*Math.pow(.97/.9925,b-r.clue);return o/(1+o)}
   function passTrade(){const held=new Set(Object.keys(S.pass).map(Number));
     // 발표가 끝난 지층은 바로 판다
@@ -61,7 +61,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
       else if(upOpen('auto')&&autoCost(S.auto)<av*.2){S.gold-=autoCost(S.auto);S.auto++;did=true}
       else if(upOpen('furn')&&S.furnace<5&&furnCost(S.furnace)<av*.1){S.gold-=furnCost(S.furnace);S.furnace++;did=true}
       else if(cap()/Math.max(.01,(tapPower()*TAPS+autoDps())/layerHp(S.layer))<1200&&upOpen('wh')&&whCost(S.wh)<av*.4){S.gold-=whCost(S.wh);S.wh++;did=true}
-      if(!did)for(const k of ['crit','haggle','metal','gem','bulk','refiner','great','autosell',...(opt.noVheat?[]:['vheat'])])if(!upMax(k)&&upCost(k)<av*.12){buyUp(k);did=true;break}
+      if(!did)for(const k of ['crit','haggle','metal','gem','bulk','refiner','great','autosell',...(opt.noVheat?[]:['vheat']),...(opt.pass?['intel']:[])])if(!upMax(k)&&upCost(k)<av*.12){buyUp(k);did=true;break}
       if(!did)break}
     // 탑
     // 확신이 큰 소문이 돌고 있으면 탑 짓기를 잠깐 미루고 돈을 굴린다
@@ -77,19 +77,21 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   let hit=hitF();
   // opt.sess=[[켜 둔 분, 비운 분],...]: 짧게 여러 번 접속하는 사람. 비운 동안은 게임의 catchUp(자리 비움 보상)으로 계산하고, 다시 켜면 보관함 광석을 창고로(넘치면 판매)
   let wall=snap&&snap.wall||t,si=0,sOn=0,endW=null;
+  // opt.ads={gift:하루 선물 상자 수, boost:하루 채굴 2배(10분) 수}: 접속(세션)마다 하루로 쳐서 선물은 그 자리에서 받고, 2배는 켜 둔 동안 앞에서부터 이어서 씀
+  let boostSec=0,adG=0;const adsDayStart=()=>{if(!opt.ads)return;for(let i=0;i<(opt.ads.gift||0);i++){const x=giftGold();S.gold+=x;S.earned+=x;adG+=x}boostSec=(opt.ads.boost||0)*600};if(!snap)adsDayStart();
   while(t<maxSec&&!hit){
     {const rate=(tapPower()*TAPS*(1+2*critP())+autoDps())/layerHp(S.layer),k=S.layer+1,o=RS[k]||(RS[k]={n:0,r:0,f:0});o.n++;o.r+=rate;o.f+=cap()/Math.max(rate,1e-6)/60}
     // 황금 광맥(게임과 같은 규칙, opt.vein===false면 끔): 채굴 화면에서 8~14분마다 45초. 그동안은 광석 대신 골드만
     // 탭 1번 = pot×VEIN_K.tap, 드릴 0.25초마다 pot×VEIN_K.drill, 상한 없음 (pot = 지금 채굴 수입 4분치)
-    if(S.vein){const v=S.vein,add=Math.round(v.pot*(TAPS*VEIN_K.tap+(S.auto>0&&S.autoOn?4*VEIN_K.drill:0)));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
+    if(S.vein){const v=S.vein,add=Math.round(v.pot*(TAPS*VEIN_K.tap+(S.auto>0&&S.autoOn?4*VEIN_K.drill:0)));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add;MR_ACC+=add}if(--v.left<=0)S.vein=null}
     else{if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true);
       if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:veinSec(),pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);veinN++}}
-    tickMarket(1,false);S.rentAcc+=rentPerSec();
+    tickMarket(1,false);mrTick();S.rentAcc+=rentPerSec();if(opt.ads){S.ads.boostUntil=boostSec>0?Infinity:0;if(boostSec>0)boostSec--}
     t++;wall++;if(t%10===0){decide();hit=hitF()}
-    if(opt.sess&&++sOn>=opt.sess[si%opt.sess.length][0]*60){const off=opt.sess[si%opt.sess.length][1]*60;si++;sOn=0;wall+=off;S.vein=null;
-      if(catchUp(off)){for(const id in S.box){const n=S.box[id],ok=Math.min(n,space());if(ok)add(id,ok);if(n>ok)sellOverflow(id,n-ok)}S.box={}}decide();hit=hitF()}
+    if(opt.sess&&++sOn>=opt.sess[si%opt.sess.length][0]*60){const off=opt.sess[si%opt.sess.length][1]*60;si++;sOn=0;wall+=off;S.vein=null;S.ads.boostUntil=0;boostSec=0;
+      if(catchUp(off)){for(const id in S.box){const n=S.box[id],ok=Math.min(n,space());if(ok)add(id,ok);if(n>ok)sellOverflow(id,n-ok)}S.box={}}adsDayStart();decide();hit=hitF()}
     if(endT!=null&&endW==null)endW=wall;
     if(t%3600===0)log.push({h:t/3600,gold:Math.round(S.gold),L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh});
   }
-  return{gam:{in:Math.round(gamIn),out:Math.round(gamOut),n:gamN,win:gamWin},inc:{sale:Math.round(gIncome+(S.ofG||0)),vein:Math.round(veinG),rent:Math.round(rentG),pass:Math.round(passG)},veinG,veinN,RS,hit,wall,endW,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT,wall},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
+  return{gam:{in:Math.round(gamIn),out:Math.round(gamOut),n:gamN,win:gamWin},inc:{sale:Math.round(gIncome+(S.ofG||0)),vein:Math.round(veinG),rent:Math.round(rentG),pass:Math.round(passG),gift:Math.round(adG)},veinG,veinN,RS,hit,wall,endW,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT,wall},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
 }

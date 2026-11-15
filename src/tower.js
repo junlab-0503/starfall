@@ -12,14 +12,14 @@ const TENANT_INTRO={
   '핀':[{t:'핀의 작업대',b:'"할아버지 채굴 기계요? 제가 고칠 수 있어요! [장비] 탭 작업대에서 드릴 로봇을 더 빠르게 만들고, 보관함도 넓혀 드릴게요."'}],
   '루카':[{t:'지층 출입권',b:'"장터에 [지층 출입권]을 열었어요! 출입권을 가지고 있으면 그 지층 광석이 조금씩 채굴 보관함에 들어와요."'},
           {t:'소문 게시판',b:'"그리고 소문! 10분쯤마다 지층 소문이 돌고, 6~8분 뒤에 사실인지 발표돼요. 누가 한 말인지, 다른 사람도 같은 말을 하는지, 그 지층에서 단서가 나오는지 잘 보세요. 사실로 밝혀지면 출입권 값이 크게 올라요."'}],
-  '미르':[{t:'미르의 용광로',b:'"…용광로는 제가 돌볼게요. [장비] 탭에서 풀무를 키우면 재련이 더 잘 돼요. …그리고 황금 광맥에서 느껴지는 별의 열, 제가 조금 더 오래 붙잡아 둘 수 있어요."'}]};
+  '미르':[{t:'미르의 용광로',b:'"…용광로는 제가 돌볼게요. [장비] 탭에서 풀무를 키우면 제련이 더 잘 돼요. …그리고 황금 광맥에서 느껴지는 별의 열, 제가 조금 더 오래 붙잡아 둘 수 있어요."'}]};
 function buildFloor(quiet){if(towerBlocked())return false;const f=S.floors+1,c=floorCost(f);if(!canBuild(c))return false;
   S.gold-=c.gold;c.mats.forEach(([id,q])=>add(id,-q));S.floors=f;
   if(f%5===0){const gift=c.gold*3;S.gold+=gift;log(`${f}층 완공 기념! 마을 사람들이 축하금을 보냈어요: +${big(gift)}G`,!quiet)}
   const sec=SECTIONS.findIndex(s=>s.to===f);
   if(sec>=0){refreshBonus();const t=SECTIONS[sec].t;log(`${SECTIONS[sec].n} 완공! ${t.role} ${J(t.name,'이가')} 탑에 들어왔어요.`);
     story([{gold:1,k:`${SECTIONS[sec].n} 완공 · 새 입주자`,t:`${t.role} ${t.name}`,b:`"${t.line}"`,portrait:t,extra:`<div class="say"><span class="who">입주 효과</span> ${t.bonus}<br><span class="dim">월세 시간당 ${big(SECTIONS[sec].g*BAL.rent)}G</span></div>`}]);
-    story((TENANT_INTRO[t.name]||[]).map(c=>({gold:1,k:'새로 열렸어요',t:c.t,b:c.b,portrait:t,art:t.art})))}
+    story((TENANT_INTRO[t.name]||[]).map(c=>({gold:1,k:'새로 열렸어요',t:c.t,b:c.b,portrait:t,art:t.art})));npcTutQueue(t.name)}
   if(f===99)story([{k:'99층',t:'하늘에 닿았다',b:'탑 꼭대기에 천공의 용광로를 놓을 자리가 생겼다. 현자의 원석과 별의 파편이 있으면, 별을 돌려보낼 수 있다.'}]);
   return true}
 function buildMax(){let n=0;while(n<200&&buildFloor(true))n++;if(n)toast(`${n}층을 쌓았어요!`);renderAll()}
@@ -29,7 +29,7 @@ function collectRent(){if(S.rentAcc<1)return;S.gold+=S.rentAcc;log(`입주자들
 function finale(){if(S.floors<99||S.ended)return;if(cnt('philo')<1||cnt('starshard')<10){toast('현자의 원석 1개와 별의 파편 10개가 필요해요.');return}
   add('philo',-1);add('starshard',-10);S.ended=true;refreshBonus();
   const mins=Math.round((S.playT||0)/60);
-  story([{gold:1,k:'에필로그',t:'',b:'',ill:'end',mode:'end',btn:'계속',extra:`<div class="ep-narr">${ENDING.map(c=>`<p>${c.b}</p>`).join('')}</div>`}].concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>재련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
+  story([{gold:1,k:'에필로그',t:'',b:'',ill:'end',mode:'end',btn:'계속',extra:`<div class="ep-narr">${ENDING.map(c=>`<p>${c.b}</p>`).join('')}</div>`}].concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>제련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
   renderAll()}
 // 탑 그림(사용자 그림 art/scene/tower.png): 쌓은 층만큼 아래부터 색이 들어오고, 위는 어두운 실루엣. 하늘 · 오로라 · 별은 깊이 내려갈수록 짙어짐
 let towerKey='',TOWER_IMG=null;
@@ -58,15 +58,15 @@ function renderTower(){
     <div class="row-btns" style="margin-top:2px"><button class="px-btn ${S.rentAcc>=1?'lamp':''}${badges().rent?' ndot':''}" id="rentBtn" type="button" ${S.rentAcc<1?'disabled':''}>월세 받기 ${S.rentAcc>=1?big(S.rentAcc)+'G':''}</button></div>`);
   let card='';
   if(towerBlocked()){const ok=cnt('philo')>=1&&cnt('starshard')>=10;
-    card=`<h2>천공의 용광로</h2><p class="dim">하늘에 가장 가까운 용광로. 마지막 재련으로 별을 하늘로 돌려보낼 수 있어요.</p>
+    card=`<h2>천공의 용광로</h2><p class="dim">하늘에 가장 가까운 용광로. 마지막 제련으로 별을 하늘로 돌려보낼 수 있어요.</p>
     <div class="matl">${ico('philo')}<span>현자의 원석</span><span class="${cnt('philo')>=1?'ok':'no'}">${cnt('philo')}/1</span></div><div class="matl">${ico('starshard')}<span>별의 파편</span><span class="${cnt('starshard')>=10?'ok':'no'}">${cnt('starshard')}/10</span></div>
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="finaleBtn" type="button" ${ok?'':'disabled'}>별을 돌려보내기</button></div>`}
   else{const c=floorCost(f+1),ok=canBuild(c);
-    card=`<h2>${f+1}층 짓기 <small>${i>=0?SECTIONS[i].n:'하늘 너머'}</small></h2>`+c.mats.map(([id,q])=>{const lack=cnt(id)<q,cr=ITEMS[id].cr,tag=cr?(lack?'<span class="mtag go">재련 →</span>':'<span class="mtag">재련품</span>'):'<span class="mtag raw">원석</span>',nm=`<span>${S.seen.includes(id)?ITEMS[id].n:'???'}</span>`;
+    card=`<h2>${f+1}층 짓기 <small>${i>=0?SECTIONS[i].n:'하늘 너머'}</small></h2>`+c.mats.map(([id,q])=>{const lack=cnt(id)<q,cr=ITEMS[id].cr,tag=cr?(lack?'<span class="mtag go">제련 →</span>':'<span class="mtag">제련품</span>'):'<span class="mtag raw">원석</span>',nm=`<span>${S.seen.includes(id)?ITEMS[id].n:'???'}</span>`;
       return cr&&lack?`<button class="matl mgo" data-gof="${id}" type="button">${ico(id)}<span class="mn">${nm}${tag}</span><span class="no">${big(cnt(id))}/${big(q)}</span></button>`:`<div class="matl">${ico(id)}<span class="mn">${nm}${tag}</span><span class="${lack?'no':'ok'}">${big(cnt(id))}/${big(q)}</span></div>`}).join('')+
     `<div class="matl gold-row"><i class="ico ic-coin"></i><span>골드</span><span class="${S.gold>=c.gold?'ok':'no'}">${big(c.gold)}G</span></div>
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="buildBtn" type="button" ${ok?'':'disabled'}>한 층 쌓기</button><button class="px-btn" id="buildMaxBtn" type="button" ${ok?'':'disabled'}>가능한 만큼</button></div>
-    <div class="row-btns"><button class="px-btn grow" id="buyMissBtn" type="button">부족한 재료 장터에서 사기</button></div>
+    <div class="row-btns"><button class="px-btn grow" id="buyMissBtn" type="button">부족한 재료 장터에서 구매</button></div>
     <p class="dim small" style="margin:8px 0 0">5층마다 축하금 · 구간을 완공하면 새 입주자가 들어와요</p>`}
   if(TH.card!==card){$('floorCard').innerHTML=card;TH.card=card}
   const sh=SECTIONS.map((s,k)=>{const dn=f>=s.to,cur=!dn&&f>=s.from-1,pct=clamp((f-s.from+1)/(s.to-s.from+1),0,1);
