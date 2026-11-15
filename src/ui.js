@@ -72,11 +72,25 @@ function renderLayers(){
 }
 $('layers').addEventListener('click',e=>{const g2_=e.target.closest('[data-go]');if(g2_){setLayer(+g2_.dataset.go);setTab('mine');return}const u=e.target.closest('[data-unlock]');if(u)unlockLayer(+u.dataset.unlock)});
 /* 창고 */
-function renderInv(){const ids=ORDER.filter(id=>cnt(id)>0);$('invCap').textContent=`${big(used())}/${big(cap())}칸`;
-  patchList($('inv'),ids,ids.map(id=>[`×${big(cnt(id))}`,`${pf(bid(id))}G`]),(id,P)=>`<div class="irow"><button class="nmb" data-mk="${id}" type="button">${ico(id,'sm')}<span>${ITEMS[id].n}</span></button><span class="dim">${P[0]}</span><span>${P[1]}</span><span class="acts"><button class="px-btn sm" data-sellq="${id}" type="button">판매</button></span></div>`,'<p class="dim">창고가 비어 있어요.</p>',[1,2])}
+// 창고 나눠 보기: 원석 · 광재(재련으로 만들지 않는 것 — 원석과 광재 같은 부산물) / 재련품. 어떤 품목도 둘 중 하나에 들어감
+let INVF='raw';const isRef=id=>!!ITEMS[id].cr;
+const invGroup=g=>ORDER.filter(id=>cnt(id)>0&&(g==='ref')===isRef(id));
+function renderInv(){const ids=invGroup(INVF);$('invCap').textContent=`${big(used())}/${big(cap())}칸`;
+  const nr=invGroup('raw').length,nf=invGroup('ref').length;$('invNRaw').textContent=nr||'';$('invNRef').textContent=nf||'';
+  document.querySelectorAll('#invSeg [data-invf]').forEach(b=>b.classList.toggle('on',b.dataset.invf===INVF));$('sellRaw').disabled=!nr;$('sellRef').disabled=!nf;
+  patchList($('inv'),ids,ids.map(id=>[`×${big(cnt(id))}`,`${pf(bid(id))}G`]),(id,P)=>`<div class="irow"><button class="nmb" data-mk="${id}" type="button">${ico(id,'sm')}<span>${ITEMS[id].n}</span></button><span class="dim">${P[0]}</span><span>${P[1]}</span><span class="acts"><button class="px-btn sm" data-sellq="${id}" type="button">판매</button></span></div>`,INVF==='ref'?'<p class="dim">재련품이 없어요.</p>':'<p class="dim">원석이 없어요.</p>',[1,2])}
 function doSell(id,n){const k=n==='all'?cnt(id):+n;const t=sell(id,k);if(t){log(`${ITEMS[id].n} ${k}개 판매: +${big(t)}G`);S.slots=S.slots.map(x=>x&&cnt(x)?x:null)}renderAll()}
 $('inv').addEventListener('click',e=>{const s=e.target.closest('[data-sellq]');if(s){openQty(s.dataset.sellq);return}const m=e.target.closest('[data-mk]');if(m){S.mkSub='ore';setTab('market')}});
-$('sellRaw').onclick=()=>{let t=0;ORDER.filter(id=>!ITEMS[id].cr&&cnt(id)).forEach(id=>t+=sell(id,cnt(id)));if(t)log(`원석 일괄 판매: +${big(t)}G`,true);S.slots=S.slots.map(x=>x&&cnt(x)?x:null);renderAll()};
+$('invSeg').addEventListener('click',e=>{const b=e.target.closest('[data-invf]');if(!b)return;INVF=b.dataset.invf;sfx('click');renderInv()});
+// 전체 판매: 먼저 대상 · 예상 금액을 보여 주고, [판매하기]를 눌러야 판다(취소하면 아무것도 안 바뀜). 값은 장터 파는 값(bid: 판매 보너스 포함) 그대로
+let SELLG=null;
+function askSellAll(g){const ids=invGroup(g);if(!ids.length)return;const tot=ids.reduce((s,id)=>s+bid(id)*cnt(id),0),n=ids.reduce((s,id)=>s+cnt(id),0);SELLG=g;
+  story([{k:'창고',t:g==='ref'?'재련품 전체 판매':'원석 전체 판매',b:'아래 품목을 모두 팔까요? 취소하면 아무것도 바뀌지 않아요.',btn:'취소',
+    extra:`<div class="rcard sell-list">${ids.map(id=>`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(cnt(id))}</span>`).join('')}<span><b>예상 판매 금액</b></span><span class="gold-t">+${big(tot)}G</span></div>
+      <div class="row-btns" style="justify-content:center;margin:6px 0 2px"><button class="px-btn lamp" id="sellGo" type="button">판매하기</button></div>`,after:()=>{SELLG=null}}])}
+function sellAll(g){const ids=invGroup(g);let t=0,n=0;ids.forEach(id=>{n+=cnt(id);t+=sell(id,cnt(id))});if(t)log(`${g==='ref'?'재련품':'원석'} 전체 판매: +${big(t)}G`,true);S.slots=S.slots.map(x=>x&&cnt(x)?x:null);renderAll();return t}
+$('sellRaw').onclick=()=>askSellAll('raw');$('sellRef').onclick=()=>askSellAll('ref');
+$('storyX').addEventListener('click',e=>{if(!e.target.closest('#sellGo')||!SELLG)return;const g=SELLG;SELLG=null;sellAll(g);sfx('coin');nextStory()});
 function renderLog(){const el=$('log');if(el)setHTML(el,S.log.slice(0,40).map(l=>`<div>${l}</div>`).join(''))}
 /* 도감·일지·기록 */
 function revealJournal(i){if(S.journal.includes(i))return;S.journal.push(i);const ev=LAYER_EVENT[i+1];

@@ -62,8 +62,9 @@ function renderTower(){
     <div class="matl">${ico('philo')}<span>현자의 원석</span><span class="${cnt('philo')>=1?'ok':'no'}">${cnt('philo')}/1</span></div><div class="matl">${ico('starshard')}<span>별의 파편</span><span class="${cnt('starshard')>=10?'ok':'no'}">${cnt('starshard')}/10</span></div>
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="finaleBtn" type="button" ${ok?'':'disabled'}>별을 돌려보내기</button></div>`}
   else{const c=floorCost(f+1),ok=canBuild(c);
-    card=`<h2>${f+1}층 짓기 <small>${i>=0?SECTIONS[i].n:'하늘 너머'}</small></h2>`+c.mats.map(([id,q])=>`<div class="matl">${ico(id)}<span>${S.seen.includes(id)?ITEMS[id].n:'???'}</span><span class="${cnt(id)>=q?'ok':'no'}">${big(cnt(id))}/${big(q)}</span></div>`).join('')+
-    `<div class="matl"><i class="ico ic-coin"></i><span>골드</span><span class="${S.gold>=c.gold?'ok':'no'}">${big(c.gold)}G</span></div>
+    card=`<h2>${f+1}층 짓기 <small>${i>=0?SECTIONS[i].n:'하늘 너머'}</small></h2>`+c.mats.map(([id,q])=>{const lack=cnt(id)<q,cr=ITEMS[id].cr,tag=cr?(lack?'<span class="mtag go">재련 →</span>':'<span class="mtag">재련품</span>'):'<span class="mtag raw">원석</span>',nm=`<span>${S.seen.includes(id)?ITEMS[id].n:'???'}</span>`;
+      return cr&&lack?`<button class="matl mgo" data-gof="${id}" type="button">${ico(id)}<span class="mn">${nm}${tag}</span><span class="no">${big(cnt(id))}/${big(q)}</span></button>`:`<div class="matl">${ico(id)}<span class="mn">${nm}${tag}</span><span class="${lack?'no':'ok'}">${big(cnt(id))}/${big(q)}</span></div>`}).join('')+
+    `<div class="matl gold-row"><i class="ico ic-coin"></i><span>골드</span><span class="${S.gold>=c.gold?'ok':'no'}">${big(c.gold)}G</span></div>
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="buildBtn" type="button" ${ok?'':'disabled'}>한 층 쌓기</button><button class="px-btn" id="buildMaxBtn" type="button" ${ok?'':'disabled'}>가능한 만큼</button></div>
     <div class="row-btns"><button class="px-btn grow" id="buyMissBtn" type="button">부족한 재료 장터에서 사기</button></div>
     <p class="dim small" style="margin:8px 0 0">5층마다 축하금 · 구간을 완공하면 새 입주자가 들어와요</p>`}
@@ -176,3 +177,4 @@ function drawPortrait(cvP,t,hide){if(t.art&&typeof ART!=='undefined'&&ART[t.art]
   const fg=pb.canvas(1);if(hide){const x=fg.getContext('2d');x.globalCompositeOperation='source-in';x.fillStyle='#3a2c20';x.fillRect(0,0,W,W)}
   g.drawImage(fg,0,0);if(hide){g.fillStyle='#b29c80';g.font='bold 18px sans-serif';g.textAlign='center';g.fillText('?',32,40)}
   cvP.width=W;cvP.height=W;const c2=cvP.getContext('2d');c2.imageSmoothingEnabled=false;c2.clearRect(0,0,W,W);c2.drawImage(bg,0,0)}
+$('floorCard').addEventListener('click',e=>{const b=e.target.closest('[data-gof]');if(b){sfx('click');goForgeFor(b.dataset.gof)}});

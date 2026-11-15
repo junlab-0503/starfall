@@ -351,3 +351,15 @@ html[lang="en"] .shopc .plate{font-family:var(--f9);font-size:10px}
 .t-copy{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);margin:0;text-align:center;font-size:10px;font-family:var(--f9);color:#fff3d8;text-shadow:1px 1px 0 #1a0f08;opacity:.85;pointer-events:none}
 .entry.still{z-index:19;cursor:default}.entry.still .entry-skip{display:none}   /* 프롤로그 카드(이야기 창) 뒤에 깔리는 멈춘 장면 */
 .story .ad-hint{margin:8px 0 0;text-align:center;font-size:12px;font-family:var(--f11);line-height:1.5}
+/* v24: 빠른 제작 · 탑 재료 바로가기 · 창고 나눠 보기 */
+.qc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-bottom:8px}
+.pk.qc span{font-size:11px}.pk.dimk{opacity:.55}
+.qc-sel{display:grid;gap:4px;background:var(--panel2);border:2px solid var(--line);padding:8px}
+.qc-out{display:flex;align-items:center;gap:8px;font-size:14px}
+.matl .mn{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.mtag{font-size:10px;line-height:1;padding:2px 4px;border:1px solid var(--line);color:var(--dim)}
+.mtag.raw{color:#c9b28a}.mtag.go{color:#1a0f08;background:var(--lamp,#ffb84a);border-color:#1a0f08}
+button.matl.mgo{width:100%;background:none;border:0;color:inherit;text-align:left;cursor:pointer;padding:4px 0}
+button.matl.mgo:active{transform:translateY(1px)}
+#invSeg{margin-bottom:8px}#invSeg .c{color:var(--dim);font-size:11px}
+.sell-list{max-height:40vh;overflow:auto}

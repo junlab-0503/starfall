@@ -29,6 +29,7 @@
 </section>
 
 <section id="tab-forge" class="view" hidden>
+  <div class="panel" id="qcPanel"><h2>빠른 제작 <small id="qcInfo"></small></h2><div class="qc-grid" id="qcGrid"></div><div id="qcSel"></div></div>
   <div class="panel" id="rqPanel"><h2>자동 재련소 <small id="rqInfo"></small></h2><p class="dim small" id="rqDesc" style="margin:0 0 8px">레시피를 맡겨 두면 시간이 지나며 알아서 재련해요. 자리를 비운 동안에도 계속돼요.</p><div id="rq"></div></div>
   <div class="panel" id="forgePanel">
     <h2>용광로 <small id="bookCount2"></small></h2>
@@ -70,8 +71,10 @@
     <button data-sub="store" type="button">창고</button><button data-sub="shaft" type="button">갱도<i class="dot" id="shaftDot" hidden></i></button><button data-sub="book" type="button">도감</button><button data-sub="set" id="setBtn" type="button">설정</button>
   </div>
   <div id="sub-store" class="view">
-    <div class="panel"><h2>창고 <small id="invCap"></small></h2><div class="inv" id="inv"></div>
-      <div class="row-btns"><span class="dim grow">재련품은 남기고 원석과 광재만 팔아요</span><button class="px-btn" id="sellRaw" type="button">원석 일괄 판매</button></div></div>
+    <div class="panel"><h2>창고 <small id="invCap"></small></h2>
+      <div class="seg seg2" id="invSeg"><button data-invf="raw" type="button">원석 · 광재 <span class="c" id="invNRaw"></span></button><button data-invf="ref" type="button">재련품 <span class="c" id="invNRef"></span></button></div>
+      <div class="inv" id="inv"></div>
+      <div class="row-btns"><button class="px-btn grow" id="sellRaw" type="button">원석 전체 판매</button><button class="px-btn grow" id="sellRef" type="button">재련품 전체 판매</button></div></div>
     <div class="panel"><h2>작업 일지</h2><div class="log" id="log"></div></div>
   </div>
   <div id="sub-shaft" class="view" hidden><div class="panel"><h2>갱도 <small>개척하고 내려갈 지층</small></h2><div class="layers" id="layers"></div></div></div>

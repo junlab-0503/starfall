@@ -24,7 +24,7 @@ function renderForge(){
   const[a,b]=S.slots;let t=`성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`;
   if(a&&b){const idx=RMAP[key(a,b)];if(idx!=null&&S.found.includes(idx)){const o=RECIPES[idx].out,inV=bid(a)+bid(b),outV=bid(o)*(successRate()+greatRate()),pc=outV/inV-1;
     t=`${ico(o,'sm')} ${ITEMS[o].n} · 재료 ${pf(inV)}G → 기대 ${pf(outV)}G <span class="${pc>=0?'good':'bad'}">(${pc>=0?'+':''}${Math.round(pc*100)}%)</span>`}else t='결과: 알 수 없음 · '+t}
-  setHTML($('preview'),t);renderRQ();
+  setHTML($('preview'),t);renderRQ();renderQuick();
 }
 function renderBook(){
   $('bookCount').textContent=`${S.found.length} / ${RECIPES.length}`;$('bookCount2').textContent=`도감 ${S.found.length}/${RECIPES.length}`;
@@ -32,6 +32,28 @@ function renderBook(){
     if(r.L>S.unlocked)return`<div class="rec unk"><span class="ico sm" style="opacity:.2"></span><span>? + ? · 더 깊은 곳의 비밀<span class="tier">B${r.L}</span></span><span></span></div>`;
     return`<div class="rec unk">${'<i class="ico sm ic-'+r.out+'" style="filter:brightness(0) opacity(.35)"></i>'}<span>? + ? · ${r.hint}<span class="tier">B${r.L}</span></span><span></span></div>`}).join(''));
 }
+/* 빠른 제작: 한 번이라도 성공해 도감에 있는 레시피만. 고르면 재료를 알아서 넣고 1회 재련(확률 · 재료 소비는 용광로와 같음: smeltOnce) */
+let QSEL=null;
+const recipeFor=id=>RECIPES.findIndex(r=>r.out===id);
+function quickNeed(idx){const r=RECIPES[idx],need={};need[r.a]=(need[r.a]||0)+1;need[r.b]=(need[r.b]||0)+1;return Object.entries(need).map(([id,q])=>[id,q,Math.max(0,q-cnt(id))])}
+function quickSmelt(idx){if(!S.found.includes(idx))return null;const r=RECIPES[idx];if(!canSmeltWith([r.a,r.b]))return null;const keep=[...S.slots];S.slots=[r.a,r.b];const res=smeltOnce();S.slots=keep.map(x=>x&&cnt(x)?x:null);return res}
+function renderQuick(){const f=S.found.slice().sort((a,b)=>a-b);$('qcInfo').textContent=f.length?`${f.length}가지`:'';
+  if(QSEL!=null&&!f.includes(QSEL))QSEL=null;if(QSEL==null&&f.length)QSEL=f.find(i=>canSmeltWith([RECIPES[i].a,RECIPES[i].b]))??f[0];
+  setHTML($('qcGrid'),f.length?f.map(i=>{const o=RECIPES[i].out,can=canSmeltWith([RECIPES[i].a,RECIPES[i].b]);return`<button class="pk qc${i===QSEL?' in':''}${can?'':' dimk'}" data-qc="${i}" type="button">${ico(o)}<span>${ITEMS[o].n}</span></button>`}).join(''):'<p class="dim small">용광로에서 처음 성공한 레시피가 여기에 모여요. 고르면 필요한 재료를 알아서 넣고 한 번 재련해요.</p>');
+  if(QSEL==null){setHTML($('qcSel'),'');return}
+  const r=RECIPES[QSEL],need=quickNeed(QSEL),can=need.every(x=>!x[2]);
+  setHTML($('qcSel'),`<div class="qc-sel"><div class="qc-out">${ico(r.out,'lg')}<b>${ITEMS[r.out].n}</b></div>
+    <div class="qc-mats">${need.map(([id,q,m])=>`<div class="matl">${ico(id,'sm')}<span>${ITEMS[id].n}</span><span class="${m?'no':'ok'}">${big(cnt(id))}/${q}</span></div>`).join('')}
+    ${can?'':`<div class="small bad"><span>재료가 모자라요</span>: ${need.filter(x=>x[2]).map(([id,q,m])=>`<span>${ITEMS[id].n}</span> <span>${m}개</span>`).join(' · ')}</div>`}
+    <div class="dim small">${`성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`}</div></div>
+    <div class="row-btns"><button class="px-btn lamp grow" id="qcGo" type="button" ${can?'':'disabled'}>1회 재련</button></div><div class="result" id="qcRes"></div></div>`)}
+$('qcPanel').addEventListener('click',e=>{const b=e.target.closest('[data-qc]');if(b){QSEL=+b.dataset.qc;sfx('click');renderQuick();return}
+  if(e.target.closest('#qcGo')){const r=quickSmelt(QSEL);if(!r)return;renderForge();renderBook();renderHeader();const el=$('qcRes');if(el){el.className='result '+r.kind;el.textContent=r.msg}}});
+// 탑에서 모자란 재련품을 누르면: 아는 레시피면 빠른 제작에서 골라 두고, 모르면 용광로와 도감 힌트로 안내(조합법은 알려 주지 않음)
+function goForgeFor(id){const idx=recipeFor(id);setTab('forge');
+  if(idx>=0&&S.found.includes(idx)){QSEL=idx;renderQuick();setTimeout(()=>$('qcPanel').scrollIntoView({block:'start'}),0);return}
+  const r=RECIPES[idx];setTimeout(()=>$('forgePanel').scrollIntoView({block:'start'}),0);
+  story([{k:'재련',t:S.seen.includes(id)?ITEMS[id].n:'???',b:'아직 만드는 법을 몰라요. 용광로에 재료 두 가지를 넣어 직접 찾아보세요.',extra:r?`<div class="say"><span class="who">도감 힌트</span> ${r.L>S.unlocked?'더 깊은 곳의 비밀':r.hint}</div>`:''}])}
 $('book').addEventListener('click',e=>{const b=e.target.closest('[data-fill]');if(!b)return;const r=RECIPES[+b.dataset.fill];S.slots=[r.a,r.b];renderForge();$('forgePanel').scrollIntoView({behavior:'smooth',block:'start'})});
 
 /* 자동 재련소: 레시피를 맡기면 시간이 지나며 알아서 재련한다. 연금술사 미르가 탑에 들어와야 열림(칸 수 · 속도는 미르의 용광로에서 강화) */
