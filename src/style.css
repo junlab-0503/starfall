@@ -474,3 +474,12 @@ button.matl.mgo:active{transform:translateY(1px)}
 .ep-narr h4:first-child{margin-top:6px}
 .ep-narr p{font-size:14px;font-family:var(--f14);line-height:1.8;margin:0 0 10px;color:var(--text)}.ep-narr p:first-child{margin-top:4px}   /* 제목 없이 한 편의 긴 글로 이어서 */
 .story.m-end #storyNext{margin:10px 18px 0;align-self:stretch}
+/* v24.7 프롤로그 그림(6장 같은 크기 284×400, 세로): 화면 반쯤 높이로 가운데, 아래에 글 */
+.story.m-full[data-cat="p"] .story-ill{width:auto;max-width:calc(100% - 28px);align-self:center}
+.story.m-full[data-cat="p"] .story-ill img{height:50vh;width:auto;max-width:100%;aspect-ratio:284/400;object-fit:cover;image-rendering:auto}
+.story[data-cat="b"] .story-ill img{object-fit:cover}
+.story.m-full .story-card>*{flex-shrink:0}   /* 글 · 보상 표가 서로 눌려 겹치지 않게(넘치면 화면이 스크롤) */
+.story.m-full[data-cat="p"] .story-ill img{height:46vh}
+.story.m-full,.story.m-end{display:flex;align-items:stretch;justify-content:center}   /* 카드 높이를 화면에 고정 → 작은 폰에선 카드 안이 스크롤 */
+.story.m-full .story-card,.story.m-end .story-card{height:auto;max-height:100%;flex:1 1 auto}
+@media (max-height:640px){.story.m-full[data-cat="p"] .story-ill img{height:38vh}.story.m-full p{font-size:14px;line-height:1.6}}
