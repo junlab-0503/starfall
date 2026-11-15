@@ -16,7 +16,7 @@ await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();if(awa
 await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await p.waitForTimeout(200);await closeStory();
 // 개발자 코드: 탑은 그대로
 const f0=await p.evaluate(()=>__d().S.floors);
-await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.evaluate(()=>{document.getElementById('devForm').hidden=false});await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(400);await closeStory();
+await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.evaluate(()=>{document.getElementById('devForm').hidden=false});await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(400);await closeStory();
 const d=await p.evaluate(()=>{const S=__d().S;return{fl:S.floors,un:S.unlocked,gold:S.gold,found:S.found.length,rec:RECIPES.length,inv:cnt('stone'),shops:SHOPS.map((s,i)=>shopOpen(i)?1:0).join(''),msg:$('devMsg').textContent}});
 ok(d.fl===f0&&d.un===13&&d.gold>9e14&&d.found===d.rec&&d.inv>=9999,`개발자 코드: 탑 ${f0}층 그대로, 지층 ${d.un}개 열림, 골드 무한, 레시피 ${d.found}/${d.rec}, 돌 ${d.inv}`);
 ok(/탑은 열지 않았어요/.test(d.msg),'안내: '+d.msg.slice(0,60));

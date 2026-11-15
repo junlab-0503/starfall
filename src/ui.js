@@ -5,7 +5,7 @@ function renderHeader(){
   fitText($('gold'),big(S.gold)+'G');$('depth').textContent=`−${fmt(LAYERS[S.layer].d)}m`;
   const u=used(),c=cap(),st=$('store');fitText(st,`${cbig(u)}/${cbig(c)}`);st.style.color=u>=c?'var(--bad)':u>=c*.85?'var(--lamp)':'';
   $('towerStat').textContent=big(S.floors)+'층';
-  const B=badges();$('towerDot').hidden=!B.tower;$('manageDot').hidden=!B.manage;$('equipDot').hidden=!B.equip;$('shaftDot').hidden=!B.shaft;
+  const B=badges();$('towerDot').hidden=!B.tower;$('equipDot').hidden=!B.equip;
 }
 // 빨간 점: 지금 할 수 있는 업그레이드·개척·탑 짓기·월세가 있으면 탭 → 하위 탭 → 그 버튼까지
 function badges(){const equip=SHOPS.some(sh=>sh.ups.some(upCan)),shaft=S.unlocked<LAYERS.length&&reqMet(LAYERS[S.unlocked]),
@@ -23,18 +23,20 @@ function renderMineHud(){
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
 // 다음 지층까지: 개척에 필요한 골드 · 재료가 얼마나 모였는지 (다 모이면 누르면 바로 개척)
-function renderNextL(){const el=$('nextL'),i=S.unlocked;if(i>=LAYERS.length){setHTML(el,'<span class="nl-h">모든 지층을 개척했어요. 이제 탑을 쌓아 별을 돌려보내요</span>');el.classList.remove('ready');return}
-  const L=LAYERS[i],ok=reqMet(L),parts=[['',S.gold,L.req.g]].concat(Object.entries(L.req.items).map(([id,n])=>[id,cnt(id),n]));
-  setHTML(el,`<span class="nl-h">B${i+1} ${L.n} 개척까지${ok?' <b>준비 완료! 눌러서 개척</b>':''}</span><span class="nl-r">${parts.map(([id,h,n])=>`<span class="nl-i${h>=n?' ok':''}">${ico(id||'coin','sm')}<span>${id?`${Math.min(h,n)}/${n}`:`${big(Math.min(h,n))}/${big(n)}G`}</span><i class="nl-bar"><i style="width:${Math.round(clamp(h/n,0,1)*100)}%"></i></i></span>`).join('')}</span>`);
+// v24: 채굴 화면 왼쪽 위 작은 [개척] 버튼 — 다음 지층 이름 · 준비 정도(골드와 재료를 모은 비율의 평균). 누르면 갱도 개척 창(세부 정보 · 개척 버튼)
+function renderNextL(){const el=$('nextL'),i=S.unlocked,ic=`<img class="dg-ic" src="${ART.ui_dig}" alt="">`;
+  if(i>=LAYERS.length){setHTML(el,`${ic}<span class="dg-t"><b>갱도</b><small>모두 개척</small></span>`);el.classList.remove('ready');return}
+  const L=LAYERS[i],ok=reqMet(L),parts=[[S.gold,L.req.g]].concat(Object.entries(L.req.items).map(([id,n])=>[cnt(id),n])),pc=Math.floor(parts.reduce((s,[h,n])=>s+clamp(h/n,0,1),0)/parts.length*100);
+  setHTML(el,`${ic}<span class="dg-t"><b>B${i+1} 개척</b><small>${ok?'준비 완료!':pc+'%'}</small><i class="dg-bar"><i style="width:${ok?100:pc}%"></i></i></span>`);
   el.classList.toggle('ready',ok)}
-$('nextL').onclick=()=>{const i=S.unlocked;if(i<LAYERS.length&&reqMet(LAYERS[i]))unlockLayer(i);else{S.sub='shaft';setTab('manage')}};
+$('nextL').onclick=()=>openSheet('shaft');
 ['autoBtn','boxBtn'].forEach(k=>$(k).addEventListener('pointerdown',e=>e.stopPropagation()));
 $('boxBtn').onclick=e=>{e.stopPropagation();openBox()};
 /* 채굴 보관함 창: 종류별로 골라 [저장](창고로) 또는 [팔기](지금 파는 값으로 골드). 맨 아래 [모두 저장] */
 function boxHtml(){const ids=ORDER.filter(id=>(S.box||{})[id]>0),sp=space();
   return(ids.length?`<div class="boxl">${ids.map(id=>`<div class="boxr">${ico(id,'sm')}<span class="bn">${ITEMS[id].n}</span><span class="dim">×${big(S.box[id])}</span><button class="px-btn sm" data-boxget="${id}" type="button" ${sp>0?'':'disabled'}>저장</button><button class="px-btn sm" data-boxsell="${id}" type="button">팔기</button></div>`).join('')}</div>`:'<p class="dim" style="margin:0 0 8px">보관함이 비어 있어요. 드릴 로봇과 출입권이 모은 광석이 여기에 쌓여요.</p>')
     +`<div class="row-btns" style="margin-top:8px"><span class="dim grow small" style="text-align:left">창고 빈칸 ${big(sp)}칸</span><button class="px-btn lamp" data-boxget="all" type="button" ${ids.length&&sp>0?'':'disabled'}>모두 저장</button></div>`}
-const boxCard=()=>({box:1,btn:'닫기',k:'채굴 보관함',t:`${big(boxUsed())} / ${big(boxCap())}칸`,b:'종류별로 골라서 창고에 저장하거나 바로 팔 수 있어요.',extra:boxHtml()});
+const boxCard=()=>({box:1,btn:'닫기',k:'로봇 채굴 보관함',t:`${big(boxUsed())} / ${big(boxCap())}칸`,b:'종류별로 골라서 창고에 저장하거나 바로 팔 수 있어요.',extra:boxHtml()});
 function openBox(){story([boxCard()])}
 function boxRefresh(){if(STC&&STC.box&&!$('story').hidden){$('storyT').textContent=`${big(boxUsed())} / ${big(boxCap())}칸`;$('storyX').innerHTML=boxHtml()}renderAll()}
 $('storyX').addEventListener('click',e=>{const b=e.target.closest('[data-boxget]'),sl=e.target.closest('[data-boxsell]');
@@ -58,7 +60,7 @@ $('devVein').onclick=()=>{if(!S.dev)return;if(S.vein)endVein();startVein()};
 $('oddsBtn').onclick=()=>{const L=LAYERS[S.layer],dw=dropW(S.layer),tot=dw.reduce((s,d)=>s+d[1],0),rows=dw.slice().sort((a,b)=>(ITEMS[b[0]].L===S.layer+1)-(ITEMS[a[0]].L===S.layer+1)||b[1]-a[1]).map(([id,w])=>`<span>${ico(id,'sm')} ${S.seen.includes(id)?ITEMS[id].n:'???'}${ITEMS[id].L!==S.layer+1?` <span class="dim">B${ITEMS[id].L}</span>`:''}</span><span>${pctTxt(w/tot)}</span>`).join('');
   story([{k:'확률 보기',t:`B${S.layer+1} ${L.n}`,b:'바위를 하나 깰 때 나오는 광석이에요. 이 지층 광석이 주로 나오고, 지금 필요한 위 지층 광석도 조금 섞여 나와요.',extra:`<div class="rcard odds-list">${rows}</div>`}])};
 const pctTxt=p=>p>=.1?Math.round(p*100)+'%':p>=.01?(p*100).toFixed(1)+'%':(p*100).toFixed(2)+'%';
-$('layerChips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(c){setLayer(+c.dataset.chip);return}if(e.target.closest('[data-chiplock]')){S.sub='shaft';setTab('manage')}});
+$('layerChips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(c){setLayer(+c.dataset.chip);return}if(e.target.closest('[data-chiplock]'))openSheet('shaft')});
 /* 갱도 */
 const reqMet=L=>!L.req||(S.gold>=L.req.g&&Object.entries(L.req.items).every(([id,n])=>cnt(id)>=n));
 function unlockLayer(i){const L=LAYERS[i];if(!reqMet(L)||i!==S.unlocked)return;S.gold-=L.req.g;Object.entries(L.req.items).forEach(([id,n])=>add(id,-n));S.unlocked=i+1;setLayer(i);
@@ -142,18 +144,24 @@ function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').
   if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=c.btn||(STQ.length?'다음':'계속');$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}
 $('storyNext').onclick=nextStory;
 /* 탭 */
-const TABS=['mine','equip','forge','market','tower','manage'];
-function setTab(t){if(!TABS.includes(t))t='mine';S.tab=t;document.querySelector('main').classList.toggle('mine-mode',t==='mine');document.querySelector('main').scrollTop=0;TABS.forEach(k=>$('tab-'+k).hidden=k!==t);document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+// v24: 아래 탭 다섯 개(재련 · 장터 · 채굴 · 탑 · 장비). 예전 '관리' 탭은 채굴 화면 버튼이 여는 창(시트)으로 옮김. 저장된 tab이 manage면 채굴로
+const TABS=['forge','market','mine','tower','equip'];
+const SHEET_T={store:'창고',shaft:'갱도 개척',book:'도감 · 할아버지의 일지',set:'설정'};
+function openSheet(sub){if(!SHEET_T[sub])sub='store';if(S.tab!=='mine')setTab('mine');S.sub=sub;$('sheetT').textContent=SHEET_T[sub];$('sheet').hidden=false;$('sheetBody').scrollTop=0;sfx('click');renderManage();tutGlow()}
+function closeSheet(){if($('sheet').hidden)return;$('sheet').hidden=true;renderTab(true)}
+$('sheetX').onclick=closeSheet;$('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeSheet()});
+$('whBtn').onclick=()=>openSheet('store');$('bookBtn').onclick=()=>openSheet('book');$('setBtn').addEventListener('click',()=>openSheet('set'));
+['nextL','bookBtn'].forEach(k=>$(k).addEventListener('pointerdown',e=>e.stopPropagation()));
+function setTab(t){if(t==='manage'){t='mine'}if(!TABS.includes(t))t='mine';if(!$('sheet').hidden)$('sheet').hidden=true;S.tab=t;document.querySelector('main').classList.toggle('mine-mode',t==='mine');document.querySelector('main').scrollTop=0;TABS.forEach(k=>$('tab-'+k).hidden=k!==t);document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;veinPop();renderTab();scrollTo(0,0)}
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
-$('seg').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(!b)return;S.sub=b.dataset.sub;renderManage()});
-function renderManage(){['store','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.sub===S.sub));
+function renderManage(){if(!SHEET_T[S.sub])S.sub='store';['store','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);
   if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book')renderBookTab();if(S.sub==='set'){renderPkg();renderSnd()}}
-function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='equip')renderEquip();if(S.tab==='manage')renderManage()}
+function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='equip')renderEquip();if(!$('sheet').hidden)renderManage()}
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */
 // 아래 탭 아이콘(사용자 그림 art/ui/nav_*.png)
-function navIcons(){const st=document.createElement('style');st.textContent=['mine','equip','forge','market','tower','manage'].map(k=>`.ni-${k}{background-image:url(${ART['ui_nav_'+k]})}`).join('');(document.body||document.head).appendChild(st)}
+function navIcons(){const st=document.createElement('style');st.textContent=['mine','equip','forge','market','tower'].map(k=>`.ni-${k}{background-image:url(${ART['ui_nav_'+k]})}`).join('');(document.body||document.head).appendChild(st)}
 
 /* 광고 두 가지 + 광고 제거 패키지 (프로토타입: 가짜 광고 화면, 결제 없음) */
 const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};

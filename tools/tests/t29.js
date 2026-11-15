@@ -16,7 +16,7 @@ await open(4);ok(!(await seen()),'B5에선 없음');await open(5);await close();
 ok(await p.evaluate(()=>S.review==='done'),'[리뷰 남기기] → 다시 안 나옴');await close();
 // 개발자 모드
 ok(await p.evaluate(()=>$('devReview').hidden),'개발자 모드 전엔 [DEV 리뷰] 숨김');
-await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(300);await close();
+await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(300);await close();
 await p.click('[data-tab="mine"]');await p.waitForTimeout(300);await close();ok(await p.evaluate(()=>!$('devReview').hidden),'개발자 모드: 채굴 화면에 [DEV 리뷰]');
 await p.evaluate(()=>{S.review='done'});await p.click('#devReview');await p.waitForTimeout(200);ok(await seen(),'[DEV 리뷰] → 이미 리뷰했어도 메시지 바로 보기');
 console.log('errors',errs);await b.close()})();

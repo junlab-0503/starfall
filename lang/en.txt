@@ -341,9 +341,9 @@ Well done! Now let's go to [Tower]. It's the home the villagers who left will co
 Press [Build a Floor] and raise the 1st floor. Musoe the blacksmith will come back.
 Musoe's back! Go to [Gear] below and open up the smithy.
 Have Musoe do [Sharpen Pickaxe]. The rock will split much more easily.
-You can sell ore from the warehouse in [Manage], or buy and sell at set prices in [Market]. If you're short on gold, sell some.
-The box above the mining screen shows what you need to open the next layer. Gather it all, then press that box to go deeper.
-The higher the tower, the more of those who left come back, one by one, and open shops. When someone arrives, they'll tell you themselves.
+You can sell ore from the [Warehouse] at the bottom of the mining screen, or buy and sell at set prices in [Market]. If you're short on gold, sell some.
+The [Open] button at the top left of the mining screen shows what you need to open the next layer. Gather it all, then press it to go deeper. The book at the top right holds your grandfather's journal and the codex.
+The higher the tower, the more of those who left come back, one by one, and open shops. Build up to floor 6 and Sem the warehouse keeper will come back to expand your warehouse. When someone arrives, they'll tell you themselves.
 Now follow your grandfather's journal and take your time going down. Granny just… wants to see the village lively again, the way it once was. I'll always be here.
 ## intro
 Musoe's Smithy

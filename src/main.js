@@ -37,9 +37,9 @@ $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode
     S.dev=1;S.tutDone=true;
     log('개발자 코드 적용: 지층 전부 해금 · 레시피 전부 · 모든 광물 9,999개 · 골드 무한 (탑은 그대로)',true);msg.textContent='적용됨: 골드 무한 · 레시피 전부 알고 있음. 탑은 열지 않았어요(직접 쌓아 입주자 · 가게가 열리는지 확인). 채굴 화면의 [DEV 광맥]으로 황금 광맥을 바로 부를 수 있어요.';renderAll()}
   else msg.textContent=v?'알 수 없는 코드예요.':'';$('devCode').value=''});
-// 개발자 코드 칸은 숨겨 둠: 관리 탭의 [설정] 버튼을 10초 동안 누르고 있으면 나타남
+// 개발자 코드 칸은 숨겨 둠: 채굴 화면 위 톱니바퀴(설정)를 10초 동안 누르고 있으면 나타남
 {let devT=0;const off=()=>{clearTimeout(devT);devT=0},b=$('setBtn');
-  b.addEventListener('pointerdown',()=>{off();devT=setTimeout(()=>{$('devForm').hidden=false;S.sub='set';renderManage();toast('개발자 코드 칸이 열렸어요.')},10000)});
+  b.addEventListener('pointerdown',()=>{off();devT=setTimeout(()=>{$('devForm').hidden=false;openSheet('set');toast('개발자 코드 칸이 열렸어요.')},10000)});
   ['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,off,true));b.addEventListener('contextmenu',e=>e.preventDefault())}   // 손을 떼면(어디서든) 취소
 let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
   try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';setTab('mine');startPrologue();save()};
@@ -48,10 +48,10 @@ function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!
   if(S.tab==='mine'&&!IW)sceneResize();
   update(dt);rqRun(dt);if(S.tab==='mine'&&IW&&now-lastDraw>=10&&$('titleScr').hidden&&$('entry').hidden){lastDraw=now;draw(now/1000)}   // 120Hz 화면에서도 그리기는 초당 60번까지, 시작 화면 · 입구 장면이 덮고 있는 동안엔 안 그림(렉 줄이기)
   if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();if(S.tab==='forge')rqBars();renderHeader();tutTick()}
-  if(invDirty&&now-invDirtyT>400){invDirty=false;invDirtyT=now;if(S.tab==='forge')renderForge();if(S.tab==='manage'&&S.sub==='store')renderInv()}
+  if(invDirty&&now-invDirtyT>400){invDirty=false;invDirtyT=now;if(S.tab==='forge')renderForge();if(!$('sheet').hidden&&S.sub==='store')renderInv()}
   if(S.dev){if(S.gold<9e14)S.gold=9.999e14;if(S.found.length<RECIPES.length)S.found=RECIPES.map((r,i)=>i)}   // 개발자: 골드 무한 · 레시피 전부
   secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);veinTick();whHintCheck();S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);
-    if(S.tab==='market'||S.tab==='tower'||S.tab==='equip'||S.tab==='forge'||(S.tab==='manage'&&S.sub!=='set'))renderTab();if(++saveAcc%10===0)save()}
+    if(S.tab==='market'||S.tab==='tower'||S.tab==='equip'||S.tab==='forge'||(!$('sheet').hidden&&S.sub!=='set'))renderTab();if(++saveAcc%10===0)save()}
   requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 addEventListener('beforeunload',save);

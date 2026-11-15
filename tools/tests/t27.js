@@ -27,10 +27,10 @@ ok(Math.abs(up.c5-2.1)<.01&&Math.abs(up.c11-1.4)<.01,`강화 값: 예전 한도�
 ok(up.pm===50&&up.bulk===10,'출입권 한도: 지층마다 50장(큰손 거래처 1단계마다 +10장, 10단계)');
 ok(await p.evaluate(()=>{const S=__d().S,f=S.floors;S.floors=88;refreshBonus();const a=BON.veinFast;S.floors=f;refreshBonus();return a===.7&&BON.veinFast===1&&/황금 광맥/.test(SECTIONS[11].t.bonus)}),'노을 입주 효과: 황금 광맥 간격 ×0.7');
 // 개발자 코드 칸: 다시 보이게(v19, 출시 전에 지울 것)
-await p.click('[data-tab="manage"]');await p.click('[data-sub="set"]');await p.waitForTimeout(200);ok(await p.evaluate(()=>!$('devForm').hidden),'개발자 코드 칸 보임');
+await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.waitForTimeout(200);ok(await p.evaluate(()=>!$('devForm').hidden),'개발자 코드 칸 보임');
 // 채굴 보관함
 await p.evaluate(()=>{const S=__d().S;S.auto=3;S.autoOn=false;S.box={stone:120,copper:44,clay:30};['stone','copper','clay'].forEach(i=>S.seen.includes(i)||S.seen.push(i));setTab('mine')});await p.waitForTimeout(300);await closeStory();
-const bx=await p.evaluate(()=>({tag:$('boxBtn').querySelector('.ic-tag').textContent,n:$('boxN').textContent,has:$('boxBtn').classList.contains('has')}));ok(bx.tag==='채굴 보관함'&&bx.has&&bx.n==='194','보관함 버튼: '+JSON.stringify(bx));
+const bx=await p.evaluate(()=>({tag:$('boxBtn').querySelector('.ic-tag').textContent,n:$('boxN').textContent,has:$('boxBtn').classList.contains('has')}));ok(bx.tag==='로봇 보관함'&&bx.has&&bx.n==='194','보관함 버튼: '+JSON.stringify(bx));
 await p.click('#boxBtn');await p.waitForTimeout(200);const rows=await p.evaluate(()=>[...document.querySelectorAll('.boxr')].length);
 const cu0=await p.evaluate(()=>cnt('copper'));await p.click('[data-boxget="copper"]');const g0=await p.evaluate(()=>__d().S.gold);await p.click('[data-boxsell="clay"]');await p.waitForTimeout(100);
 const b2=await p.evaluate(()=>({box:__d().S.box,cu:cnt('copper'),g:__d().S.gold,rows:document.querySelectorAll('.boxr').length,btn:$('storyNext').textContent}));

@@ -363,3 +363,32 @@ button.matl.mgo{width:100%;background:none;border:0;color:inherit;text-align:lef
 button.matl.mgo:active{transform:translateY(1px)}
 #invSeg{margin-bottom:8px}#invSeg .c{color:var(--dim);font-size:11px}
 .sell-list{max-height:40vh;overflow:auto}
+/* v24: 아래 탭 다섯 개(채굴 가운데 · 크고 둥글게) · 채굴 화면 버튼 · 창(시트) */
+.bnav{grid-template-columns:repeat(5,1fr);overflow:visible}
+.nb-main{z-index:1}
+.nb-main .ni{width:40px;height:40px;margin-top:-4px;border-radius:50%;background-color:#3a2716;background-size:30px auto;background-position:center;background-repeat:no-repeat;border:3px solid var(--lamp);box-shadow:0 0 0 3px #1a0f08,inset 0 -3px 0 rgba(0,0,0,.35)}
+.nb-main.on .ni{background-color:#5a3a1a}.nb-main.on::before{display:none}
+.chip-bar{display:flex;gap:6px;align-items:center}.chip-bar .chips{flex:1;min-width:0}
+.gear-btn{flex:none;width:40px;height:36px;padding:0;display:grid;place-items:center;background:var(--panel);border:3px solid var(--b-out,#1a0f08)}
+.gear-btn img{height:26px;image-rendering:pixelated}
+.scene-wrap{position:relative}
+.dig-btn{position:absolute;left:6px;top:6px;z-index:2;display:flex;align-items:center;gap:5px;padding:3px 7px 3px 3px;background:rgba(20,13,9,.82);border:2px solid #1a0f08;color:var(--text);text-align:left;max-width:52%}
+.dig-btn .dg-ic{height:26px;image-rendering:pixelated;flex:none}
+.dg-t{display:flex;flex-direction:column;gap:1px;min-width:0;font-family:var(--f11);line-height:1.1}
+.dg-t b{font-weight:400;font-size:12px;white-space:nowrap}.dg-t small{font-size:10px;color:var(--dim)}
+.dg-bar{display:block;width:62px;height:4px;background:#000;border:1px solid #3a2a1a}.dg-bar i{display:block;height:100%;background:var(--lamp)}
+.dig-btn.ready{border-color:var(--lamp);animation:nlg 1.2s steps(2) infinite}.dig-btn.ready small{color:var(--lamp)}
+.ov-btn{position:absolute;top:6px;z-index:2;padding:3px;background:rgba(20,13,9,.82);border:2px solid #1a0f08;line-height:0}
+.ov-btn img{height:30px;image-rendering:pixelated}.book-btn{right:6px}.ov-btn .dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--bad)}
+.vein-bn{top:46px}
+.wh-btn img{height:60px}
+.mine-sub{display:flex;align-items:center;gap:6px;margin-top:2px}.mine-sub .odds{margin-left:auto}
+.sheet{position:fixed;inset:0;bottom:calc(var(--navH,64px) + env(safe-area-inset-bottom,0px));z-index:11;background:rgba(6,4,10,.7);left:calc(50% - var(--appw,100vw)/2);right:auto;width:var(--appw,100vw)}
+.sheet-card{position:absolute;left:6px;right:6px;top:calc(env(safe-area-inset-top,0px) + 8px);bottom:6px;display:flex;flex-direction:column;background:var(--bg);border:3px solid var(--line);box-shadow:0 0 0 3px #1a0f08}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:2px solid var(--line);font-family:var(--f14);font-size:15px;color:var(--lamp)}
+.sheet-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:8px}
+.sheet-body>.view{display:block}.sheet-body>.view[hidden]{display:none}
+.tut.top{top:calc(env(safe-area-inset-top,0px) + 62px);bottom:auto}   /* 반짝이는 대상이 화면 아래쪽(창고 단추 등)이면 할머니 말풍선을 위로 */
+.nb-main .ni{background-size:26px auto}
+/* 로봇 채굴 보관함: 지층 그림 안 오른쪽 아래(드릴 스위치는 왼쪽 아래) */
+.ov-box{position:absolute;right:6px;bottom:6px;z-index:2}.ov-box img{height:44px}.ov-box .ic-tag{font-size:9px}

@@ -18,7 +18,7 @@ ok(f.a==='bad'&&!f.f1&&f.b==='ok'&&f.f2,`재련 실패(${f.a}) → 레시피 안
 // 3) 플레이 시간: 화면이 켜져 있는 동안만
 const t0=await p.evaluate(()=>S.playT);await p.waitForTimeout(2000);const t1=await p.evaluate(()=>S.playT);
 await p.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true})});await p.waitForTimeout(1500);const t2=await p.evaluate(()=>S.playT);
-await p.evaluate(()=>{delete document.hidden;S.t0=Date.now()-5*3600e3;S.playT=125*60;S.sub='book';setTab('manage')});await p.waitForTimeout(200);
+await p.evaluate(()=>{delete document.hidden;S.t0=Date.now()-5*3600e3;S.playT=125*60;openSheet('book')});await p.waitForTimeout(200);
 const rec=await p.evaluate(()=>$('records').textContent);
 ok(t1-t0>1.5&&t1-t0<2.6&&t2-t1<.2,`켜 둔 2초 동안 +${(t1-t0).toFixed(1)}초, 화면이 꺼진 동안 +${(t2-t1).toFixed(1)}초`);
 ok(/2시간 5분/.test(rec),'관리 → 기록: 시작한 지 5시간이어도 켜 둔 시간(2시간 5분)으로 표시');

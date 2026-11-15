@@ -12,14 +12,17 @@
 
 <main>
 <section id="tab-mine" class="view">
-  <div class="chips" id="layerChips"></div>
-  <button class="next-l" id="nextL" type="button"></button>
+  <div class="chip-bar"><div class="chips" id="layerChips"></div><button class="gear-btn" id="setBtn" type="button" aria-label="설정"><img data-ic="gear" alt=""></button></div>
   <div class="scene-wrap" id="sceneWrap">
     <canvas id="scene" aria-label="굴 단면. 화면을 탭해서 암벽을 캐세요"></canvas>
+    <button class="dig-btn" id="nextL" type="button" aria-label="갱도 개척"></button>
+    <button class="ic-btn box-btn ov-box" id="boxBtn" type="button" aria-label="로봇 채굴 보관함 열기" hidden><img data-ic="box" alt=""><b id="boxN"></b><span class="ic-tag">로봇 보관함</span></button>
+    <button class="ov-btn book-btn" id="bookBtn" type="button" aria-label="도감 · 할아버지의 일지"><img data-ic="book" alt=""><i class="dot" id="bookDot" hidden></i></button>
     <div class="vein-bn" id="veinBn" hidden>황금 광맥! <i class="vb"><i id="veinBar"></i></i></div>
     <button class="sc-sw" id="autoBtn" type="button" role="switch" aria-label="자동 드릴" hidden><span class="knob"></span><span class="lb"><b id="autoSt">드릴</b><small id="autoSub"></small></span></button>
   </div>
-  <div class="mine-foot" id="mineFoot"><button class="ic-btn" id="giftBtn" type="button" aria-label="숯의 선물 상자"><img data-ic="gift" alt=""><span class="ic-tag" id="giftTag"></span></button><button class="ic-btn" id="boostBtn" type="button" aria-label="10분 동안 채굴 2배"><img data-ic="ff" alt=""><span class="ic-tag" id="boostTag"></span></button><button class="ic-btn box-btn" id="boxBtn" type="button" aria-label="채굴 보관함 열기" hidden><img data-ic="box" alt=""><b id="boxN"></b><span class="ic-tag">채굴 보관함</span></button><span class="grow"></span><button class="px-btn sm dev-b" id="devVein" type="button" hidden>DEV 광맥</button><button class="px-btn sm dev-b" id="devReview" type="button" hidden>DEV 리뷰</button><button class="px-btn sm odds" id="oddsBtn" type="button">확률 보기</button></div>
+  <div class="mine-foot" id="mineFoot"><button class="ic-btn" id="giftBtn" type="button" aria-label="숯의 선물 상자"><img data-ic="gift" alt=""><span class="ic-tag" id="giftTag"></span></button><button class="ic-btn" id="boostBtn" type="button" aria-label="10분 동안 채굴 2배"><img data-ic="ff" alt=""><span class="ic-tag" id="boostTag"></span></button><span class="grow"></span><button class="ic-btn wh-btn" id="whBtn" type="button" aria-label="창고 열기"><img data-ic="wh" alt=""><span class="ic-tag" id="whTag">창고</span></button><span class="grow"></span></div>
+  <div class="mine-sub"><button class="px-btn sm dev-b" id="devVein" type="button" hidden>DEV 광맥</button><button class="px-btn sm dev-b" id="devReview" type="button" hidden>DEV 리뷰</button><span class="grow"></span><button class="px-btn sm odds" id="oddsBtn" type="button">확률 보기</button></div>
 </section>
 
 <section id="tab-equip" class="view" hidden>
@@ -66,10 +69,18 @@
   <div class="panel"><h2>입주자와 구간</h2><div class="sections" id="sections"></div></div>
 </section>
 
-<section id="tab-manage" class="view" hidden>
-  <div class="seg" id="seg">
-    <button data-sub="store" type="button">창고</button><button data-sub="shaft" type="button">갱도<i class="dot" id="shaftDot" hidden></i></button><button data-sub="book" type="button">도감</button><button data-sub="set" id="setBtn" type="button">설정</button>
-  </div>
+
+</main>
+
+<nav class="bnav" role="tablist">
+  <button class="nb" data-tab="forge" type="button"><i class="ni ni-forge"></i><span>재련</span></button>
+  <button class="nb" data-tab="market" type="button"><i class="ni ni-market"></i><span>장터</span><i class="dot" id="newsDot" hidden></i></button>
+  <button class="nb nb-main on" data-tab="mine" type="button"><i class="ni ni-mine"></i><span>채굴</span></button>
+  <button class="nb" data-tab="tower" type="button"><i class="ni ni-tower"></i><span>탑</span><i class="dot" id="towerDot" hidden></i></button>
+  <button class="nb" data-tab="equip" type="button"><i class="ni ni-equip"></i><span>장비</span><i class="dot" id="equipDot" hidden></i></button>
+</nav>
+<button class="vein-pop" id="veinPop" type="button" hidden><span>황금 광맥이 발견됐어요!</span> <b id="veinPopT"></b><i>캐러 가기 ▶</i></button>
+<div class="sheet" id="sheet" hidden><div class="sheet-card"><div class="sheet-h"><b id="sheetT"></b><button class="px-btn sm" id="sheetX" type="button">닫기</button></div><div class="sheet-body" id="sheetBody">
   <div id="sub-store" class="view">
     <div class="panel"><h2>창고 <small id="invCap"></small></h2>
       <div class="seg seg2" id="invSeg"><button data-invf="raw" type="button">원석 · 광재 <span class="c" id="invNRaw"></span></button><button data-invf="ref" type="button">재련품 <span class="c" id="invNRef"></span></button></div>
@@ -98,18 +109,7 @@
     </div>
     <div class="credit"><p>Copyright © 2026 jun. All rights reserved.</p><p>Fonts: Galmuri · 俐方體 Cubic 11 — SIL Open Font License 1.1</p></div>
   </div>
-</section>
-</main>
-
-<nav class="bnav" role="tablist">
-  <button class="nb on" data-tab="mine" type="button"><i class="ni ni-mine"></i><span>채굴</span></button>
-  <button class="nb" data-tab="equip" type="button"><i class="ni ni-equip"></i><span>장비</span><i class="dot" id="equipDot" hidden></i></button>
-  <button class="nb" data-tab="forge" type="button"><i class="ni ni-forge"></i><span>재련</span></button>
-  <button class="nb" data-tab="market" type="button"><i class="ni ni-market"></i><span>장터</span><i class="dot" id="newsDot" hidden></i></button>
-  <button class="nb" data-tab="tower" type="button"><i class="ni ni-tower"></i><span>탑</span><i class="dot" id="towerDot" hidden></i></button>
-  <button class="nb" data-tab="manage" type="button"><i class="ni ni-manage"></i><span>관리</span><i class="dot" id="manageDot" hidden></i></button>
-</nav>
-<button class="vein-pop" id="veinPop" type="button" hidden><span>황금 광맥이 발견됐어요!</span> <b id="veinPopT"></b><i>캐러 가기 ▶</i></button>
+</div></div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="tut" id="tut" hidden><canvas class="tut-por" id="tutPor" width="48" height="48"></canvas><div class="tut-b"><div class="tut-who">이장 할머니</div><p id="tutT"></p></div><div class="tut-btns"><button class="px-btn sm lamp" id="tutGo" type="button" hidden>다음</button><button class="px-btn sm" id="tutNext" type="button">건너뛰기</button></div></div>
 </div>

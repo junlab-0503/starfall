@@ -11,9 +11,9 @@ const TUT=[
   {t:'[한 층 쌓기]를 눌러 1층을 지어 보렴. 대장장이 무쇠가 돌아올 게다.',sel:'#buildBtn',done:()=>S.floors>=1},
   {t:'무쇠가 돌아왔구나! 아래 [장비]로 가서 대장간을 열어 보렴.',sel:'.nb[data-tab="equip"]',done:()=>S.tab==='equip'||S.pick>=2},
   {t:'무쇠에게 [곡괭이 벼리기]를 맡겨 보렴. 바위가 훨씬 쉽게 갈라질 게다.',sel:'[data-up="pick"]',done:()=>S.pick>=2},
-  {t:'광석은 [관리] 창고에서 팔거나 [장터]에서 정해진 값에 사고팔 수 있단다. 골드가 모자라면 팔아서 마련하렴.',sel:'.nb[data-tab="manage"]',next:true},
-  {t:'채굴 화면 위 칸에는 다음 지층을 여는 데 필요한 것이 나온단다. 다 모으면 그 칸을 눌러 더 깊이 내려가렴.',sel:'.nb[data-tab="mine"]',next:true},
-  {t:'탑을 높이 쌓을수록 떠났던 사람들이 하나둘 돌아와 가게를 연단다. 누가 오면 그 사람이 직접 알려 줄 게야.',sel:'.nb[data-tab="tower"]',next:true},
+  {t:'광석은 채굴 화면 아래 [창고]에서 팔거나 [장터]에서 정해진 값에 사고팔 수 있단다. 골드가 모자라면 팔아서 마련하렴.',sel:()=>S.tab==='mine'?'#whBtn':'.nb[data-tab="mine"]',next:true},
+  {t:'채굴 화면 왼쪽 위 [개척]에는 다음 지층을 여는 데 필요한 것이 나온단다. 다 모으면 눌러서 더 깊이 내려가렴. 오른쪽 위 책에는 할아버지의 일지와 도감이 있단다.',sel:()=>S.tab==='mine'?'#nextL':'.nb[data-tab="mine"]',next:true},
+  {t:'탑을 높이 쌓을수록 떠났던 사람들이 하나둘 돌아와 가게를 연단다. 6층까지 쌓으면 창고지기 셈이 돌아와 창고를 넓혀 줄 게다. 누가 오면 그 사람이 직접 알려 줄 게야.',sel:'.nb[data-tab="tower"]',next:true},
   {t:'이제 할아버지의 일지를 따라 천천히 내려가 보렴. 할미는 그저… 활기찼던 그 시절 마을을 다시 한번 보고 싶구나. 늘 여기 있으마.',sel:null,last:true}
 ];
 const tv=v=>typeof v==='function'?v():v;
@@ -26,11 +26,13 @@ function tutTick(){if(!tutOn())return tutHide();S.tut=S.tut||0;let st=TUT[S.tut]
   tutGlow()}
 // 반짝임: 지금 눌러야 할 것 하나에만. 화면이 다시 그려질 때마다 다시 붙인다
 function tutGlow(){const st=tutOn()?TUT[S.tut||0]:null,sel=st?tv(st.sel):null,el=sel?document.querySelector(sel):null;
-  document.querySelectorAll('.tut-glow').forEach(e=>{if(e!==el)e.classList.remove('tut-glow')});if(el)el.classList.add('tut-glow')}
+  document.querySelectorAll('.tut-glow').forEach(e=>{if(e!==el)e.classList.remove('tut-glow')});if(el)el.classList.add('tut-glow');
+  // 대상이 채굴 화면 아래 단추(창고 등)면 말풍선이 가리지 않게 위로 올림
+  const tb=$('tut');if(tb)tb.classList.toggle('top',!!el&&!!el.closest('#mineFoot'))}
 function tutHide(){const b=$('tut');if(b)b.hidden=true;document.querySelectorAll('.tut-glow').forEach(e=>e.classList.remove('tut-glow'))}
 {const g=name=>{const o=window[name];window[name]=function(...a){const r=o.apply(this,a);tutGlow();return r}};['renderTab','renderForge','renderInv','renderMarket','renderTower'].forEach(g)}
 $('tutGo').onclick=()=>{const st=TUT[S.tut||0];if(!st)return;if(st.last){S.tutDone=true;tutHide();return}S.tut++;sfx('page');tutTick()};
-$('tutNext').onclick=()=>{S.tutDone=true;tutHide();toast('튜토리얼을 건너뛰었어요. 관리 → 설정에서 다시 볼 수 있어요.')};
+$('tutNext').onclick=()=>{S.tutDone=true;tutHide();toast('튜토리얼을 건너뛰었어요. 채굴 화면 위 톱니바퀴(설정)에서 다시 볼 수 있어요.')};
 /* 광맥 입구 장면: 마을 뒤 광산 입구 그림(art/scene/entry) 위로 주인공 도트가 걸어가 입구 안으로 들어가고, 어두워지며 "B1 표토층"이 뜬 뒤 채굴 화면으로.
    그림 좌표(원본 2000×667): 땅 높이 y 503, 입구 문턱 x 1560, 입구 안 x 1665, 등불 (1645, 318). 탭하면 건너뜀 */
 const ENTRY={ground:503,start:300,door:1560,inside:1665,lamp:[1645,318],W:2000,H:667,speed:330};

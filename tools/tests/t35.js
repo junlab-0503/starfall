@@ -31,7 +31,7 @@ if(L==='ko'){
   const ut=await p.evaluate(id=>{const r=RECIPES.find(r=>r.out===id);const t=$('storyX').textContent+$('storyB').textContent;return{tab:S.tab,hint:t.includes(r.hint),leak:t.includes(ITEMS[r.a].n+' +')||t.includes(ITEMS[r.b].n+' →'),found:S.found.length}},un);
   ok(ut.tab==='forge'&&ut.hint&&!ut.leak&&ut.found===0,'모르는 레시피 → 용광로 + 도감 힌트로 안내(조합법은 안 알려 줌)');await close();
   // 창고
-  await p.evaluate(()=>{S.inv={stone:10,copper:4,slag:3,bronze:2,brick:5};setTab('manage');S.sub='store';renderManage();renderInv()});await p.waitForTimeout(100);
+  await p.evaluate(()=>{S.inv={stone:10,copper:4,slag:3,bronze:2,brick:5};openSheet('store');renderInv()});await p.waitForTimeout(100);
   const g1=await p.evaluate(()=>({raw:[...document.querySelectorAll('#inv [data-sellq]')].map(b=>b.dataset.sellq).sort(),seg:!!$('invSeg')}));
   ok(g1.raw.join()==='copper,slag,stone','원석 · 광재 보기: 원석과 광재(빠지는 품목 없음)');
   await p.click('#invSeg [data-invf="ref"]');const g2=await p.evaluate(()=>[...document.querySelectorAll('#inv [data-sellq]')].map(b=>b.dataset.sellq).sort());ok(g2.join()==='brick,bronze','재련품 보기: 재련품만');
@@ -50,7 +50,7 @@ if(L==='ko'){
 }else{
   await p.evaluate(()=>{S.inv={stone:3,bronze:1};S.found=[RECIPES.findIndex(r=>r.out==='bronze')];setTab('forge');renderAll()});await p.waitForTimeout(300);
   const t=await p.evaluate(()=>$('qcPanel').textContent+$('qcSel').textContent);ok(!/[가-힣]/.test(t),`[${L}] 빠른 제작 한국어 안 남음: ${t.replace(/\s+/g,' ').slice(0,90)}`);
-  await p.evaluate(()=>{setTab('manage');S.sub='store';renderManage();renderInv()});await p.waitForTimeout(200);await p.click('#sellRaw');await p.waitForTimeout(300);
+  await p.evaluate(()=>{openSheet('store');renderInv()});await p.waitForTimeout(200);await p.click('#sellRaw');await p.waitForTimeout(300);
   const t2=await p.evaluate(()=>$('invSeg').textContent+$('sellRaw').textContent+$('sellRef').textContent+$('story').textContent);ok(!/[가-힣]/.test(t2),`[${L}] 창고 · 확인 창 한국어 안 남음: ${t2.replace(/\s+/g,' ').slice(0,120)}`);await close();
   await p.evaluate(()=>{S.floors=0;S.inv={};setTab('tower');renderTower()});await p.waitForTimeout(300);const t3=await p.evaluate(()=>$('floorCard').textContent);ok(!/[가-힣]/.test(t3),`[${L}] 탑 재료 표시 한국어 안 남음`);
 }
