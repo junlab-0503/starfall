@@ -490,30 +490,16 @@ button.matl.mgo:active{transform:translateY(1px)}
 .cr-btn b{position:absolute;right:-2px;top:-2px;font-weight:400;font-size:10px;font-family:var(--f9);line-height:12px;padding:0 3px;background:#5a3a8a;color:#fff}.cr-btn b:empty{display:none}
 @media (max-width:370px){.mine-foot{gap:6px}.mine-foot .ic-btn img{height:46px}.mine-foot .odds{padding:4px 6px;font-size:11px}}
 .cr-stage{height:200px}
-.cr-seg{margin-bottom:8px}.cr-seg button{display:flex;align-items:center;justify-content:center;gap:4px}.cr-seg button img{height:22px;image-rendering:pixelated}.cr-seg button:disabled{opacity:.4}
+.cr-seg{margin-bottom:8px;grid-template-columns:repeat(4,1fr)}.cr-seg button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;line-height:1.1}.cr-seg button img{height:28px;image-rendering:pixelated}.cr-seg button span{font-size:12px;white-space:normal;text-align:center}.cr-seg button:disabled{opacity:.4}
 .cr-body{display:flex;flex-direction:column;gap:8px}
-.cr-medal{position:relative;align-self:center;width:144px;height:144px;display:grid;place-items:center}
-.cr-medal>img:first-child{width:144px;height:144px;image-rendering:pixelated}
 .cr-name{text-align:center;font-size:16px}.cr-lv{color:var(--lamp);font-size:20px;margin-left:4px}
 .cr-big{font-size:16px}
 .cr-q{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center}.cr-q input{width:84px;text-align:center;background:#18120d;border:2px solid var(--line);color:var(--text);font:inherit;font-size:15px;padding:5px 0}
 .cr-v{display:flex;justify-content:space-between;align-items:center;padding:0 4px}
 .cr-warn,.cr-top,.cr-none{margin:0;text-align:center}
 .cr-odds summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--f11)}
-.cr-hammer{position:absolute;right:-6px;top:-10px;width:64px;image-rendering:pixelated;opacity:0;transform-origin:85% 85%;pointer-events:none}
-.cr-medal.anim .cr-hammer{opacity:1;animation:crh .4s steps(3) 3}
-@keyframes crh{0%{transform:rotate(-35deg)}60%{transform:rotate(18deg)}100%{transform:rotate(-35deg)}}
-.cr-flash{position:absolute;inset:-10px;border-radius:50%;pointer-events:none;opacity:0}
-.cr-medal.ok .cr-flash{animation:crok .7s steps(5) 1;background:radial-gradient(circle,rgba(255,240,170,.9),rgba(255,210,120,0) 65%)}
-.cr-medal.ten .cr-flash{animation:crok 1.2s steps(8) 2;background:radial-gradient(circle,rgba(255,255,220,1),rgba(255,200,90,.6) 40%,rgba(255,200,90,0) 70%);inset:-40px}
-@keyframes crok{0%{opacity:0;transform:scale(.6)}40%{opacity:1}100%{opacity:0;transform:scale(1.3)}}
-.cr-medal.fail>img:first-child{animation:crbreak .9s steps(6) forwards}
-@keyframes crbreak{0%{filter:none}20%{transform:translateX(-4px)}40%{transform:translateX(4px);filter:grayscale(.6) brightness(.8)}70%{opacity:.6;clip-path:polygon(0 0,48% 0,40% 50%,52% 100%,0 100%)}100%{opacity:0;transform:translateY(10px);filter:grayscale(1)}}
-.cr-medal.fail .cr-hammer,.cr-medal.ok .cr-hammer,.cr-medal.ten .cr-hammer{animation:none;opacity:0}
 .cr-rec{display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:start;margin-bottom:8px}.cr-rec img{width:48px;height:48px;image-rendering:pixelated}
-@media (prefers-reduced-motion:reduce){.cr-medal .cr-hammer,.cr-medal .cr-flash,.cr-medal.fail>img:first-child{animation:none}}
 .cr-stage{height:170px}.cr-stage .npc{height:168px}
-.cr-medal{width:120px;height:120px}.cr-medal>img:first-child{width:120px;height:120px}
 .cr-q{flex-wrap:nowrap;gap:3px}.cr-q input{width:64px}.cr-q .px-btn{padding:4px 6px;min-width:0}
 .cr-rec .rcard{grid-template-columns:auto 1fr auto 1fr;gap:2px 10px;padding:6px 8px}.cr-rec .rcard>span{min-height:20px}
 /* v26 장터 광물: 이름 · 개수 · 값 칸을 따로(부분 갱신이 이름을 지우지 않게), 판매/구매 버튼은 손가락 크기로
@@ -534,3 +520,28 @@ img{-webkit-user-drag:none;-webkit-touch-callout:none}
 .prow .pbtn{gap:6px;margin-top:2px}
 /* 알림 점은 버튼 모서리 밖에(글씨를 가리지 않게) */
 .px-btn.ndot::after{top:-5px;right:-5px}
+
+/* v27 세공기: 세공기 그림(103×116칸) 위 자리를 모두 %로 — 구멍 가운데 (49,53.5) · 지름 46, 세공침 받침 아래 (54,29) */
+.cr-mach{position:relative;align-self:center;width:min(100%,309px);aspect-ratio:103/116;margin:0 auto}
+.cr-mach>*{position:absolute}
+.cr-back{left:25.24%;top:26.29%;width:44.66%;height:39.66%;border-radius:50%;background:radial-gradient(circle at 50% 42%,#3d2a3d 0 50%,#26161f 72%,#170c12)}
+.cr-slot{left:27.18%;top:28.02%;width:40.78%;height:36.21%;transition:transform .12s steps(2),filter .12s steps(2)}
+.cr-item{display:block;width:100%;height:100%;image-rendering:pixelated}
+.cr-m-bg{inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+.cr-ndw{left:50%;top:25%;width:4.85%;height:10.34%;overflow:hidden}
+.cr-nd{position:absolute;left:0;width:100%;height:166.7%;top:-166.7%;image-rendering:pixelated;transition:top .36s steps(6)}
+.cr-mach.drop .cr-nd,.cr-mach.hit .cr-nd{top:-66.7%}
+.cr-mach.rise .cr-nd{top:-166.7%;transition-duration:.24s}
+.cr-fx{display:none;left:-2.43%;top:-7.29%;width:100%;height:88.8%;background-repeat:no-repeat;background-position:0 0;image-rendering:pixelated;pointer-events:none}
+.cr-mach.pop .cr-slot{transform:scale(1.06)}
+.cr-mach.big .cr-slot{transform:scale(1.1);filter:drop-shadow(0 0 3px rgba(255,226,150,.95))}
+.cr-mach.gone .cr-item{opacity:0;transition:opacity .2s steps(3)}
+.cr-mach.dim .cr-item{opacity:.45;filter:grayscale(.5)}
+.cr-mach.sus{animation:crsus .12s steps(2) 3}
+@keyframes crsus{50%{transform:translateX(1px)}}
+.sheet-card.shk{animation:crshk .26s steps(5) 1}
+@keyframes crshk{20%{transform:translate(var(--shk),calc(var(--shk)*-1))}40%{transform:translate(calc(var(--shk)*-1),var(--shk))}60%{transform:translate(var(--shk),0)}80%{transform:translate(calc(var(--shk)*-.5),0)}}
+@media (prefers-reduced-motion:reduce){.cr-mach.sus,.sheet-card.shk{animation:none}}
+.cr-btn img{height:52px}
+.set-chk{display:flex;align-items:center;gap:8px;margin:6px 0}.set-chk input{width:20px;height:20px;accent-color:var(--lamp)}
+.rum.slim{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;padding:6px 8px}

@@ -20,7 +20,7 @@ ok(await p.evaluate(()=>S.craft.met===1&&!$('crBtn').hidden),'등장을 마치�
 await p.evaluate(()=>save());{const r=await reopen(()=>({lin:!$('story').hidden&&/린/.test($('storyT').textContent),met:S.craft.met,un:S.unlocked}));ok(!r.lin&&r.met===1&&r.un===4,`다시 켜도 린 등장은 다시 안 나옴 ${JSON.stringify(r)}`)}
 // 옛 저장: B6까지 열었고 세공 데이터 없음 → 작업대 보임, 처음 누를 때만 린 등장 후 창
 const old=await p.evaluate(()=>{const d=JSON.parse(JSON.stringify(S));delete d.craft;d.unlocked=6;const c=cleanSave(d);return{met:c.craft.met,a:c.craft.a,rec:Object.keys(c.craft.rec).join()}});
-ok(old.met===0&&old.a===null&&old.rec==='silver,gold,star','옛 저장(세공 없음) → 기본값으로 안전하게 추가');
+ok(old.met===0&&old.a===null&&old.rec==='silver,gold,plat,star','옛 저장(세공 없음) → 기본값으로 안전하게 추가');
 await p.evaluate(()=>{S.craft={a:null,rec:{},met:0,sel:'silver'};S.unlocked=6;renderAll()});await p.click('#crBtn');await p.waitForTimeout(150);
 let n=0;for(;n<8&&await p.isVisible('#storyNext');n++){await p.click('#storyNext');await p.waitForTimeout(80)}
 ok(n===4&&await p.evaluate(()=>S.craft.met===1&&!$('sheet').hidden&&S.sub==='craft'),'옛 저장: 작업대를 처음 누르면 린 등장 4장 → 세공 창');
@@ -34,7 +34,7 @@ const g0=await p.evaluate(()=>({g:S.gold,bid:bid('silverbar')}));await p.click('
 const m=await p.evaluate(()=>({a:S.craft.a,inv:cnt('silverbar'),made:S.craft.rec.silver.made}));
 ok(m.a&&m.a.n===25&&m.a.lv===0&&m.inv===15&&Math.abs(m.a.base-g0.bid*25)<1e-6&&m.made===1,`제작: 은괴 25개 소모, +0 세공품 하나, 기준 가치 = 25 × 개당 판매가(${Math.round(g0.bid*25)}G)`);
 ok(await p.evaluate(()=>craftMake('silver',5)===null&&craftMake('gold',1)===null&&cnt('silverbar')===15),'세공품이 있으면 새로 못 만듦(중복 생성 없음)');
-ok(await p.evaluate(()=>[...document.querySelectorAll('#crSeg button')].filter(x=>x.disabled).length===2),'다른 종류 고르기 막힘(지금 세공품 유지)');
+ok(await p.evaluate(()=>[...document.querySelectorAll('#crSeg button')].filter(x=>x.disabled).length===3),'다른 종류 고르기 막힘(지금 세공품 유지)');
 ok(await p.evaluate(()=>Math.abs(craftPrice(S.craft.a)-bid('silverbar')*25)<1),'+0으로 팔면 재료를 그냥 판 것과 같은 금액(더 많지 않음)');
 // 판매 보너스가 올라도 기준 가치는 그대로
 ok(await p.evaluate(()=>{const b0=craftPrice(S.craft.a);S.up.haggle=10;refreshBonus();const b1=craftPrice(S.craft.a);S.up.haggle=0;refreshBonus();return b0===b1}),'만든 뒤 판매 보너스가 올라도 세공품 값은 그대로');
@@ -66,7 +66,7 @@ ok(Math.abs(st-.9)<.01,`+1 성공률 실제 ${(st*100).toFixed(1)}% (표기 90%)
 // 망가진 세공 저장 → 안전하게
 ok(await p.evaluate(()=>{const d=JSON.parse(JSON.stringify(S));d.craft={a:{k:'x',n:-3,base:'a',lv:99},rec:{silver:{made:-1,best:50}},met:1};const c=cleanSave(d).craft;return c.a===null&&c.rec.silver.made===0&&c.rec.silver.best===10&&c.met===1}),'이상한 세공 저장값은 버리고 안전한 값으로');
 // 도감 세공 기록
-await p.evaluate(()=>openSheet('book'));await p.waitForTimeout(100);ok(await p.evaluate(()=>!$('crRecPanel').hidden&&$('crRec').querySelectorAll('.cr-rec').length===3&&/★/.test($('crRec').textContent)),'도감 창: 세공 기록 3종(+10 표시)');
+await p.evaluate(()=>openSheet('book'));await p.waitForTimeout(100);ok(await p.evaluate(()=>!$('crRecPanel').hidden&&$('crRec').querySelectorAll('.cr-rec').length===4&&/★/.test($('crRec').textContent)),'도감 창: 세공 기록 4종(+10 표시)');
 ok(errs.length===0,'오류 없음 '+errs.join(' | '));await ctx.close();
 // 영어 · 번체
 for(const L of ['en','zh']){const c2=await b.newContext({...devices['Pixel 5']});await c2.addInitScript(l=>localStorage.setItem('starfall.lang',l),L);const q2=await c2.newPage();const e2=[];q2.on('pageerror',e=>e2.push(e.message));

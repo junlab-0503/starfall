@@ -19,7 +19,7 @@ function renderMineHud(){
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
   const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
   $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
-  {const cb=$('crBtn'),op=craftOpen(),a=CR().a;cb.hidden=!op;if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_bench;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
+  {const cb=$('crBtn'),op=craftOpen(),a=CR().a;cb.hidden=!op;if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
@@ -119,7 +119,8 @@ function renderMarket(){if(S.tab!=='market')return;const luka=tenantIn('루카')
       return`<div class="rum"><div class="rh"><b>${r.src}</b> <span class="dim">· ${srcRecTxt(r.src)}</span></div><p>"${rumorSay(r)}"</p>
         <div class="rtags">${r.echo.length?`<span class="tg">같은 말: ${r.echo.join(', ')}</span>`:''}${r.clue?`<span class="tg good">B${r.L+1} 단서 ${r.clue}개</span>`:''}${r.hint!=null?`<span class="tg ${r.hint?'good':'bad'}">정보원: ${r.hint?'믿을 만해요':'수상해요'}</span>`:''}<span class="tg">B${r.L+1} 출입권 ${pctHtml(passPrice(r.L)/passBase(r.L))}</span></div>
         <div class="bar"><i style="width:${f*100}%"></i></div><div class="dim small">조사단 발표까지 약 ${mm(left)}</div></div>`}).join('');
-    h+=S.rumDone.map(d=>`<div class="rum done"><div class="rh"><b>${d.src}</b> <span class="${d.truth?'good':'bad'}">${d.truth?'사실이었어요':'헛소문이었어요'}</span></div><p class="dim">"${d.txt}"</p><div class="small">B${d.L+1} 출입권 <span class="${d.ch>=0?'good':'bad'}">${d.ch>=0?'+':''}${Math.round(d.ch*100)}%</span>${d.held?` · 내가 가진 ${d.held}장`:''}</div></div>`).join('');
+    // 지난 발표는 가장 최근 것 하나만 한 줄로(여러 장이 쌓이면 게시판이 어수선해서)
+    h+=S.rumDone.slice(0,1).map(d=>`<div class="rum done slim"><span class="dim small">지난 발표</span> <b>${d.src}</b> <span class="${d.truth?'good':'bad'}">${d.truth?'사실이었어요':'헛소문이었어요'}</span> <span class="small">B${d.L+1} 출입권 <span class="${d.ch>=0?'good':'bad'}">${d.ch>=0?'+':''}${Math.round(d.ch*100)}%</span></span></div>`).join('');
     if(!h)h=`<p class="dim small" style="margin:0">아직 도는 소문이 없어요. 장터에 있다 보면 소문이 들려와요.</p>`;
     setHTML($('rumors'),h);$('rumInfo').textContent=S.rum.length<2?`다음 소문 약 ${mm(S.rumT)} 뒤`:'';
     // 출입권 목록

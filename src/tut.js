@@ -34,7 +34,7 @@ const NPC_TUT={
        {t:'…[풀무]를 키우면 제련이 더 잘 돼요. [별빛 불씨]는 대성공 확률을 올려요. 대성공이면 두 개가 나와요.',sel:'[data-up="furn"]',next:true},
        {t:'…[별빛 여운]은 황금 광맥이 더 오래 머물게 해요. 광맥이 반짝이면… 힘껏 두드려 주세요.',sel:'[data-up="vheat"]',next:true}],
   '린':[{t:'내 작업대는 채굴 화면 아래 [세공]이야. 눌러 봐!',sel:()=>S.tab==='mine'?'#crBtn':'.nb[data-tab="mine"]',done:()=>!$('sheet').hidden&&S.sub==='craft'},
-       {t:'은괴 · 금괴 · 별빛강 중 하나를 고르고 개수를 정해 [제작]을 눌러. 넣은 재료값이 세공품의 기본값이 돼.',sel:'#crSeg',next:true},
+       {t:'은괴 · 금괴 · 백금괴 · 별빛강 중 하나를 고르고 개수를 정해 [제작]을 눌러. 넣은 재료값이 세공품의 기본값이 돼.',sel:'#crSeg',next:true},
        {t:'[강화 도전]에 성공할 때마다 값이 크게 뛰어. 하지만 실패하면 깨져서 사라져! 적당할 때 [판매]하는 게 요령이야.',sel:'#crBody',next:true}]};
 const NPC_P={'린':{name:'린',art:'lin'}},TUT_GRANNY={name:'이장 할머니',art:'granny',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'};
 function npcTutQueue(who){if(!NPC_TUT[who]||S.ntDone.includes(who)||S.ntq.includes(who))return;S.ntq.push(who)}

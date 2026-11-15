@@ -1,10 +1,11 @@
 /* ═════════ 세공 (v25): 떠돌이 세공사 린 ═════════
    B4 석회 동굴을 열면 린이 찾아와 창고 옆에 작업대를 차린다(탑 입주자 13명과는 따로, 탑 · 엔딩에 영향 없음).
-   제련품(은괴 · 금괴 · 별빛강)을 원하는 만큼 넣어 세공품 하나(+0)를 만들고, +10까지 두드린다. 실패하면 세공품과 재료가 모두 부서진다.
+   제련품(은괴 · 금괴 · 백금괴 · 별빛강)을 원하는 만큼 넣어 세공품 하나(+0)를 만들고, +10까지 두드린다. 실패하면 세공품과 재료가 모두 부서진다.
    판매가 = 만들 때 정해진 기준 가치(재료 수 × 그때의 개당 판매가) × 지금 단계의 배율. 단계마다 도전의 기대값은 1보다 작다(일반 판매보다 평균 수익이 낮음).
    강화 결과는 연출보다 먼저 정하고 저장한다 → 연출 중에 앱을 꺼도 결과는 그대로.
-   그림: art/craft/(lin · gold|silver|star 0~5 · bench · hammer, 있으면 bg · fx_ok · fx_fail · fx_ten) → ART.craft_… */
-const CRAFT_KINDS=[{k:'silver',n:'은옥',mat:'silverbar'},{k:'gold',n:'금옥',mat:'goldbar'},{k:'star',n:'별빛옥',mat:'starsteel'}];
+   그림(tools/craft_art.py): art/craft/ lin · silver|gold|plat|star 0~5(학 · 용 · 호랑이 · 별자리) · machine(세공기) · needle(세공침) · icon(단추)
+     · fx_ok|fx_fail|fx_ten(효과 프레임 가로 한 장) → ART.craft_…, 소리 art/sfx/craft_ok|fail|ten.mp3 → SFXD */
+const CRAFT_KINDS=[{k:'silver',n:'은옥',mat:'silverbar'},{k:'gold',n:'금옥',mat:'goldbar'},{k:'plat',n:'백금옥',mat:'platbar'},{k:'star',n:'별빛옥',mat:'starsteel'}];
 const CRAFT_P=[1,.9,.85,.8,.7,.6,.5,.4,.3,.2,.1];            // [목표 단계] 성공 확률 (+0 = 제작 100%)
 const CRAFT_M=[1,1.05,1.2,1.45,1.9,2.9,5,10,25,70,250];      // [단계] 기준 가치 대비 판매 배율
 const CRAFT_MAX=10,CRAFT_QMAX=999999;
@@ -43,7 +44,7 @@ function renderCraft(){if($('sub-craft').hidden)return;const c=CR(),a=c.a;
   if(CRFX){setHTML($('crBody'),craftShowHtml(CRFX.snap,true));return}
   if(a){setHTML($('crBody'),craftShowHtml(a,false));return}
   const have=cnt(K.mat);CRQ=have?craftQty(CRQ,have):0;const base=bid(K.mat)*CRQ;
-  setHTML($('crBody'),`<div class="cr-medal"><img src="${craftArt(K.k,0)}" alt=""></div>
+  setHTML($('crBody'),`${crMachine(craftArt(K.k,0),false,!have)}
     <div class="cr-name"><b>${K.n}</b></div>
     <div class="rcard"><span>${ico(K.mat,'sm')} <span>${M.n}</span></span><span><span class="dim">가진 재료</span> ${big(have)}</span></div>
     ${have?`<div class="cr-q"><span class="dim">넣을 재료</span><input id="crQ" type="number" inputmode="numeric" min="1" max="${have}" step="1" value="${CRQ}"><button class="px-btn sm" data-crq="1" type="button">+1</button><button class="px-btn sm" data-crq="10" type="button">+10</button><button class="px-btn sm" data-crq="100" type="button">+100</button><button class="px-btn sm" data-crq="max" type="button">최대</button></div>
@@ -51,8 +52,11 @@ function renderCraft(){if($('sub-craft').hidden)return;const c=CR(),a=c.a;
     <div class="row-btns"><button class="px-btn lamp grow" id="crMake" type="button">제작</button></div>`
     :`<p class="dim small cr-none">재료가 없어요. 제련 탭에서 만들 수 있어요.</p>`}
     ${craftOddsHtml()}`)}
+/* 세공기(tools/craft_art.py, 103×116칸): 둥근 구멍(가운데 49,53.5 · 지름 46)에 세공품, 위 놋쇠 받침에서 세공침이 내려오고, 맨 위에 효과 프레임.
+   자리는 세공기 크기에 대한 %라서 화면 폭이 달라도 그대로 맞음(style.css .cr-mach) */
+const crMachine=(src,anim,dim)=>`<div class="cr-mach${anim?' anim':''}${dim?' dim':''}" id="crMedal"><i class="cr-back"></i><div class="cr-slot"><img class="cr-item" id="crItem" src="${src}" alt=""></div><img class="cr-m-bg" src="${ART.craft_machine}" alt=""><div class="cr-ndw"><img class="cr-nd" src="${ART.craft_needle}" alt=""></div><i class="cr-fx" id="crFx"></i></div>`;
 function craftShowHtml(a,anim){const K=craftKind(a.k),M=ITEMS[K.mat],to=a.lv+1,top=a.lv>=CRAFT_MAX,pr=craftPrice(a);
-  return`<div class="cr-medal${anim?' anim':''}" id="crMedal"><img src="${craftArt(a.k,a.lv)}" alt=""><img class="cr-hammer" src="${ART.craft_hammer}" alt=""><i class="cr-flash"></i></div>
+  return`${crMachine(craftArt(a.k,a.lv),anim)}
     <div class="cr-name"><b>${K.n}</b> <b class="cr-lv">+${a.lv}</b></div>
     <div class="rcard"><span>${ico(K.mat,'sm')} <span>${M.n}</span></span><span>×${big(a.n)}</span>
       <span class="dim">지금 판매가</span><span class="gold-t cr-big">${big(pr)}G</span>
@@ -62,12 +66,26 @@ function craftShowHtml(a,anim){const K=craftKind(a.k),M=ITEMS[K.mat],to=a.lv+1,t
     <div class="row-btns">${top?'':`<button class="px-btn lamp grow" id="crTry" type="button" ${anim?'disabled':''}>강화 도전</button>`}<button class="px-btn grow" id="crSell" type="button" ${anim?'disabled':''}>지금 판매</button></div>
     ${craftOddsHtml()}`}
 function craftOddsHtml(){return`<details class="cr-odds"><summary>강화 확률표</summary><div class="rcard"><span class="dim">단계</span><span class="dim"><span>성공 확률</span> · <span>판매 배율</span></span>${CRAFT_P.slice(1).map((p,i)=>`<span>+${i+1}</span><span>${Math.round(p*100)}% · ×${CRAFT_M[i+1]}</span>`).join('')}</div></details>`}
-// 강화 연출: 결과는 이미 저장됨. 망치 3번(약 1.2초) → 빛(성공) · 균열(실패) · 큰 빛(+10)
+/* 강화 연출(효과 팩 안내대로). 결과는 이미 저장됨
+   세공침이 0.36초 동안 내려옴(세공기가 살짝 떨림) → 닿는 순간 멈칫(성공 55 · 실패 75 · +10 90ms) + 화면 흔들림(2 · 3 · 4px) + 소리
+   → 효과 프레임(65 · 65 · 70ms씩 13 · 15 · 20장) → 성공: 세공품이 1.06배로 튀었다 돌아옴 · 실패: 금이 간 뒤 사라짐 · +10: 1.1배로 커지며 빛남
+   '흔들림 · 번쩍임 줄이기'(설정) 또는 기기의 동작 줄이기 설정이면 흔들림 · 효과 프레임 없이 결과만 */
+const CFX={ok:{n:13,ms:65,stop:55,shk:2},fail:{n:15,ms:65,stop:75,shk:3},ten:{n:20,ms:70,stop:90,shk:4}};
+const lowFx=()=>!!S.lowFx||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+function shakeView(px){const el=document.querySelector('#sheet .sheet-card');if(!el)return;el.style.setProperty('--shk',px+'px');el.classList.remove('shk');void el.offsetWidth;el.classList.add('shk');setTimeout(()=>el.classList.remove('shk'),300)}
 function craftDoTry(){const r=craftTry();if(!r)return;CRAFT_BUSY=true;CRFX=r;renderCraft();
-  [0,400,800].forEach(t=>setTimeout(()=>sfx('hit'),t));
-  setTimeout(()=>{const m=$('crMedal');if(m)m.classList.add(r.ok?(r.to===CRAFT_MAX?'ten':'ok'):'fail');sfx(r.ok?(r.to>=7?'rare':'gain'):'deny')},1200);
-  setTimeout(()=>{CRAFT_BUSY=false;CRFX=null;linSay(r.ok?linOk(r.to):LIN.fail);if(r.ok&&r.to===CRAFT_MAX)toast(`${craftKind(r.snap.k).n} +10!`);renderCraft();renderMineHud()},r.ok?1900:2100)}
-function openCraft(){if(!craftOpen())return;if(!CR().met){linIntro(true);return}openSheet('craft')}
+  const md=r.ok?(r.to===CRAFT_MAX?'ten':'ok'):'fail',C=CFX[md],low=lowFx(),m=$('crMedal'),fx=$('crFx'),it=$('crItem'),at=(t,f)=>setTimeout(()=>{try{f()}catch(e){}},t),nextArt=()=>{if(r.ok)it.src=craftArt(r.snap.k,r.to)};
+  sfx('click');m.classList.add('drop');if(!low)m.classList.add('sus');
+  at(360,()=>{m.classList.remove('sus');m.classList.add('hit');sample('craft_'+md);if(!low)shakeView(C.shk)});
+  const f0=360+C.stop;
+  at(f0,()=>{m.classList.remove('hit','drop');m.classList.add('rise',md);if(low){if(r.ok){nextArt();m.classList.add(md==='ten'?'big':'pop')}else m.classList.add('gone');return}
+    fx.style.backgroundImage=`url(${ART['craft_fx_'+md]})`;fx.style.backgroundSize=`${C.n*100}% 100%`;fx.style.display='block'});
+  if(!low)for(let i=0;i<C.n;i++)at(f0+i*C.ms,()=>{fx.style.backgroundPosition=`${i/(C.n-1)*100}% 0`;
+    if(md==='ok'){if(i===4){nextArt();m.classList.add('pop')}if(i===7)m.classList.remove('pop')}
+    if(md==='ten'&&i===6){nextArt();m.classList.add('big')}
+    if(md==='fail'&&i===C.n-3)m.classList.add('gone')});
+  at(f0+(low?520:C.n*C.ms)+120,()=>{fx.style.display='none';CRAFT_BUSY=false;CRFX=null;linSay(r.ok?linOk(r.to):LIN.fail);if(r.ok&&r.to===CRAFT_MAX)toast(`${craftKind(r.snap.k).n} +10!`);renderCraft();renderMineHud()})}
+function openCraft(){if(!craftOpen())return;if(!CR().met){linIntro(true);return}openSheet('craft');samplePreload('craft_ok','craft_fail','craft_ten')}
 // 린 첫 등장(한 번만): B4를 열 때 일지 다음에, 옛 저장이면 작업대를 처음 누를 때
 function linIntro(thenOpen){const L=['"여기가 별빛골이야? 광산이 다시 열린다기에 와 봤는데… 꽤 괜찮은 금속들이 있네!"','"나는 린. 이곳저곳 떠돌며 금속을 세공하는 장인이야."','"창고 옆에 작업대를 하나 차려도 될까? 평범한 금속도 어떻게 두드리느냐에 따라 엄청난 가치를 가질 수 있거든."','"하지만 조심해야 해. 욕심내서 너무 두드리면… 그대로 깨져 버릴 수도 있으니까!"'];
   story(L.map((b,i)=>({k:'떠돌이 세공사',t:'린',b,art:'lin',...(i===L.length-1?{done:()=>{CR().met=1;npcTutQueue('린');save();renderMineHud()},after:()=>{toast('창고 옆에 린의 세공 작업대가 생겼어요.');if(thenOpen)openSheet('craft')}}:{})})))}

@@ -12,7 +12,14 @@ document.addEventListener('visibilitychange',()=>audioHold('hidden',document.hid
 addEventListener('pagehide',()=>audioHold('hidden',true));addEventListener('pageshow',()=>audioHold('hidden',document.hidden));
 document.addEventListener('freeze',()=>audioHold('hidden',true));document.addEventListener('resume',()=>audioHold('hidden',document.hidden));
 addEventListener('blur',()=>audioHold('blur',true));addEventListener('focus',()=>audioHold('blur',false));
-window.starfallAudio=on=>audioHold('native',!on);   // 안드로이드 앱 쪽에서 오디오 포커스를 잃을 때(전화가 울림 등) starfallAudio(false), 되찾으면 true
+window.starfallAudio=on=>audioHold('native',!on);
+/* 녹음한 효과음(art/sfx/*.mp3 → SFXD): 처음 쓸 때 한 번 풀어 두고, 효과음 음량 · 무음 규칙을 그대로 따름(SFXG) */
+const SBUF={};
+function sampleLoad(k){if(!AC||typeof SFXD==='undefined'||!SFXD[k])return null;
+  return SBUF[k]||(SBUF[k]=fetch(SFXD[k]).then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(b=>(SBUF[k]=b)).catch(()=>{delete SBUF[k];return null}))}
+function samplePreload(...ks){ks.forEach(sampleLoad)}
+function sample(k,vol=.85){const go=b=>{if(!b||!AC||MUTE.size)return;const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=vol;s.buffer=b;s.connect(g);g.connect(SFXG);s.start()};
+  const b=SBUF[k];if(b&&!b.then)go(b);else{const p=sampleLoad(k);if(p)p.then(go)}}   // 안드로이드 앱 쪽에서 오디오 포커스를 잃을 때(전화가 울림 등) starfallAudio(false), 되찾으면 true
 function tone(f,dur,type='square',vol=.3,at=0,slide=0){if(!AC)return;const t=AC.currentTime+at,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f*slide),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(SFXG);o.start(t);o.stop(t+dur+.02)}
 function noise(dur,vol=.3,at=0,lp=3000){if(!AC||!NOISE)return;const t=AC.currentTime+at,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=NOISE;f.type='lowpass';f.frequency.value=lp;
