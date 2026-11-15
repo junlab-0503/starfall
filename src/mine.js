@@ -48,14 +48,21 @@ let BLOBS=oreBlobs();
 function newWall(){A.crackSeed=(Math.random()*1e9)|0;CRACKS=crackPaths();BLOBS=oreBlobs();if(!S.next)S.next=rollDrop(S.layer)}
 function swing(){A.sw=0}
 function full(){return space()<=0}
+// 셈(탑 6층)이 돌아오기 전에 창고가 처음 가득 찼을 때 한 번만 알려 줌(S.whHint에 기록, 다시 켜도 안 나옴)
+function whHintCheck(){if(S.whHint||!S.tutDone||tenantIn('셈')||!full()||!$('story').hidden||!$('titleScr').hidden||!$('entry').hidden)return;S.whHint=1;save();
+  story([{k:'창고',t:'창고가 가득 찼어요!',b:'창고가 가득 찼어요! 탑 6층을 완공하면 창고지기 셈이 돌아와 창고를 확장할 수 있어요.',portrait:SECTIONS[1].t,hide:true,extra:'<div class="row-btns" style="justify-content:center;margin:2px 0 4px"><button class="px-btn lamp" id="whGo" type="button">탑으로 가기</button></div>'}])}
 const HERO={img:null};if(typeof ART!=='undefined'&&ART.hero&&typeof HERO_META!=='undefined'){const im=new Image();im.onload=()=>{HERO.img=im};im.src=ART.hero}
 // 곡괭이질 7장: 들어 올림 → 머리 위 → 내려찍기 → 부딪힘 → 따라가기 → 거두기. 쉬기 · 걷기 · 기쁨 · 하품 · 창고 가득(누워 쉬기)
 function heroFrameKey(sit,t){if(sit)return'sleep';if(A.sw>=0){const s=A.sw;return s<.2?'sw0':s<.4?'sw1':s<.5?'sw2':s<.62?'sw3':s<.8?'sw4':'sw5'}
   if(A.joy>0)return A.joy>.45?'joy':'happy';if(A.stepT>0)return'walk'+((t*14|0)%6);if(A.yawn>0)return'yawn';return(A.idleT||9)<.9?'ready':'rest'} // 휘두른 직후엔 곡괭이를 든 채, 조금 지나면 똑바로 서 있기
+// 채굴 입력은 직전 1초 동안 30번까지만 인정(터치 · 키보드 같음). 넘친 입력은 피해 · 골드 · 치명타 · 소리 모두 없음. 손으로 하는 플레이엔 닿지 않는 값
+const TAP_MAX=30,TAPQ=[];
+function tapAllowed(now){   // hooks.js의 doTap 감싸개(효과음)보다 앞에서 검사
+  while(TAPQ.length&&now-TAPQ[0]>=1000)TAPQ.shift();if(TAPQ.length>=TAP_MAX)return false;TAPQ.push(now);return true}
 function doTap(){
   if(full()&&!(ul('autosell')&&autoSellRoom())){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}
   swing();let d=tapPower();if(Math.random()<critP()){d*=3;A.shake=3;const w=charW();for(let i=0;i<10;i++)PARTS.push({x:w.x-10,y:w.y-14,vx:-30+Math.random()*60,vy:-60-Math.random()*50,life:.6,c:'#fff2b0',sz:1,star:Math.random()<.4});floatText('크게!','#ffd36a')}
-  applyDmg(d,false);veinGold(1/40,true);
+  applyDmg(d,false);veinGold(VEIN_K.tap,true);
 }
 // 알뜰 정리(셈): 창고가 가득 차면 가장 싼 원석을 팔아 자리를 만든다
 let autoSellT=0;
@@ -108,7 +115,7 @@ function update(dt){
   A.stepT=Math.max(0,A.stepT-dt);A.bobT+=dt;A.blinkT-=dt;if(A.blinkT<0){A.blink=.14;A.blinkT=2+Math.random()*3}A.blink=Math.max(0,A.blink-dt);A.head=Math.max(0,A.head-dt);A.joy=Math.max(0,A.joy-dt);A.yawn=Math.max(0,A.yawn-dt);if(A.sw<0&&!full()){A.yawnT-=dt;if(A.yawnT<0){A.yawn=1.2;A.yawnT=14+Math.random()*12}}else A.yawnT=Math.max(A.yawnT,6);A.shake=Math.max(0,A.shake-dt*8);
   // 자동 드릴
   // 시작 화면 · 광맥 입구 장면이 떠 있는 동안엔 드릴도 기다림
-  if(S.auto>0&&S.autoOn&&$('titleScr').hidden&&$('entry').hidden){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(1/400,false)}}
+  if(S.auto>0&&S.autoOn&&$('titleScr').hidden&&$('entry').hidden){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(VEIN_K.drill,false)}}
   const fwx=faceWX()+1;
   PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt;
     // 돌 조각: 막장(주인공 앞 바위) 쪽으로는 못 가고, 주인공 뒤 굴 바닥에 떨어져 튕긴 뒤 잠깐 쌓였다 사라짐
@@ -218,6 +225,8 @@ function setLayer(i){if(i>=S.unlocked)return;S.layer=i;S.hp=layerHp(i);S.next=ro
    다른 탭에 있을 때 나타나면 작은 알림 띠(누르면 채굴 화면으로). 골드는 채굴 화면에서 캘 때만 나옴.
    이야기 창 · 시작 화면 · 입구 장면이 떠 있거나 앱이 뒤로 간 동안엔 멈춤 (한 번에 켜 두고 4분치를 탭 40번에 나눠, 최대 6분치) */
 const VEIN_SEC=30;
+// 황금 광맥 골드: 탭 1번 = pot×tap, 드릴 0.25초마다 pot×drill (pot = 지금 채굴 수입 4분치). v24: 둘 다 절반(1/40 → 1/80, 1/400 → 1/800)
+const VEIN_K={tap:1/80,drill:1/800};
 const veinClock=()=>!document.hidden&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;
 const minePlaying=()=>S.tab==='mine'&&veinClock();
 const veinOn=()=>!!S.vein&&S.vein.left>0&&minePlaying();

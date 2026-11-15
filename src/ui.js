@@ -51,6 +51,7 @@ function askReview(force){if(!force&&(S.review==='done'||S.review==='no'))return
   story([{gold:1,review:1,btn:'나중에',k:'숯의 부탁',t:'별빛광맥이 마음에 드나요?',b:'여기까지 와 줘서 고마워요. 재미있게 하고 있다면 별점과 리뷰를 남겨 주세요.\n짧은 한마디도 마을을 다시 일으키는 데 큰 힘이 돼요.',
     extra:'<div class="row-btns" style="justify-content:center;margin:2px 0 4px"><button class="px-btn lamp" id="revGo" type="button">★ 리뷰 남기기</button></div>',done:()=>{if(!force)S.review=S.review==='later'?'no':'later'}}])}
 $('storyX').addEventListener('click',e=>{if(!e.target.closest('#revGo'))return;S.review='done';save();nextStory();toast('고마워요! 출시 후에는 여기서 스토어 리뷰 화면이 열려요.')});
+$('storyX').addEventListener('click',e=>{if(!e.target.closest('#whGo'))return;nextStory();setTab('tower')});
 $('devReview').onclick=()=>{if(S.dev)askReview(true)};
 $('devVein').onclick=()=>{if(!S.dev)return;if(S.vein)endVein();startVein()};
 // 확률 보기: 지금 지층에서 광석이 나올 확률

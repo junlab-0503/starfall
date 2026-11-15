@@ -4,7 +4,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   let rs=snap?snap.rs:seed>>>0;Math.random=()=>{rs=(rs+0x6D2B79F5)>>>0;let t=rs;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};
   window.story=()=>{};window.toast=()=>{};window.renderAll=()=>{};window.renderTab=()=>{};window.renderLog=()=>{};window.renderMineHud=()=>{};window.renderLayers=()=>{};window.renderForge=()=>{};window.renderBook=()=>{};window.renderHeader=()=>{};
   window.revealJournal=i=>{if(!S.journal.includes(i))S.journal.push(i)};
-  let t=0,endT=null,lost=0,gIncome=0,unlockT={},sectT={},tf=0,RS={};const TAPS=opt.taps??2.5,log=[];
+  let rentG=0,t=0,endT=null,lost=0,gIncome=0,unlockT={},sectT={},tf=0,RS={};const TAPS=opt.taps??2.5,log=[];
   if(snap){S=JSON.parse(snap.S);t=snap.t;tf=snap.tf||0;RS=snap.RS||{};unlockT=snap.unlockT;sectT=snap.sectT;lost=snap.lost;endT=snap.endT;refreshBonus()}
   else{S=fresh();S.prologue=true;S.tutDone=true;S.legacy=1;S.gold+=LEGACY.gold;S.auto=LEGACY.auto;S.autoOn=true;refreshBonus();S.hp=layerHp(0);for(let i=0;i<120;i++)tickMarket(2,true)}
   const recipeOf={};RECIPES.forEach((r,i)=>recipeOf[r.out]=i);
@@ -29,7 +29,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
       if(ev>1.06&&f<.85){const av=ev>1.15?S.gold*.95:Math.max(0,S.gold-tf*.5)*.9,n=Math.floor(av/passPrice(r.L));if(n>0){const x=passBuy(r.L,n);if(x.t>S.gold-tf)tf=Math.max(0,S.gold)}}
       else if(ev<.99&&passHeld(r.L)){const x=passSell(r.L,999);passG+=x.gain||0}}}
   function decide(){
-    const g0=S.gold;if(S.rentAcc>=1){S.gold+=S.rentAcc;S.rentAcc=0}
+    const g0=S.gold;if(S.rentAcc>=1){S.gold+=S.rentAcc;rentG+=S.rentAcc;S.rentAcc=0}
     const T=needs();
     // 필요한 합성품 만들기 (얕은 것부터)
     for(let pass=0;pass<4;pass++)Object.keys(T).filter(id=>INS[id]).sort((a,b)=>ITEMS[a]._L-ITEMS[b]._L||ITEMS[a].p-ITEMS[b].p).forEach(id=>{const def=T[id]-cnt(id);if(def>0)craft(id,Math.ceil(def*1.1))});
@@ -71,8 +71,8 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
   while(t<maxSec&&!hit){
     {const rate=(tapPower()*TAPS*(1+2*critP())+autoDps())/layerHp(S.layer),k=S.layer+1,o=RS[k]||(RS[k]={n:0,r:0,f:0});o.n++;o.r+=rate;o.f+=cap()/Math.max(rate,1e-6)/60}
     // 황금 광맥(게임과 같은 규칙, opt.vein===false면 끔): 채굴 화면에서 8~14분마다 45초. 그동안은 광석 대신 골드만
-    // 탭 1번 = pot/40, 드릴 0.25초마다 pot/400, 상한 없음 (pot = 지금 채굴 수입 4분치)
-    if(S.vein){const v=S.vein,add=Math.round(v.pot*(TAPS/40+(S.auto>0&&S.autoOn?4/400:0)));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
+    // 탭 1번 = pot×VEIN_K.tap, 드릴 0.25초마다 pot×VEIN_K.drill, 상한 없음 (pot = 지금 채굴 수입 4분치)
+    if(S.vein){const v=S.vein,add=Math.round(v.pot*(TAPS*VEIN_K.tap+(S.auto>0&&S.autoOn?4*VEIN_K.drill:0)));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
     else{if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true);
       if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:VEIN_SEC,pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);veinN++}}
     tickMarket(1,false);S.rentAcc+=rentPerSec();
@@ -82,5 +82,5 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
     if(endT!=null&&endW==null)endW=wall;
     if(t%3600===0)log.push({h:t/3600,gold:Math.round(S.gold),L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh});
   }
-  return{veinG,veinN,RS,hit,wall,endW,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT,wall},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
+  return{inc:{sale:Math.round(gIncome+(S.ofG||0)),vein:Math.round(veinG),rent:Math.round(rentG),pass:Math.round(passG)},veinG,veinN,RS,hit,wall,endW,snap:{S:JSON.stringify(S),rs,t,tf,RS,unlockT,sectT,lost,endT,wall},unlockT,sectT,endT,t,lost,log,passG:Math.round(passG),final:{L:S.unlocked,fl:S.floors,pick:S.pick,auto:S.auto,wh:S.wh,furn:S.furnace,gold:Math.round(S.gold)}};
 }

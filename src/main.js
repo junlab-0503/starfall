@@ -50,7 +50,7 @@ function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!
   if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();if(S.tab==='forge')rqBars();renderHeader();tutTick()}
   if(invDirty&&now-invDirtyT>400){invDirty=false;invDirtyT=now;if(S.tab==='forge')renderForge();if(S.tab==='manage'&&S.sub==='store')renderInv()}
   if(S.dev){if(S.gold<9e14)S.gold=9.999e14;if(S.found.length<RECIPES.length)S.found=RECIPES.map((r,i)=>i)}   // 개발자: 골드 무한 · 레시피 전부
-  secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);veinTick();S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);
+  secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);veinTick();whHintCheck();S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);
     if(S.tab==='market'||S.tab==='tower'||S.tab==='equip'||S.tab==='forge'||(S.tab==='manage'&&S.sub!=='set'))renderTab();if(++saveAcc%10===0)save()}
   requestAnimationFrame(frame)}
 requestAnimationFrame(frame);

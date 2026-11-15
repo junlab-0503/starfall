@@ -14,7 +14,7 @@ LANGS.en={d:{
 '보관함이 비어 있어요. 드릴 로봇과 출입권이 모은 광석이 여기에 쌓여요.':'The stash is empty. Ore gathered by drill robots and passes piles up here.',
 '창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 재련해 보세요.':'The warehouse is full. Sell or smelt something first.','채굴 보관함이 비어 있어요.':'The mining stash is empty.',
 '드릴 로봇을 켰어요. 켜 두면 자리를 비운 동안에도 캐요.':'Drill robot ON. While on, it keeps digging even when you are away.','드릴 로봇을 껐어요. 자리를 비운 동안에도 쉬어요.':'Drill robot OFF. It rests while you are away, too.',
-'숯의 선물 상자':"Soot's Gift Box",'10분 동안 채굴 2배':'2× mining for 10 minutes','숯이 상자를 물어 왔어요':'Soot brought a box','숯이 꼬리를 흔들며 상자를 내려놓았다.':'Soot wags its tail and sets down a box.','오늘 남은 상자':'Boxes left today','광고 제거 패키지로 광고 없이 받아 보세요! (관리 → 설정)':'Skip the ads with the Ad-Free Pack! (Manage → Settings)',
+'숯의 선물 상자':"Soot's Gift Box",'10분 동안 채굴 2배':'2× mining for 10 minutes','숯이 상자를 물어 왔어요':'Soot brought a box','숯이 꼬리를 흔들며 상자를 내려놓았다.':'Soot wags its tail and sets down a box.','오늘 남은 상자':'Boxes left today','창고가 가득 찼어요! 탑 6층을 완공하면 창고지기 셈이 돌아와 창고를 확장할 수 있어요.':'Your warehouse is full! Finish Tower floor 6 and Sem the warehouse keeper will return to expand it.','탑으로 가기':'Go to Tower','광고 제거 패키지로 광고 없이 받아 보세요! (관리 → 설정)':'Skip the ads with the Ad-Free Pack! (Manage → Settings)',
 // 이야기 · 튜토리얼
 '프롤로그':'Prologue','에필로그':'Epilogue','이장 할머니':'Granny Chief','다음':'Next','계속':'Continue','건너뛰기':'Skip','시작하기':'Begin',
 '할아버지의 유산':"Grandpa's legacy",'낡은 곡괭이':'Old pickaxe','손에 익은 녹슨 곡괭이':'A rusty pickaxe, worn to the hand','채굴 기계':'Mining machine','느리게 도는 자동 드릴':'A slowly turning auto drill',
