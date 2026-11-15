@@ -6,12 +6,12 @@ const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 for(const withArt of [false,true]){
 const ctx=await b.newContext({...devices['Pixel 5'],locale:'ko-KR'});
 if(withArt)await ctx.addInitScript(()=>{const mk=(c)=>{const v=document.createElement('canvas');v.width=48;v.height=40;const x=v.getContext('2d');x.fillStyle=c;x.fillRect(0,0,48,40);x.fillStyle='#ffd27a';x.fillRect(20,14,8,8);return v.toDataURL()};
-  const keys=[...Array(6)].map((_,i)=>'p'+(i+1)).concat([...Array(13)].map((_,i)=>'b'+(i+1)),[...Array(6)].map((_,i)=>'e'+(i+1)));
+  const keys=[...Array(6)].map((_,i)=>'p'+(i+1)).concat([...Array(13)].map((_,i)=>'b'+(i+1)),['end']);
   const t=setInterval(()=>{if(typeof ART!=='undefined'){clearInterval(t);keys.forEach((k,i)=>ART['story_'+k]=mk(`hsl(${i*14},40%,35%)`))}},1)});
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));const tag=withArt?'[그림 있음]':'[그림 없음]';
 await p.goto('file://'+process.cwd()+'/dbg37.html');await p.waitForTimeout(800);
 if(!withArt)await p.evaluate(()=>{Object.keys(ART).filter(k=>k.startsWith('story_')).forEach(k=>delete ART[k])});   // 그림이 없을 때(지금은 지층 · 엔딩 그림이 들어 있음)
-if(withArt)await p.evaluate(()=>{const keys=[...Array(6)].map((_,i)=>'p'+(i+1)).concat([...Array(13)].map((_,i)=>'b'+(i+1)),[...Array(6)].map((_,i)=>'e'+(i+1)));keys.forEach(k=>{if(!ART['story_'+k]){const v=document.createElement('canvas');v.width=8;v.height=8;ART['story_'+k]=v.toDataURL()}})});
+if(withArt)await p.evaluate(()=>{const keys=[...Array(6)].map((_,i)=>'p'+(i+1)).concat([...Array(13)].map((_,i)=>'b'+(i+1)),['end']);keys.forEach(k=>{if(!ART['story_'+k]){const v=document.createElement('canvas');v.width=8;v.height=8;ART['story_'+k]=v.toDataURL()}})});
 await p.click('#titleScr');await p.waitForTimeout(300);
 // 프롤로그 6장
 const pro=[];for(let i=0;i<6;i++){pro.push(await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textContent.length,full:$('story').classList.contains('m-full'),ill:!$('storyIll').hidden&&!!$('storyIllImg').getAttribute('src')})));await p.click('#storyNext');await p.waitForTimeout(80)}
@@ -36,11 +36,12 @@ await p.click('[data-jp="2"]');await p.waitForTimeout(100);
 const re=await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textContent,card:$('story').classList.contains('m-card'),src:$('storyIllImg').getAttribute('src')===ART.story_b3}));
 ok(/B3/.test(re.t)&&/곡괭이 자국/.test(re.b)&&(withArt?re.card&&re.src:!re.card),`${tag} 일지에서 B3 다시 보기: 같은 ${withArt?'삽화 · ':''}글`);await p.click('#storyNext');
 await p.evaluate(()=>closeSheet());
-// 엔딩 6장
-await p.evaluate(()=>{S.floors=99;S.inv.philo=1;S.inv.starshard=10;finale()});await p.waitForTimeout(100);
-const en=[];for(let i=0;i<6;i++){en.push(await p.evaluate(()=>({t:$('storyT').textContent,full:$('story').classList.contains('m-full')})));await p.click('#storyNext');await p.waitForTimeout(60)}
-ok(en.every(x=>x.t)&&en.every(x=>x.full===withArt),`${tag} 엔딩 6장: ${en.map(x=>x.t).join(' / ')}`);
-const last=await p.evaluate(()=>({t:$('storyT').textContent,full:$('story').classList.contains('m-full')}));ok(/기록/.test(last.t)&&!last.full,`${tag} 마지막 기록 창은 일반 창`);
+// 엔딩: 그림 한 장 + 나레이션 여섯 단락을 한 화면에(구름이 흐름), 그다음 기록 창
+await p.evaluate(()=>{S.floors=99;S.inv.philo=1;S.inv.starshard=10;finale()});await p.waitForTimeout(150);
+const en=await p.evaluate(()=>({end:$('story').classList.contains('m-end'),ill:!$('storyIll').hidden&&!!$('storyIllImg').getAttribute('src'),h4:document.querySelectorAll('.ep-narr h4').length,p:document.querySelectorAll('.ep-narr p').length,anim:getComputedStyle(document.querySelector('.ep-cl1')).animationName}));
+ok(en.h4===0&&en.p===6&&(withArt?en.end&&en.ill&&en.anim==='epc':true),`${tag} 엔딩: 한 화면에 제목 없이 이어지는 나레이션 한 편(${withArt?'그림 + 흐르는 구름':'글'})`);
+await p.click('#storyNext');await p.waitForTimeout(60);
+const last=await p.evaluate(()=>({t:$('storyT').textContent,full:$('story').classList.contains('m-end')}));ok(/기록/.test(last.t)&&!last.full,`${tag} 다음은 기록 창(일반 창)`);
 ok(errs.length===0,`${tag} 오류 없음 `+errs.join(' | '));await ctx.close()}
 // 영어로도 글 그대로
 {const ctx=await b.newContext({...devices['Pixel 5'],locale:'en-US'});const p=await ctx.newPage();await p.goto('file://'+process.cwd()+'/dbg37.html');await p.waitForTimeout(800);await p.click('#titleScr');await p.waitForTimeout(300);

@@ -142,7 +142,9 @@ let STC=null;
    full = 큰 삽화 + 아래 글(프롤로그 · 엔딩), card = 게임을 어둡게 하고 가운데 삽화+일지 카드(B1~B12), hero = 별의 심장 특별 전체 화면(B13).
    그림이 아직 없으면 full · card는 예전 이야기 창 그대로(글만), hero는 그림 없이도 특별 화면 */
 const storyArt=k=>k&&typeof ART!=='undefined'?ART['story_'+k]||null:null;
-function storyMode(c){const src=storyArt(c.ill),m=c.mode&&(src||c.mode==='hero')?c.mode:'';const st=$('story');['full','card','hero'].forEach(k=>st.classList.toggle('m-'+k,m===k));st.dataset.cat=src&&c.ill?c.ill[0]:'';   // 그림 종류(p · b · e)마다 같은 규격으로 보이게
+// 에필로그 그림 위로 흐르는 구름 두 겹(art/story/end_cloud1 · 2)
+{const cl=document.createElement('style');cl.textContent=typeof ART!=='undefined'&&ART.story_end_cloud1?`.ep-cl1{background-image:url(${ART.story_end_cloud1})}.ep-cl2{background-image:url(${ART.story_end_cloud2})}`:'';document.head.appendChild(cl)}
+function storyMode(c){const src=storyArt(c.ill),m=c.mode&&(src||c.mode==='hero')?c.mode:'';const st=$('story');['full','card','hero','end'].forEach(k=>st.classList.toggle('m-'+k,m===k));st.dataset.cat=src&&c.ill?c.ill[0]:'';   // 그림 종류(p · b · e)마다 같은 규격으로 보이게
   const w=$('storyIll'),im=$('storyIllImg');w.hidden=!src&&m!=='hero';im.hidden=!src;im.onload=()=>im.classList.toggle('hi',im.naturalWidth>400);if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=c.t||''}else im.removeAttribute('src')}
 function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').hidden=true;storyMode({});if(prev&&prev.after)prev.after();return}if(prev&&prev.after)prev.after();storyMode(c);
   $('storyKick').textContent=c.k||'';$('storyT').textContent=c.t||'';$('storyB').innerHTML=T(c.b||'').replace(/\n/g,'<br>');$('storyX').innerHTML=c.extra||'';

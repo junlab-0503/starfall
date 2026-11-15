@@ -9,8 +9,8 @@ const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.messag
 await p.goto('file://'+process.cwd()+'/dbg39.html');await p.waitForTimeout(800);if(await p.isVisible('#titleScr'))await p.click('#titleScr');await p.waitForTimeout(200);await close();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}await close();
 await p.evaluate(()=>{S.tutDone=true;S.whHint=1;S.unlocked=4;S.floors=30;S.seen=Object.keys(ITEMS);refreshBonus();renderAll()});await close();
 if(L==='ko'){
-  const art=await p.evaluate(()=>({b:[...Array(13)].every((_,i)=>!!ART['story_b'+(i+1)]),e:[...Array(6)].every((_,i)=>!!ART['story_e'+(i+1)]),p:[...Array(6)].some((_,i)=>!!ART['story_p'+(i+1)]),ic:['ui_book','ui_wh','ui_gear'].every(k=>!!ART[k])}));
-  ok(art.b&&art.e&&art.ic,`지층 삽화 13장 · 엔딩 6장 · 아이콘(도감 · 창고 · 설정) 들어감 (프롤로그 그림: ${art.p?'있음':'아직 없음 → 글만'})`);
+  const art=await p.evaluate(()=>({b:[...Array(13)].every((_,i)=>!!ART['story_b'+(i+1)]),e:!!ART.story_end&&!!ART.story_end_cloud1,p:[...Array(6)].some((_,i)=>!!ART['story_p'+(i+1)]),ic:['ui_book','ui_wh','ui_gear'].every(k=>!!ART[k])}));
+  ok(art.b&&art.e&&art.ic,`지층 삽화 13장 · 엔딩 그림 · 아이콘(도감 · 창고 · 설정) 들어감 (프롤로그 그림: ${art.p?'있음':'아직 없음 → 글만'})`);
   const isz=await p.evaluate(()=>new Promise(r=>{const out={};let n=0;['ui_book','ui_wh','ui_gear'].forEach(k=>{const im=new Image();im.onload=()=>{out[k]=[im.width,im.height];if(++n===3)r(out)};im.src=ART[k]})}));
   ok(Object.values(isz).every(([w,hh])=>hh<=64&&w<=72),`아이콘은 다른 아이콘처럼 작은 도트(${JSON.stringify(isz)})`);
   // 자동 재련소 없음
