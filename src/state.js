@@ -58,7 +58,7 @@ function cleanSave(d){const f=fresh(),S2={};
   S2.log=(S2.log||[]).slice(0,60);
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
-  const raw=localStorage.getItem(SAVE_KEY);if(raw){S=cleanSave(JSON.parse(raw));return true}}catch(e){}S=fresh();return false}
+  const raw=localStorage.getItem(SAVE_KEY);if(raw){try{S=cleanSave(JSON.parse(raw));return true}catch(e){try{localStorage.setItem(SAVE_KEY+'-bak',raw)}catch(e2){}}}}catch(e){}S=fresh();return false}   // 저장을 못 읽으면 새 게임으로 덮어쓰기 전에 원본을 -bak에 남김
 function save(){if(!CLK.hold){S.lastSeen=gtime();S.maxClock=Math.max(S.maxClock||0,S.lastSeen)}try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
 // 화면 갱신: 같은 내용이면 건드리지 않고, 긴 목록은 바뀐 줄만 바꾼다 (매초 다시 그려도 끊기지 않게)
 const HC=new WeakMap();
