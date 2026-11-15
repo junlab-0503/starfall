@@ -15,10 +15,10 @@ if(L==='ko'){
   ok(Object.values(isz).every(([w,hh])=>hh<=64&&w<=72),`아이콘은 다른 아이콘처럼 작은 도트(${JSON.stringify(isz)})`);
   // 자동 재련소 없음
   ok(await p.evaluate(()=>!$('rqPanel')&&!$('smeltQ')&&typeof rqRun==='undefined'&&!('rq' in fresh())&&!UPS.qslot&&!UPS.qspeed),'자동 재련소 · 맡기기 · 자동 재련 강화 없음');
-  ok(await p.evaluate(()=>SHOPS.find(s=>s.who==='미르').ups.join()==='furn,great,vheat'&&!UPS.cata&&!UPS.salv),'미르의 용광로: 풀무 · 별빛 불씨 · 별의 열 붙잡기');
-  // 별의 열 붙잡기: 황금 광맥이 단계마다 2초 더 머묾(30초 → 10단계 50초)
+  ok(await p.evaluate(()=>SHOPS.find(s=>s.who==='미르').ups.join()==='furn,great,vheat'&&!UPS.cata&&!UPS.salv),'미르의 용광로: 풀무 · 별빛 불씨 · 별빛 여운');
+  // 별빛 여운: 황금 광맥이 단계마다 2초 더 머묾(30초 → 10단계 50초)
   const vh=await p.evaluate(()=>{const o=[];for(const l of [0,1,10]){S.up.vheat=l;startVein();o.push(S.vein.left);endVein()}S.up={};return o});
-  ok(vh.join()==='30,32,50',`별의 열 붙잡기: 황금 광맥 ${vh.join('초 → ')}초`);
+  ok(vh.join()==='30,32,50',`별빛 여운: 황금 광맥 ${vh.join('초 → ')}초`);
   ok(await p.evaluate(()=>{const i=RECIPES.findIndex(r=>r.a!==r.b);const r=RECIPES[i];S.inv={};S.inv[r.a]=5;S.inv[r.b]=5;S.slots=[r.a,r.b];const R=Math.random;Math.random=()=>.5;smeltOnce();Math.random=R;return cnt(r.a)===4&&cnt(r.b)===4}),'재련은 예전과 같음(재료 1개씩)');
   // 옛 저장: 자동 재련 칸 2단계 · 센 불꽃 3단계 → 그만큼 골드를 돌려줌, 맡겨 둔 목록은 사라짐
   const rf=await p.evaluate(()=>{const d=JSON.parse(JSON.stringify(S));d.up={qslot:2,qspeed:3,great:1};d.rq=[{r:0,n:5,t:0,loop:false}];d.gold=1000;const c=BAL.ups;

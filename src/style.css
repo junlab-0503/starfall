@@ -448,3 +448,9 @@ button.matl.mgo:active{transform:translateY(1px)}
 .story.m-full p{max-height:none;text-shadow:none}
 .story.m-full #storyNext{margin-top:4px}
 .fg-seg{margin-bottom:8px}
+/* v24.4: 채굴 화면 단추 조금 크게, 창고도 선물 · 2배와 같은 주기로 움직임 */
+.ov-box img{height:54px}.ov-box .ic-tag{font-size:10px}
+.ov-btn{padding:4px}.ov-btn img{height:38px}
+.dig-btn{padding:4px 9px 4px 4px;gap:6px}.dig-btn .dg-ic{height:32px}.dg-t b{font-size:13px}.dg-t small{font-size:11px}.dg-bar{width:76px;height:5px}
+.wh-btn img{animation:icb 1.4s steps(2) infinite}
+@media (prefers-reduced-motion:reduce){.wh-btn img{animation:none}}

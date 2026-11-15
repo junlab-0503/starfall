@@ -427,7 +427,7 @@ Auto-Sell Device
 Night Shift
 Bellows
 Starlight Ember
-Hold the Star's Heat
+Starlight Afterglow
 Expand Warehouse
 Tidy Sorting
 Rent Vault

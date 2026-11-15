@@ -224,7 +224,7 @@ function setLayer(i){if(i>=S.unlocked)return;S.layer=i;S.hp=layerHp(i);S.next=ro
 /* 황금 광맥: 어느 탭에 있든 다음 광맥까지의 시간이 흐르고(8~14분, 노을이 입주하면 30% 짧게), 나타나면 30초 동안 탭 · 자동 드릴이 골드를 직접 캐냄.
    다른 탭에 있을 때 나타나면 작은 알림 띠(누르면 채굴 화면으로). 골드는 채굴 화면에서 캘 때만 나옴.
    이야기 창 · 시작 화면 · 입구 장면이 떠 있거나 앱이 뒤로 간 동안엔 멈춤 (한 번에 켜 두고 4분치를 탭 40번에 나눠, 최대 6분치) */
-const VEIN_SEC=30,veinSec=()=>VEIN_SEC+2*ul('vheat');   // 미르의 '별의 열 붙잡기'만큼 더 오래
+const VEIN_SEC=30,veinSec=()=>VEIN_SEC+2*ul('vheat');   // 미르의 '별빛 여운'만큼 더 오래
 // 황금 광맥 골드: 탭 1번 = pot×tap, 드릴 0.25초마다 pot×drill (pot = 지금 채굴 수입 4분치). v24: 둘 다 절반(1/40 → 1/80, 1/400 → 1/800)
 const VEIN_K={tap:1/80,drill:1/800};
 const veinClock=()=>!document.hidden&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;

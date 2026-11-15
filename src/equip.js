@@ -18,7 +18,7 @@ const UPS={
   night:{n:'밤샘 근무',ic:()=>'moonstone',max:10,d:l=>`자리 비운 보상이 ${pc(nightAt(l))}% 더 빨리 차요${l<10?` → ${pc(nightAt(l+1))}%`:''}`},
   furn:{n:'풀무',ic:()=>'coke',lv:()=>S.furnace,max:5,cost:()=>furnCost(S.furnace),buy:()=>{S.furnace++},d:()=>`재련 성공 ${Math.round(successRate()*100)}% · 대성공 ${Math.round(greatRate()*100)}%`},
   great:{n:'별빛 불씨',ic:()=>'stardust',max:10,d:l=>`대성공 확률 +${l}%${l<10?` → +${l+1}%`:''}`},
-  vheat:{n:'별의 열 붙잡기',ic:()=>'gold',max:10,d:l=>`황금 광맥이 ${veinSecAt(l)}초 머물러요${l<10?` → ${veinSecAt(l+1)}초`:''}`},
+  vheat:{n:'별빛 여운',ic:()=>'gold',max:10,d:l=>`황금 광맥이 ${veinSecAt(l)}초 머물러요${l<10?` → ${veinSecAt(l+1)}초`:''}`},
   wh:{n:'창고 늘리기',ic:()=>'tile',lv:()=>S.wh,cost:()=>whCost(S.wh),buy:()=>{S.wh++},d:()=>`용량 ${big(cap())}칸 → ${big(capOf(S.wh+1))}칸`},
   autosell:{n:'알뜰 정리',ic:()=>'gear',max:1,d:l=>l?'창고가 가득 차면 가장 싼 원석을 팔아 자리를 만들어요':'창고가 가득 차도 가장 싼 원석을 팔며 계속 캐요'},
   safe:{n:'월세 금고',ic:()=>'silverbar',max:5,d:l=>`월세를 ${rentCapH(l)}시간치까지 모아 둬요${l<5?` → ${rentCapH(l+1)}시간`:''}`},
