@@ -4,7 +4,7 @@
 import base64,subprocess,os
 R=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC=os.path.join(R,'src');FONT=os.path.join(R,'fonts');OUT=os.path.join(R,'dist','starfall.html');TMP=os.path.join(R,'.build');os.makedirs(TMP,exist_ok=True)
-FILES=['i18n.js','lang_en.js','lang_zh.js','lang_data.js','lang_pat.js','data.js','pixel.js','icons.js','state.js','market.js','mine.js','forge.js','tower.js','ui.js','equip.js','sfx.js','tut.js','hooks.js','main.js']
+FILES=['i18n.js','lang_en.js','lang_zh.js','lang_data.js','lang_pat.js','data.js','pixel.js','icons.js','state.js','market.js','mine.js','forge.js','tower.js','ui.js','equip.js','craft.js','sfx.js','tut.js','hooks.js','main.js']
 js=''.join(open(os.path.join(SRC,f),encoding='utf-8').read()+'\n' for f in FILES)
 # 문법 검사: 주석이 같은 줄의 코드를 삼키는 실수 등으로 깨진 파일이 있으면 빌드를 멈춘다
 for f in FILES:
@@ -13,9 +13,10 @@ for f in FILES:
 # 직접 그린 그림 → ART.<이름> (data URL)
 #   art/portraits/<입주자>.png(탭 카드 초상화), art/hero/hero.png(주인공), art/shop/<가게>.png · bg_<가게>.png(장비 탭 사람 · 배경 → ART.shop_…),
 #   art/strata/*.webp(채굴 화면 지층 → ART.strata_…), art/scene/*.webp(시작 화면 · 광맥 입구 → ART.scene_…)
-#   art/story/p1~p6 · b1~b13 · e1~e6 (.png/.webp, 스토리 삽화 → ART.story_…; 없으면 글만 나옴)
+#   art/story/p1~p6 · b1~b13 · end (.png/.webp, 스토리 삽화 → ART.story_…; 없으면 글만 나옴)
+#   art/craft/ (세공: lin 상반신 · gold|silver|star 0~5 단계 메달 · bench 작업대 · hammer 망치 · 있으면 bg · fx_ok · fx_fail · fx_ten → ART.craft_…)
 art={}
-for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_'),('strata','strata_'),('scene','scene_'),('sprites','spr_'),('ui','ui_'),('story','story_')):
+for sub_,pre_ in (('portraits',''),('hero',''),('shop','shop_'),('strata','strata_'),('scene','scene_'),('sprites','spr_'),('ui','ui_'),('story','story_'),('craft','craft_')):
     d_=os.path.join(R,'art',sub_)
     if os.path.isdir(d_):
         for f in sorted(os.listdir(d_)):

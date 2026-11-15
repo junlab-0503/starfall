@@ -19,6 +19,7 @@ function renderMineHud(){
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
   const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
   $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
+  {const cb=$('crBtn'),op=craftOpen(),a=CR().a;cb.hidden=!op;if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_bench;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
@@ -64,7 +65,7 @@ $('layerChips').addEventListener('click',e=>{const c=e.target.closest('[data-chi
 /* 갱도 */
 const reqMet=L=>!L.req||(S.gold>=L.req.g&&Object.entries(L.req.items).every(([id,n])=>cnt(id)>=n));
 function unlockLayer(i){const L=LAYERS[i];if(!reqMet(L)||i!==S.unlocked)return;S.gold-=L.req.g;Object.entries(L.req.items).forEach(([id,n])=>add(id,-n));S.unlocked=i+1;setLayer(i);
-  log(`${L.n} 개척! (−${fmt(L.d)}m)`,true);revealJournal(i);if(i===3||(i===6&&S.review==='later'))askReview();setTab('mine');renderAll()}
+  log(`${L.n} 개척! (−${fmt(L.d)}m)`,true);revealJournal(i);if(i===3&&!CR().met)linIntro(false);if(i===3||(i===6&&S.review==='later'))askReview();setTab('mine');renderAll()}
 function renderLayers(){
   setHTML($('layers'),LAYERS.map((L,i)=>{const d=`<span class="d">B${i+1}<br>${fmt(L.d)}m</span>`;
     if(i<S.unlocked)return`<button class="layer${i===S.layer?' on':''}" data-go="${i}" type="button">${d}<span><span class="nm">${L.n}</span><br><span class="dim">${RAW.filter(id=>ITEMS[id].L===i+1).map(id=>S.seen.includes(id)?ITEMS[id].n:'???').join(' · ')}</span></span><span class="dim">${i===S.layer?'채굴 중':'가기'}</span></button>`;
@@ -154,7 +155,7 @@ $('storyNext').onclick=nextStory;
 /* 탭 */
 // v24: 아래 탭 다섯 개(재련 · 장터 · 채굴 · 탑 · 장비). 예전 '관리' 탭은 채굴 화면 버튼이 여는 창(시트)으로 옮김. 저장된 tab이 manage면 채굴로
 const TABS=['forge','market','mine','tower','equip'];
-const SHEET_T={store:'창고',shaft:'갱도 개척',book:'도감 · 할아버지의 일지',set:'설정'};
+const SHEET_T={store:'창고',shaft:'갱도 개척',book:'도감 · 할아버지의 일지',set:'설정',craft:'린의 세공 작업대'};
 function openSheet(sub){if(!SHEET_T[sub])sub='store';if(S.tab!=='mine')setTab('mine');S.sub=sub;$('sheetT').textContent=SHEET_T[sub];$('sheet').hidden=false;$('sheetBody').scrollTop=0;sfx('click');renderManage();tutGlow()}
 function closeSheet(){if($('sheet').hidden)return;$('sheet').hidden=true;renderTab(true)}
 $('sheetX').onclick=closeSheet;$('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeSheet()});
@@ -163,8 +164,8 @@ $('whBtn').onclick=()=>openSheet('store');$('bookBtn').onclick=()=>openSheet('bo
 function setTab(t){if(t==='manage'){t='mine'}if(!TABS.includes(t))t='mine';if(!$('sheet').hidden)$('sheet').hidden=true;S.tab=t;document.querySelector('main').classList.toggle('mine-mode',t==='mine');document.querySelector('main').scrollTop=0;TABS.forEach(k=>$('tab-'+k).hidden=k!==t);document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;veinPop();renderTab();scrollTo(0,0)}
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
-function renderManage(){if(!SHEET_T[S.sub])S.sub='store';['store','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);
-  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book')renderBookTab();if(S.sub==='set'){renderPkg();renderSnd()}}
+function renderManage(){if(!SHEET_T[S.sub])S.sub='store';['store','shaft','book','set','craft'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);
+  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book'){renderBookTab();$('crRecPanel').hidden=!craftOpen();if(craftOpen())renderCraftRec()}if(S.sub==='craft')renderCraft();if(S.sub==='set'){renderPkg();renderSnd()}}
 function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook();renderFgSub()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='equip')renderEquip();if(!$('sheet').hidden)renderManage()}
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */

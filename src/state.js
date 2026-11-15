@@ -15,7 +15,7 @@ const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function fresh(){return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
   found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},shop:0,ofN:0,ofG:0,prologue:false,
-  clock:0,day:0,playT:0,whHint:0,fgSub:'furn',pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
+  clock:0,day:0,playT:0,whHint:0,fgSub:'furn',craft:{a:null,rec:{},met:0,sel:'silver'},pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store'}}
 /* 시계 조작 방지
    게임 시간 = 기기 시계 + 보정값(CLK.off).
@@ -58,6 +58,11 @@ function cleanSave(d){const f=fresh(),S2={};
    if(g>0){S2.gold=(num(S2.gold)?S2.gold:0)+g;S2.rqRefund=g}}
   if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.slots=[null,null]}   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움
   S2.log=(S2.log||[]).slice(0,60);
+  // 세공(v25): 지금 다듬는 세공품 하나(a) · 종류별 기록(rec) · 린을 만났는지(met). 이상한 값은 버리고 안전한 기본값으로
+  {const c=d.craft&&typeof d.craft==='object'?d.craft:{},K=['silver','gold','star'],o={a:null,rec:{},met:c.met?1:0,sel:K.includes(c.sel)?c.sel:'silver'};
+   const a=c.a;if(a&&K.includes(a.k)&&num(a.n)&&a.n>=1&&num(a.base)&&a.base>=0&&num(a.lv)&&a.lv>=0&&a.lv<=10)o.a={k:a.k,n:Math.floor(a.n),base:a.base,lv:Math.floor(a.lv),t:num(a.t)?a.t:0};
+   for(const k of K){const r=(c.rec||{})[k]||{},n=v=>num(v)&&v>=0?Math.floor(v):0;o.rec[k]={made:n(r.made),succ:n(r.succ),fail:n(r.fail),best:Math.min(10,n(r.best)),bestSale:num(r.bestSale)&&r.bestSale>=0?r.bestSale:0,ten:!!r.ten}}
+   S2.craft=o}
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
   const raw=localStorage.getItem(SAVE_KEY);if(raw){try{S=cleanSave(JSON.parse(raw));return true}catch(e){try{localStorage.setItem(SAVE_KEY+'-bak',raw)}catch(e2){}}}}catch(e){}S=fresh();return false}   // 저장을 못 읽으면 새 게임으로 덮어쓰기 전에 원본을 -bak에 남김
