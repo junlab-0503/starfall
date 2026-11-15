@@ -9,3 +9,4 @@ calib*.log
 !art/**/*.png
 !exports/**/*.png
 exports/*.zip
+lang_dump_tmp.html
