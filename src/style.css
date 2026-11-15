@@ -381,7 +381,7 @@ button.matl.mgo:active{transform:translateY(1px)}
 .ov-btn{position:absolute;top:6px;z-index:2;padding:3px;background:rgba(20,13,9,.82);border:2px solid #1a0f08;line-height:0}
 .ov-btn img{height:30px;image-rendering:pixelated}.book-btn{right:6px}.ov-btn .dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--bad)}
 .vein-bn{top:46px}
-.wh-btn img{height:60px}
+.wh-btn img{height:56px}
 .mine-sub{display:flex;align-items:center;gap:6px;margin-top:2px}.mine-sub .odds{margin-left:auto}
 .sheet{position:fixed;inset:0;bottom:calc(var(--navH,64px) + env(safe-area-inset-bottom,0px));z-index:11;background:rgba(6,4,10,.7);left:calc(50% - var(--appw,100vw)/2);right:auto;width:var(--appw,100vw)}
 .sheet-card{position:absolute;left:6px;right:6px;top:calc(env(safe-area-inset-top,0px) + 8px);bottom:6px;display:flex;flex-direction:column;background:var(--bg);border:3px solid var(--line);box-shadow:0 0 0 3px #1a0f08}
@@ -392,3 +392,4 @@ button.matl.mgo:active{transform:translateY(1px)}
 .nb-main .ni{background-size:26px auto}
 /* 로봇 채굴 보관함: 지층 그림 안 오른쪽 아래(드릴 스위치는 왼쪽 아래) */
 .ov-box{position:absolute;right:6px;bottom:6px;z-index:2}.ov-box img{height:44px}.ov-box .ic-tag{font-size:9px}
+.foot-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
