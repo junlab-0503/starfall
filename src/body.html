@@ -31,8 +31,6 @@
 </section>
 
 <section id="tab-forge" class="view" hidden>
-  <div class="panel" id="qcPanel"><h2>빠른 제작 <small id="qcInfo"></small></h2><div class="qc-grid" id="qcGrid"></div><div id="qcSel"></div></div>
-  <div class="panel" id="rqPanel"><h2>자동 재련소 <small id="rqInfo"></small></h2><p class="dim small" id="rqDesc" style="margin:0 0 8px">레시피를 맡겨 두면 시간이 지나며 알아서 재련해요. 자리를 비운 동안에도 계속돼요.</p><div id="rq"></div></div>
   <div class="panel" id="forgePanel">
     <h2>용광로 <small id="bookCount2"></small></h2>
     <div class="forge">
@@ -41,12 +39,12 @@
       <button class="slot" id="slotB" type="button" aria-label="재료 칸 2"></button>
     </div>
     <div class="preview" id="preview"></div>
-    <div class="row-btns"><button class="px-btn lamp grow" id="smelt" type="button">재련</button><button class="px-btn" id="smeltMax" type="button">가능한 만큼</button><button class="px-btn" id="smeltQ" type="button">맡기기</button></div>
+    <div class="row-btns"><button class="px-btn lamp grow" id="smelt" type="button">재련</button><button class="px-btn" id="smeltMax" type="button">가능한 만큼</button></div>
     <div class="result" id="result"></div>
     <h3 class="sub-h">재료 고르기 <span class="dim">눌러서 빈 칸에 넣기</span></h3>
     <div class="pick-grid" id="pickGrid"></div>
   </div>
-  <div class="panel"><h2>레시피 도감 <small id="bookCount"></small></h2><div class="book" id="book"></div></div>
+  <div class="panel" id="qcPanel"><h2>빠른 제작 <small id="qcInfo"></small></h2><div class="qc-grid" id="qcGrid"></div><div id="qcSel"></div></div>
 </section>
 
 <section id="tab-market" class="view" hidden>
@@ -91,6 +89,7 @@
   <div id="sub-book" class="view" hidden>
     <div class="panel"><h2>할아버지의 일지 <small id="jCount"></small></h2><div class="journal" id="journal"></div></div>
     <div class="panel"><h2>광물 도감 <small id="dexCount"></small></h2><div class="dex" id="dex"></div></div>
+    <div class="panel"><h2>레시피 도감 <small id="bookCount"></small></h2><div class="book" id="book"></div></div>
     <div class="panel"><h2>기록</h2><div class="records" id="records"></div></div>
   </div>
   <div id="sub-set" class="view" hidden>

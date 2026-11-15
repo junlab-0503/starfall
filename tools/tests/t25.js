@@ -15,7 +15,7 @@ ok(r1.has&&r1.n===n0+1&&r1.book,`새 레시피(구리+주석=청동) 도감 등�
 await p.click('[data-pk="copper"]');await p.click('[data-pk="tin"]');await p.click('#smelt');await p.waitForTimeout(200);await close();
 ok((await E(()=>__d().S.found.length))===r1.n,'같은 레시피는 두 번 등록되지 않음');
 await E(()=>{Math.random=window.__R});
-const q=await E(i=>{const S=__d().S;S.inv.copper=4;S.inv.tin=4;rqAdd(i);return S.rq.length},r1.i);ok(q>=1,'도감에 오른 레시피는 자동 재련에 맡길 수 있음');
+const q=await E(i=>{const S=__d().S;S.inv.copper=4;S.inv.tin=4;renderForge();return !!document.querySelector(`[data-qc="${i}"]`)},r1.i);ok(q,'도감에 오른 레시피는 빠른 제작에 나옴(v24.1: 자동 재련소 뺌)');
 const dup=await E(()=>{const S=__d().S;S.inv.stone=4;S.slots=['stone','stone'];const a=S.found.length;smeltOnce();smeltOnce();return S.found.length-a});ok(dup===1,'다른 새 레시피(돌+돌)도 한 번만 등록: +'+dup);
 // 2) 황금 광맥(v17): 어느 탭에 있든 다음 광맥까지 시간이 흐르고 남은 시간도 줄어듦. 골드는 채굴 화면에서 캘 때만
 await close();await p.click('[data-tab="market"]');await p.waitForTimeout(200);

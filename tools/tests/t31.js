@@ -33,10 +33,10 @@ const rc=await p.evaluate(()=>{const R=Math.random,i=RMAP[key('copper','tin')],j
   fresh_(j);S.slots=['iron','coal'];Math.random=()=>0;o.great=[smeltOnce().kind,S.found.includes(j)];
   // 튜토리얼 동안(처음 6번)은 꼭 성공
   fresh_(k);S.tutDone=false;S.crafts=2;S.slots=['coal','coal'];Math.random=()=>.999;o.tut=[smeltOnce().kind,S.found.includes(k)];S.tutDone=true;
-  // 자동 재련: 아는 레시피만 맡길 수 있고, 돌리면서 도감이 바뀌지 않음
-  const before=S.found.length;S.floors=30;refreshBonus();S.rq=[];fresh_(k);rqAdd(k);o.rqUnknown=S.rq.length;S.found.push(k);rqAdd(k);Math.random=()=>.999;const made=rqRun(60);o.rq=[S.rq.length,S.found.length===before];Math.random=R;o.rqMade=JSON.stringify(made);return o});
+  // 빠른 제작(v24.1, 자동 재련소 대신): 모르는 레시피는 못 하고, 실패가 섞여도 도감이 바뀌지 않음
+  fresh_(k);const before=S.found.length;o.rqUnknown=quickSmelt(k)===null?0:1;S.found.push(k);S.inv.coal=40;Math.random=()=>.999;const x=quickSmelt(k);o.rq=[x&&x.kind==='bad'?1:0,S.found.length===before+1];Math.random=R;o.rqMade=x&&x.kind;return o});
 ok(rc.fail[0]==='bad'&&!rc.fail[1],'재련 실패 → 레시피 안 남음');ok(rc.ok[0]==='ok'&&rc.ok[1],'재련 성공 → 레시피 남음');ok(rc.great[0]==='great'&&rc.great[1],'대성공 → 레시피 남음');
-ok(rc.tut[0]!=='bad'&&rc.tut[1],`튜토리얼 보장 성공(${rc.tut[0]}) → 레시피 남음`);ok(rc.rqUnknown===0&&rc.rq[0]===1&&rc.rq[1],`자동 재련: 모르는 레시피는 못 맡김, 맡긴 뒤 돌려도 도감 그대로 (실패가 섞여도) ${rc.rqMade}`);
+ok(rc.tut[0]!=='bad'&&rc.tut[1],`튜토리얼 보장 성공(${rc.tut[0]}) → 레시피 남음`);ok(rc.rqUnknown===0&&rc.rq[0]===1&&rc.rq[1],`빠른 제작: 모르는 레시피는 못 함, 아는 레시피는 실패해도 도감 그대로 (${rc.rqMade})`);
 // 4) 플레이 시간: 켜 둔 동안만. 백그라운드(화면 꺼짐 · 잠금) = 페이지 얼림
 const t0=await p.evaluate(()=>S.playT);await p.waitForTimeout(2000);const t1=await p.evaluate(()=>S.playT);
 // 백그라운드: 화면 그리기(requestAnimationFrame)가 멈춘 채 3초 → 돌아온 첫 프레임에 0.1초까지만 더함

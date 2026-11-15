@@ -416,3 +416,16 @@ button.matl.mgo:active{transform:translateY(1px)}
 .jp.has-ill{display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center}
 .jp-th{width:56px;height:56px;object-fit:cover;image-rendering:pixelated;border:2px solid #1a0f08}
 .story.m-hero .story-ill{background:transparent}
+.qc-qty{justify-content:center;align-items:center;gap:4px;margin-top:6px}.qc-qty .px-btn{min-width:38px;padding-inline:6px}.qc-n{min-width:40px;text-align:center;font-family:var(--f14);font-size:16px;color:var(--lamp)}
+/* v24.1: 실제 삽화 비율에 맞춤 — 지층(가로로 긴 그림)은 자르지 않고, 프롤로그 · 엔딩 · 별의 심장은 그림을 위에 깔고 글을 아래 어두운 곳에 */
+.story.m-card .story-ill{aspect-ratio:auto;max-height:none}
+.story.m-card .story-ill img{height:auto;object-fit:contain}
+.story.m-full .story-card,.story.m-hero .story-card{position:relative;justify-content:flex-end;background:#241c2c}
+.story.m-hero .story-card{background:transparent}
+.story.m-full .story-ill,.story.m-hero .story-ill{position:absolute;left:0;right:0;top:0;bottom:auto;flex:none;border:0;background:transparent;z-index:0}
+.story.m-full .story-ill img,.story.m-hero .story-ill img{height:auto;max-height:78vh;object-fit:contain;object-position:top}
+.story.m-full .story-ill::after,.story.m-hero .story-ill::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(transparent,#241c2c);pointer-events:none}
+.story.m-hero .story-ill::after{background:linear-gradient(transparent,rgba(36,18,58,.95))}
+.story.m-full .story-card>:not(.story-ill),.story.m-hero .story-card>:not(.story-ill){position:relative;z-index:1}
+.story.m-full p,.story.m-hero p{max-height:34vh;overflow-y:auto;text-shadow:0 1px 0 #000}
+.story.m-hero .story-ill:has(img[hidden]){height:55%}

@@ -162,7 +162,7 @@ function setTab(t){if(t==='manage'){t='mine'}if(!TABS.includes(t))t='mine';if(!$
   if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;veinPop();renderTab();scrollTo(0,0)}
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 function renderManage(){if(!SHEET_T[S.sub])S.sub='store';['store','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);
-  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book')renderBookTab();if(S.sub==='set'){renderPkg();renderSnd()}}
+  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book'){renderBookTab();renderBook()}if(S.sub==='set'){renderPkg();renderSnd()}}
 function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='equip')renderEquip();if(!$('sheet').hidden)renderManage()}
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */

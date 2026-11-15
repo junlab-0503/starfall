@@ -14,7 +14,7 @@ const J=(w,p)=>w+(p==='이가'?(jong(w)?'이':'가'):p==='을를'?(jong(w)?'을'
 const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function fresh(){return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
-  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},rq:[],shop:0,ofN:0,ofG:0,prologue:false,
+  found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},shop:0,ofN:0,ofG:0,prologue:false,
   clock:0,day:0,playT:0,whHint:0,pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store'}}
 /* 시계 조작 방지
@@ -53,8 +53,10 @@ function cleanSave(d){const f=fresh(),S2={};
   S2.unlocked=clamp(S2.unlocked|0,1,LAYERS.length);S2.layer=clamp(S2.layer|0,0,S2.unlocked-1);
   if(!['pass','ore'].includes(S2.mkSub))S2.mkSub='pass';
   const up={};for(const k in S2.up||{})if(UPS[k]&&num(S2.up[k])&&S2.up[k]>0)up[k]=Math.min(S2.up[k]|0,UPS[k].max??999);S2.up=up;
-  S2.rq=(Array.isArray(S2.rq)?S2.rq:[]).filter(j=>j&&RECIPES[j.r]&&num(j.n)).map(j=>({r:j.r,n:Math.max(0,j.n|0),t:num(j.t)?j.t:0,loop:!!j.loop}));
-  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.rq=[];S2.slots=[null,null]}   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움
+  // v24.1: 자동 재련소를 뺌 → 미르의 '자동 재련 칸' · '센 불꽃'에 썼던 골드를 돌려줌(한 번만: 그 단계는 저장에서 사라짐)
+  {const old=d.up||{};let g=0;for(const k of ['qslot','qspeed']){const lv=num(old[k])?Math.max(0,old[k]|0):0;const c=BAL.ups[k];if(c)for(let i=0;i<lv;i++)g+=Math.round(c[0]*Math.pow(c[1],Math.min(i,c[3]??1e9))*Math.pow(c[2]||1,Math.max(0,i-(c[3]??1e9))))}
+   if(g>0){S2.gold=(num(S2.gold)?S2.gold:0)+g;S2.rqRefund=g}}
+  if((d.v|0)<SAVE_VER){S2.log=[];S2.ev=[]}S2.v=SAVE_VER;if((d.v|0)<3){S2.mkSub='pass'}if((d.v|0)<4){S2.found=[];S2.slots=[null,null]}   // v4: 광물 · 레시피를 새로 짜서 도감 번호가 바뀜 → 도감은 다시 채움
   S2.log=(S2.log||[]).slice(0,60);
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));

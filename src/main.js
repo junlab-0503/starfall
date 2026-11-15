@@ -2,6 +2,7 @@
 initLang();   // 언어팩: 화면 글자를 지금 언어로(처음엔 기기 언어)
 buildIcons();navIcons();drawUiIcons();
 const had=load();refreshBonus();
+if(S.rqRefund){log(`자동 재련소를 정리했어요. 미르가 자동 재련 강화에 쓴 ${big(S.rqRefund)}G를 돌려줬어요.`,true);delete S.rqRefund;save()}
 if(!S.next||!LAYERS[S.layer].drops.some(d=>d[0]===S.next))S.next=rollDrop(S.layer);
 if(!(S.hp>0)||S.hp>layerHp(S.layer))S.hp=layerHp(S.layer);
 if(!had)for(let i=0;i<180;i++)tickMarket(2,true)   // 처음 시작할 때만 시장을 미리 돌려 둠(불러올 때마다 돌리면 다시 켤 때마다 6분씩 앞당겨짐)
@@ -14,7 +15,6 @@ function welcome(r){const ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot
   const rows=[];if(r.rent>0)rows.push(`<span>${ico('coin','sm')} 입주자 월세</span><span>+${big(r.rent)}G</span>`);
   ores.slice(0,6).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(n)}</span>`));if(ores.length>6)rows.push(`<span>그 밖의 광석</span><span>×${big(ores.slice(6).reduce((s,o)=>s+o[1],0))}</span>`);
   if(r.sold&&r.sold.n>0)rows.push(`<span>${ico(ul('refiner')?'crysteel':'brick','sm')} 넘친 광석 ${big(r.sold.n)}개 ${ul('refiner')?'재련해서 ':''}판매</span><span>+${big(r.sold.g)}G</span>`);
-  const mk=Object.entries(r.made||{});mk.slice(0,4).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} 자동 재련 ${ITEMS[id].n}</span><span>×${big(n)}</span>`));
   if(r.drillOff)rows.push(`<span class="dim">드릴 로봇</span><span class="dim">스위치가 꺼져 있어 쉬었어요</span>`);
   if(!rows.length)return;
   story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`${r.drillOff?'탑의 입주자들이 일했어요. 드릴 로봇은 꺼 둔 채라 쉬었어요.':'탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.'}${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 채굴 보관함에서 받을 수 있어요.':''}</p>`}])}
@@ -46,8 +46,8 @@ let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textCon
 let lastT=0,lastDraw=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;
 function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden){clockWatch();S.playT=(S.playT||0)+dt}   // 플레이 시간: 화면이 켜져 있는 동안만
   if(S.tab==='mine'&&!IW)sceneResize();
-  update(dt);rqRun(dt);if(S.tab==='mine'&&IW&&now-lastDraw>=10&&$('titleScr').hidden&&$('entry').hidden){lastDraw=now;draw(now/1000)}   // 120Hz 화면에서도 그리기는 초당 60번까지, 시작 화면 · 입구 장면이 덮고 있는 동안엔 안 그림(렉 줄이기)
-  if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();if(S.tab==='forge')rqBars();renderHeader();tutTick()}
+  update(dt);if(S.tab==='mine'&&IW&&now-lastDraw>=10&&$('titleScr').hidden&&$('entry').hidden){lastDraw=now;draw(now/1000)}   // 120Hz 화면에서도 그리기는 초당 60번까지, 시작 화면 · 입구 장면이 덮고 있는 동안엔 안 그림(렉 줄이기)
+  if((hudAcc+=dt)>.2){hudAcc=0;if(S.tab==='mine')renderMineHud();renderHeader();tutTick()}
   if(invDirty&&now-invDirtyT>400){invDirty=false;invDirtyT=now;if(S.tab==='forge')renderForge();if(!$('sheet').hidden&&S.sub==='store')renderInv()}
   if(S.dev){if(S.gold<9e14)S.gold=9.999e14;if(S.found.length<RECIPES.length)S.found=RECIPES.map((r,i)=>i)}   // 개발자: 골드 무한 · 레시피 전부
   secAcc+=dt;while(secAcc>=1){secAcc-=1;tickMarket(1,false);veinTick();whHintCheck();S.rentAcc=Math.min(S.rentAcc+rentPerSec(),rentPerSec()*rentCapH(ul('safe'))*3600);

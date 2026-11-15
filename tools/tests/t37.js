@@ -10,6 +10,7 @@ if(withArt)await ctx.addInitScript(()=>{const mk=(c)=>{const v=document.createEl
   const t=setInterval(()=>{if(typeof ART!=='undefined'){clearInterval(t);keys.forEach((k,i)=>ART['story_'+k]=mk(`hsl(${i*14},40%,35%)`))}},1)});
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));const tag=withArt?'[그림 있음]':'[그림 없음]';
 await p.goto('file://'+process.cwd()+'/dbg37.html');await p.waitForTimeout(800);
+if(!withArt)await p.evaluate(()=>{Object.keys(ART).filter(k=>k.startsWith('story_')).forEach(k=>delete ART[k])});   // 그림이 없을 때(지금은 지층 · 엔딩 그림이 들어 있음)
 if(withArt)await p.evaluate(()=>{const keys=[...Array(6)].map((_,i)=>'p'+(i+1)).concat([...Array(13)].map((_,i)=>'b'+(i+1)),[...Array(6)].map((_,i)=>'e'+(i+1)));keys.forEach(k=>{if(!ART['story_'+k]){const v=document.createElement('canvas');v.width=8;v.height=8;ART['story_'+k]=v.toDataURL()}})});
 await p.click('#titleScr');await p.waitForTimeout(300);
 // 프롤로그 6장

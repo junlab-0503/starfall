@@ -10,7 +10,7 @@ await p.evaluate(()=>{S.tutDone=true;S.unlocked=3;S.whHint=1;S.seen=Object.keys(
 if(L==='ko'){
   // 빠른 제작
   await p.evaluate(()=>setTab('forge'));await p.waitForTimeout(200);
-  ok(await p.evaluate(()=>!document.querySelector('[data-qc]')&&!!$('qcPanel')&&$('tab-forge').firstElementChild.id==='qcPanel'),'재련 탭 맨 위 빠른 제작, 성공한 레시피가 없으면 목록 비어 있음');
+  ok(await p.evaluate(()=>!document.querySelector('[data-qc]')&&!!$('qcPanel')&&$('tab-forge').firstElementChild.id==='forgePanel'&&$('forgePanel').nextElementSibling.id==='qcPanel'),'재련 탭: 용광로 아래 빠른 제작, 성공한 레시피가 없으면 목록 비어 있음');
   const i0=await p.evaluate(()=>{const i=RECIPES.findIndex(r=>r.a!==r.b&&r.L<=S.unlocked);const r=RECIPES[i];S.inv[r.a]=3;S.inv[r.b]=3;S.slots=[r.a,r.b];renderForge();Math.random=()=>.99;$("smelt").click();return i});
   ok(await p.evaluate(i=>!S.found.includes(i)&&!document.querySelector('[data-qc]')&&cnt('slag')===1,i0),'실패(광재)한 레시피는 빠른 제작에 안 나옴');
   await p.evaluate(()=>{Math.random=()=>.001;$('smelt').click();Math.random=()=>.5;renderAll()});
@@ -21,7 +21,7 @@ if(L==='ko'){
   ok(st.g===1&&st.s===1&&st.f===1,`용광로와 같은 확률 규칙(대성공 ${Math.round(st.gr*100)}% · 성공 ${Math.round(st.sr*100)}%): 같은 난수에 같은 결과`);
   await p.evaluate(i=>{const r=RECIPES[i];S.inv[r.a]=0;S.inv[r.b]=1;delete S.inv[r.a];renderForge()},i0);
   ok(await p.evaluate(()=>$('qcGo').disabled&&/재료가 모자라요/.test($('qcSel').textContent)),'재료가 모자라면 버튼 꺼짐 + 부족한 재료 표시');
-  const b1=await p.evaluate(()=>{$('slotA').click();$('slotB').click();return !!$('smelt')&&!!$('smeltMax')&&!!$('smeltQ')&&!!$('book')});ok(b1,'두 재료 직접 넣기 · 재련 · 가능한 만큼 · 맡기기 · 도감 그대로');
+  const b1=await p.evaluate(()=>{$('slotA').click();$('slotB').click();return !!$('smelt')&&!!$('smeltMax')&&!!$('book')});ok(b1,'두 재료 직접 넣기 · 재련 · 가능한 만큼 · 레시피 도감 그대로');
   // 탑 재료 바로가기
   const tw=await p.evaluate(i=>{S.floors=0;const c=floorCost(1);const ref=c.mats.find(([id])=>ITEMS[id].cr);S.inv={};S.found=[RECIPES.findIndex(r=>r.out===ref[0])];setTab('tower');renderTower();return{id:ref[0],n:document.querySelectorAll('[data-gof]').length,raw:document.querySelectorAll('#floorCard .mtag.raw').length,raws:c.mats.filter(([id])=>!ITEMS[id].cr).length}},i0);
   ok(tw.n>0,`탑: 모자란 재련품은 누를 수 있음(${tw.n}개)`);ok(tw.raw===tw.raws,`원석은 [원석] 표시로 구분(${tw.raw}개), 골드는 따로 한 줄`);
