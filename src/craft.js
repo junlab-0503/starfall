@@ -7,7 +7,11 @@
      · fx_ok|fx_fail|fx_ten(효과 프레임 가로 한 장) → ART.craft_…, 소리 art/sfx/craft_ok|fail|ten.mp3 → SFXD */
 const CRAFT_KINDS=[{k:'silver',n:'은옥',mat:'silverbar'},{k:'gold',n:'금옥',mat:'goldbar'},{k:'plat',n:'백금옥',mat:'platbar'},{k:'star',n:'별빛옥',mat:'starsteel'}];
 const CRAFT_P=[1,.9,.85,.8,.7,.6,.5,.4,.3,.2,.1];            // [목표 단계] 성공 확률 (+0 = 제작 100%)
-const CRAFT_M=[1,1.05,1.2,1.45,1.9,2.9,5,10,25,70,250];      // [단계] 기준 가치 대비 판매 배율
+const CRAFT_M=[1,1.22,1.57,2.14,3.3,5.9,12.3,29,83,310,2000]; // [단계] 기준 가치 대비 판매 배율
+// (v28) 강화 도전마다 골드: 지금 판매가의 5%. 비용을 빼고도 +1~+5는 한 단계마다 평균 +2~5% 이득(+5까지 가서 팔면 평균 약 +20%),
+//  +6은 본전쯤, +7부터는 평균 손해지만 대박(+10 = 기준 가치 2000배, 끝까지 갈 확률 약 0.015%)
+const CRAFT_COST=.05;
+const craftCost=a=>a?Math.max(1,Math.ceil(Math.floor(a.base*CRAFT_M[a.lv])*CRAFT_COST)):0;
 const CRAFT_MAX=10,CRAFT_QMAX=999999;
 const craftStage=l=>l<=1?0:l<=3?1:l<=5?2:l<=7?3:l<=9?4:5;   // 그림 6단계: +0~1 · 2~3 · 4~5 · 6~7 · 8~9 · 10
 const craftKind=k=>CRAFT_KINDS.find(x=>x.k===k)||CRAFT_KINDS[0];
@@ -23,10 +27,10 @@ function craftMake(k,n){const c=CR();if(c.a||!craftOpen())return null;const K=cr
   add(K.mat,-n);c.a={k:K.k,n,base,lv:0,t:Date.now()};const r=craftRec(K.k);r.made++;save();return c.a}
 // 강화: 결과를 먼저 정하고 저장. busy 동안엔 다시 못 누름(연타 방지)
 let CRAFT_BUSY=false;
-function craftTry(){const c=CR(),a=c.a;if(!a||a.lv>=CRAFT_MAX||CRAFT_BUSY)return null;const to=a.lv+1,ok=Math.random()<CRAFT_P[to],r=craftRec(a.k),snap={...a};
+function craftTry(){const c=CR(),a=c.a;if(!a||a.lv>=CRAFT_MAX||CRAFT_BUSY)return null;const cost=craftCost(a);if(S.gold<cost)return null;S.gold-=cost;const to=a.lv+1,ok=Math.random()<CRAFT_P[to],r=craftRec(a.k),snap={...a};
   if(ok){a.lv=to;r.succ++;r.best=Math.max(r.best,to);if(to===CRAFT_MAX)r.ten=true}
   else{r.fail++;c.a=null;log(`${craftKind(snap.k).n} +${to} 도전 실패: 부서졌어요`)}
-  save();return{ok,to,snap}}
+  save();return{ok,to,snap,cost}}
 function craftSell(){const c=CR(),a=c.a;if(!a||CRAFT_BUSY)return 0;const g=craftPrice(a),r=craftRec(a.k);
   S.gold+=g;S.earned+=g;S.bestSale=Math.max(S.bestSale||0,g);r.bestSale=Math.max(r.bestSale,g);c.a=null;
   log(`세공품 판매: ${craftKind(a.k).n} +${a.lv} → +${big(g)}G`,true);save();return g}
@@ -45,29 +49,22 @@ function renderCraft(){if($('sub-craft').hidden)return;const c=CR(),a=c.a;
   if(a){setHTML($('crBody'),craftShowHtml(a,false));return}
   const have=cnt(K.mat);CRQ=have?craftQty(CRQ,have):0;const base=bid(K.mat)*CRQ;
   setHTML($('crBody'),`${crMachine(craftArt(K.k,0),false,!have)}
-    <div class="cr-name"><b>${K.n}</b></div>
-    <div class="rcard"><span>${ico(K.mat,'sm')} <span>${M.n}</span></span><span><span class="dim">가진 재료</span> ${big(have)}</span></div>
-    ${have?`<div class="cr-q"><span class="dim">넣을 재료</span><input id="crQ" type="number" inputmode="numeric" min="1" max="${have}" step="1" value="${CRQ}"><button class="px-btn sm" data-crq="1" type="button">+1</button><button class="px-btn sm" data-crq="10" type="button">+10</button><button class="px-btn sm" data-crq="100" type="button">+100</button><button class="px-btn sm" data-crq="max" type="button">최대</button></div>
-    <div class="cr-v"><span class="dim">기준 가치</span><b class="gold-t">${big(base)}G</b></div>
+    <div class="cr-info"><div><b class="cr-nm">${K.n}</b><span>${ico(K.mat,'sm')} <span class="dim">가진 재료</span> ${big(have)}</span></div><div><span class="dim">기준 가치</span><b class="gold-t">${big(base)}G</b></div></div>
+    ${have?`<div class="cr-q"><input id="crQ" type="number" inputmode="numeric" min="1" max="${have}" step="1" value="${CRQ}" aria-label="넣을 재료"><button class="px-btn sm" data-crq="1" type="button">+1</button><button class="px-btn sm" data-crq="10" type="button">+10</button><button class="px-btn sm" data-crq="100" type="button">+100</button><button class="px-btn sm" data-crq="max" type="button">최대</button></div>
     <div class="row-btns"><button class="px-btn lamp grow" id="crMake" type="button">제작</button></div>`
-    :`<p class="dim small cr-none">재료가 없어요. 제련 탭에서 만들 수 있어요.</p>`}
-    ${craftOddsHtml()}`)}
+    :`<p class="dim small cr-none">재료가 없어요. 제련 탭에서 만들 수 있어요.</p>`}`)}
 /* 세공기(tools/craft_art.py, 103×116칸): 둥근 구멍(가운데 49,53.5 · 지름 46)에 세공품, 위 놋쇠 받침에서 세공침이 내려오고, 맨 위에 효과 프레임.
    자리는 세공기 크기에 대한 %라서 화면 폭이 달라도 그대로 맞음(style.css .cr-mach) */
 const crMachine=(src,anim,dim)=>`<div class="cr-mach${anim?' anim':''}${dim?' dim':''}" id="crMedal"><i class="cr-back"></i><div class="cr-slot"><img class="cr-item" id="crItem" src="${src}" alt=""></div><img class="cr-m-bg" src="${ART.craft_machine}" alt=""><div class="cr-ndw"><img class="cr-nd" src="${ART.craft_needle}" alt=""></div><i class="cr-fx" id="crFx"></i></div>`;
-function craftShowHtml(a,anim){const K=craftKind(a.k),M=ITEMS[K.mat],to=a.lv+1,top=a.lv>=CRAFT_MAX,pr=craftPrice(a);
+function craftShowHtml(a,anim){const K=craftKind(a.k),to=a.lv+1,top=a.lv>=CRAFT_MAX,pr=craftPrice(a),cost=craftCost(a),poor=!top&&S.gold<cost;
   return`${crMachine(craftArt(a.k,a.lv),anim)}
-    <div class="cr-name"><b>${K.n}</b> <b class="cr-lv">+${a.lv}</b></div>
-    <div class="rcard"><span>${ico(K.mat,'sm')} <span>${M.n}</span></span><span>×${big(a.n)}</span>
-      <span class="dim">지금 판매가</span><span class="gold-t cr-big">${big(pr)}G</span>
-      ${top?'':`<span class="dim">다음 강화</span><span>+${to} · <span class="dim">성공 확률</span> <b>${Math.round(CRAFT_P[to]*100)}%</b></span>
-      <span class="dim">성공하면</span><span class="gold-t">${big(Math.floor(a.base*CRAFT_M[to]))}G</span>`}</div>
-    ${top?`<p class="small cr-top">최고 단계에 이르렀어요.</p>`:`<p class="small bad cr-warn">실패하면 세공품과 재료가 모두 부서져요.</p>`}
-    <div class="row-btns">${top?'':`<button class="px-btn lamp grow" id="crTry" type="button" ${anim?'disabled':''}>강화 도전</button>`}<button class="px-btn grow" id="crSell" type="button" ${anim?'disabled':''}>지금 판매</button></div>
-    ${craftOddsHtml()}`}
-function craftOddsHtml(){return`<details class="cr-odds"><summary>강화 확률표</summary><div class="rcard"><span class="dim">단계</span><span class="dim"><span>성공 확률</span> · <span>판매 배율</span></span>${CRAFT_P.slice(1).map((p,i)=>`<span>+${i+1}</span><span>${Math.round(p*100)}% · ×${CRAFT_M[i+1]}</span>`).join('')}</div></details>`}
-/* 강화 연출(효과 팩 안내대로). 결과는 이미 저장됨
-   세공침이 0.36초 동안 내려옴(세공기가 살짝 떨림) → 닿는 순간 멈칫(성공 55 · 실패 75 · +10 90ms) + 화면 흔들림(2 · 3 · 4px) + 소리
+    <div class="cr-info"><div><b class="cr-nm">${K.n} <b class="cr-lv">+${a.lv}</b></b><span><span class="dim">지금 판매가</span> <b class="gold-t">${big(pr)}G</b></span></div>
+      ${top?`<div><span class="small">최고 단계에 이르렀어요.</span></div>`:`<div><span class="dim">성공하면 +${to}</span><b class="gold-t">${big(Math.floor(a.base*CRAFT_M[to]))}G</b></div>
+      <div><span class="dim">성공 확률</span><b>${Math.round(CRAFT_P[to]*100)}% <span class="bad cr-warn">실패하면 부서져요</span></b></div><div><span class="dim">강화 비용</span><b class="${poor?'bad':''}">${big(cost)}G${poor?' <span class="cr-warn">골드가 모자라요.</span>':''}</b></div>`}</div>
+    <div class="row-btns">${top?'':`<button class="px-btn lamp grow" id="crTry" type="button" ${anim||poor?'disabled':''}>강화 도전</button>`}<button class="px-btn grow" id="crSell" type="button" ${anim?'disabled':''}>지금 판매</button></div>`}
+/* 강화 연출(효과 팩 안내 + v28 긴장 시간). 결과는 이미 저장됨
+   긴장: 세공침이 반쯤 내려와 멈춘 채 떨리고, 째깍 소리가 점점 빨라지고, 세공품이 점점 빛남(0.9초 + 단계마다 0.09초: +1 약 1초 · +10 약 1.8초)
+   → 세공침이 내리꽂힘 → 닿는 순간 멈칫(성공 55 · 실패 75 · +10 90ms) + 화면 흔들림(2 · 3 · 4px) + 소리
    → 효과 프레임(65 · 65 · 70ms씩 13 · 15 · 20장) → 성공: 세공품이 1.06배로 튀었다 돌아옴 · 실패: 금이 간 뒤 사라짐 · +10: 1.1배로 커지며 빛남
    '흔들림 · 번쩍임 줄이기'(설정) 또는 기기의 동작 줄이기 설정이면 흔들림 · 효과 프레임 없이 결과만 */
 const CFX={ok:{n:13,ms:65,stop:55,shk:2},fail:{n:15,ms:65,stop:75,shk:3},ten:{n:20,ms:70,stop:90,shk:4}};
@@ -75,10 +72,14 @@ const lowFx=()=>!!S.lowFx||(window.matchMedia&&matchMedia('(prefers-reduced-moti
 function shakeView(px){const el=document.querySelector('#sheet .sheet-card');if(!el)return;el.style.setProperty('--shk',px+'px');el.classList.remove('shk');void el.offsetWidth;el.classList.add('shk');setTimeout(()=>el.classList.remove('shk'),300)}
 function craftDoTry(){const r=craftTry();if(!r)return;CRAFT_BUSY=true;CRFX=r;renderCraft();
   const md=r.ok?(r.to===CRAFT_MAX?'ten':'ok'):'fail',C=CFX[md],low=lowFx(),m=$('crMedal'),fx=$('crFx'),it=$('crItem'),at=(t,f)=>setTimeout(()=>{try{f()}catch(e){}},t),nextArt=()=>{if(r.ok)it.src=craftArt(r.snap.k,r.to)};
-  sfx('click');m.classList.add('drop');if(!low)m.classList.add('sus');
-  at(360,()=>{m.classList.remove('sus');m.classList.add('hit');sample('craft_'+md);if(!low)shakeView(C.shk)});
-  const f0=360+C.stop;
-  at(f0,()=>{m.classList.remove('hit','drop');m.classList.add('rise',md);if(low){if(r.ok){nextArt();m.classList.add(md==='ten'?'big':'pop')}else m.classList.add('gone');return}
+  const pre=900+90*r.to;m.style.setProperty('--pre',pre+'ms');m.style.setProperty('--aim',Math.round(pre*.35)+'ms');
+  sfx('click');m.classList.add('aim');if(!low)m.classList.add('sus');
+  // 째깍: 간격 240ms → 60ms, 소리도 점점 높게
+  {const tick=i=>{if(AC&&S.sound&&S.sound.sfx)tone(520+i*45,.035,'square',.07)};let t=120,k=0;while(t<pre-110){const kk=k++;at(t,()=>tick(kk));t+=Math.round(240-180*t/pre)}}
+  at(pre-110,()=>{m.classList.remove('aim','sus');m.classList.add('drop')});   // 내리꽂기
+  at(pre,()=>{m.classList.add('hit');sample('craft_'+md);if(!low)shakeView(C.shk)});
+  const f0=pre+C.stop;
+  at(f0,()=>{m.classList.remove('hit','drop');m.classList.add('rise',md);m.classList.add('done');if(low){if(r.ok){nextArt();m.classList.add(md==='ten'?'big':'pop')}else m.classList.add('gone');return}
     fx.style.backgroundImage=`url(${ART['craft_fx_'+md]})`;fx.style.backgroundSize=`${C.n*100}% 100%`;fx.style.display='block'});
   if(!low)for(let i=0;i<C.n;i++)at(f0+i*C.ms,()=>{fx.style.backgroundPosition=`${i/(C.n-1)*100}% 0`;
     if(md==='ok'){if(i===4){nextArt();m.classList.add('pop')}if(i===7)m.classList.remove('pop')}

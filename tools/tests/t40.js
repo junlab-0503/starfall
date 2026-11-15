@@ -39,18 +39,18 @@ ok(await p.evaluate(()=>Math.abs(craftPrice(S.craft.a)-bid('silverbar')*25)<1),'
 // 판매 보너스가 올라도 기준 가치는 그대로
 ok(await p.evaluate(()=>{const b0=craftPrice(S.craft.a);S.up.haggle=10;refreshBonus();const b1=craftPrice(S.craft.a);S.up.haggle=0;refreshBonus();return b0===b1}),'만든 뒤 판매 보너스가 올라도 세공품 값은 그대로');
 // 강화: 결과가 먼저 저장 · 연타는 한 번만
-await p.evaluate(()=>{window._R=Math.random;Math.random=()=>0.01});
+await p.evaluate(()=>{window._R=Math.random;Math.random=()=>0.01;S.gold=1e12});   // v28: 강화마다 골드가 듦
 await p.evaluate(()=>{$('crTry').click();$('crTry')&&$('crTry').click();craftDoTry()});
 const mid=await p.evaluate(()=>({lv:S.craft.a.lv,saved:JSON.parse(localStorage.getItem(SAVE_KEY)).craft.a.lv,busy:CRAFT_BUSY,dis:$('crTry').disabled}));
 ok(mid.lv===1&&mid.saved===1&&mid.busy&&mid.dis,`강화 결과는 연출 전에 저장(연출 중 저장값 +${mid.saved}), 연타는 한 번만, 연출 중 단추 꺼짐`);
 await p.waitForTimeout(2300);ok(await p.evaluate(()=>!CRAFT_BUSY&&/좋아/.test($('crSay').textContent)),'+1 성공 → 린 대사 "좋아! 제법 모양이 잡히는데?"');
 // 연출 중 껐다 켜도 결과 그대로
-await p.evaluate(()=>{craftDoTry()});{const r=await reopen(()=>S.craft.a&&S.craft.a.lv);ok(r===2,`연출 중에 앱을 꺼도 결과(+2) 그대로(새로 연 창에서 +${r})`)}await p.waitForTimeout(2300);
+await p.evaluate(()=>{craftDoTry()});{const r=await reopen(()=>S.craft.a&&S.craft.a.lv);ok(r===2,`연출 중에 앱을 꺼도 결과(+2) 그대로(새로 연 창에서 +${r})`)}await p.waitForTimeout(2700);
 // +10까지, 더는 안 됨
 await p.evaluate(()=>{Math.random=()=>0.01;for(let i=0;i<20;i++){CRAFT_BUSY=false;craftTry()}});ok(await p.evaluate(()=>S.craft.a.lv===10&&craftTry()===null&&S.craft.rec.silver.ten&&S.craft.rec.silver.best===10),'+10에서 멈춤, 더 강화 못 함, +10 기록');
 // 판매: 확인 창 → 취소(변화 없음) → 판매
 await p.evaluate(()=>{openSheet('craft');CRAFT_BUSY=false;renderCraft()});await p.waitForTimeout(100);
-const pr=await p.evaluate(()=>({p:craftPrice(S.craft.a),g:S.gold,base:S.craft.a.base}));ok(Math.abs(pr.p-Math.floor(pr.base*250))<1,'+10 판매가 = 기준 가치 × 250');
+const CRAFT_M_10=await p.evaluate(()=>CRAFT_M[10]);const pr=await p.evaluate(()=>({p:craftPrice(S.craft.a),g:S.gold,base:S.craft.a.base}));ok(Math.abs(pr.p-Math.floor(pr.base*CRAFT_M_10))<1,'+10 판매가 = 기준 가치 × '+CRAFT_M_10);
 await p.click('#crSell');await p.waitForTimeout(100);ok(await p.evaluate(()=>!$('story').hidden&&!!$('crSellGo')),'판매 확인 창');
 await p.click('#storyNext');await p.waitForTimeout(80);ok(await p.evaluate(g=>S.gold===g&&!!S.craft.a,pr.g),'취소 → 아무것도 안 바뀜');
 await p.click('#crSell');await p.waitForTimeout(80);await p.click('#crSellGo');await p.waitForTimeout(100);
@@ -58,10 +58,10 @@ const af=await p.evaluate(()=>({g:S.gold,a:S.craft.a,bs:S.craft.rec.silver.bestS
 ok(Math.abs(af.g-pr.g-pr.p)<1&&af.a===null&&af.bs===pr.p&&/좋은 거래/.test(af.say),`판매 → 골드 +${pr.p}, 세공품 사라짐, 최고 판매 기록, 대사`);
 await p.evaluate(()=>{$('crSellGo')&&$('crSellGo').click()});ok(await p.evaluate(g=>Math.abs(S.gold-g)<1,af.g),'판매 단추를 또 눌러도 두 번 지급 안 됨');
 // 실패: 부서짐 · 재료 반환 없음
-await p.evaluate(()=>{S.inv.goldbar=10;S.craft.sel='gold';craftMake('gold',10);Math.random=()=>0.999;CRAFT_BUSY=false;craftTry()});
+await p.evaluate(()=>{S.gold=1e12;S.inv.goldbar=10;S.craft.sel='gold';craftMake('gold',10);Math.random=()=>0.999;CRAFT_BUSY=false;craftTry()});
 ok(await p.evaluate(()=>S.craft.a===null&&cnt('goldbar')===0&&S.craft.rec.gold.fail===1),'실패 → 세공품 · 재료 모두 사라짐(반환 없음)');
 // 확률 확인(실제 난수)
-const st=await p.evaluate(()=>{Math.random=window.__R0;let s=0;const N=20000;for(let i=0;i<N;i++){S.craft.a={k:'silver',n:1,base:1,lv:0,t:0};CRAFT_BUSY=false;if(craftTry().ok)s++}S.craft.a=null;return s/N});
+const st=await p.evaluate(()=>{Math.random=window.__R0;S.gold=1e12;let s=0;const N=20000;for(let i=0;i<N;i++){S.craft.a={k:'silver',n:1,base:1,lv:0,t:0};CRAFT_BUSY=false;if(craftTry().ok)s++}S.craft.a=null;return s/N});
 ok(Math.abs(st-.9)<.01,`+1 성공률 실제 ${(st*100).toFixed(1)}% (표기 90%)`);
 // 망가진 세공 저장 → 안전하게
 ok(await p.evaluate(()=>{const d=JSON.parse(JSON.stringify(S));d.craft={a:{k:'x',n:-3,base:'a',lv:99},rec:{silver:{made:-1,best:50}},met:1};const c=cleanSave(d).craft;return c.a===null&&c.rec.silver.made===0&&c.rec.silver.best===10&&c.met===1}),'이상한 세공 저장값은 버리고 안전한 값으로');

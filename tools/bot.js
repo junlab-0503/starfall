@@ -38,12 +38,12 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
       const ev=bid(r.out)*(successRate()+greatRate()),cost=bid(r.a)+bid(r.b);if(ev>cost*1.15)craft(r.out,avail)});
     // 세공 도박(opt.gamble=목표 단계): B4부터 남는 은괴 · 금괴 · 별빛강을 전부 세공품으로 → 목표까지 두드리고 판매(실패하면 잃음)
     if(opt.gamble&&S.unlocked>=4)for(const K of CRAFT_KINDS){const sur=cnt(K.mat)-(T[K.mat]||0);if(sur<=0)continue;const base=bid(K.mat)*sur;add(K.mat,-sur);gamIn+=base;gamN++;
-      let lv=0,alive=true;while(lv<opt.gamble){if(Math.random()<CRAFT_P[lv+1])lv++;else{alive=false;break}}
+      let lv=0,alive=true;while(lv<opt.gamble){const ct=base*CRAFT_M[lv]*CRAFT_COST;S.gold-=ct;gamIn+=ct;if(Math.random()<CRAFT_P[lv+1])lv++;else{alive=false;break}}   // v28: 도전마다 골드(지금 판매가 5%)
       if(alive){const g=base*CRAFT_M[lv];S.gold+=g;S.earned+=g;gamOut+=g;gamMax=Math.max(gamMax,g/Math.max(1,base));gamWin++}}
     // 공격적인 세공 도박(opt.allin={to:목표 단계, frac:골드 비율}): B4부터 20분마다 가장 비싼 막대(은괴/금괴/별빛강, 연 지층까지)를 장터에서 사서 한 덩어리로 세공 → 목표까지 → 판매
     if(opt.allin&&S.unlocked>=4&&t>=(RS._bet||0)){RS._bet=t+1200;const ks=CRAFT_KINDS.filter(K=>{const r=RECIPES.find(r=>r.out===K.mat);return r&&r.L<=S.unlocked});const K=ks[ks.length-1];
       const n=Math.max(0,Math.min(Math.floor(S.gold*opt.allin.frac/ask(K.mat)),space()));if(n>0){const b0=S.gold;buy(K.mat,n);const spent=b0-S.gold,base=bid(K.mat)*n;add(K.mat,-n);gamIn+=spent;gamN++;
-        let lv=0,alive=true;while(lv<opt.allin.to){if(Math.random()<CRAFT_P[lv+1])lv++;else{alive=false;break}}
+        let lv=0,alive=true;while(lv<opt.allin.to){const ct=base*CRAFT_M[lv]*CRAFT_COST;S.gold-=ct;gamIn+=ct;if(Math.random()<CRAFT_P[lv+1])lv++;else{alive=false;break}}
         if(alive){const g=base*CRAFT_M[lv];S.gold+=g;S.earned+=g;gamOut+=g;gamWin++}}}
     // 남는 것 팔기
     ORDER.forEach(id=>{const sur=cnt(id)-(T[id]||0);if(sur>0){const g0=S.gold;sell(id,sur);gIncome+=S.gold-g0}});
