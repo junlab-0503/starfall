@@ -224,15 +224,15 @@ function setLayer(i){if(i>=S.unlocked)return;S.layer=i;S.hp=layerHp(i);S.next=ro
 /* 황금 광맥: 어느 탭에 있든 다음 광맥까지의 시간이 흐르고(8~14분, 노을이 입주하면 30% 짧게), 나타나면 30초 동안 탭 · 자동 드릴이 골드를 직접 캐냄.
    다른 탭에 있을 때 나타나면 작은 알림 띠(누르면 채굴 화면으로). 골드는 채굴 화면에서 캘 때만 나옴.
    이야기 창 · 시작 화면 · 입구 장면이 떠 있거나 앱이 뒤로 간 동안엔 멈춤 (한 번에 켜 두고 4분치를 탭 40번에 나눠, 최대 6분치) */
-const VEIN_SEC=30;
+const VEIN_SEC=30,veinSec=()=>VEIN_SEC+2*ul('vheat');   // 미르의 '별의 열 붙잡기'만큼 더 오래
 // 황금 광맥 골드: 탭 1번 = pot×tap, 드릴 0.25초마다 pot×drill (pot = 지금 채굴 수입 4분치). v24: 둘 다 절반(1/40 → 1/80, 1/400 → 1/800)
 const VEIN_K={tap:1/80,drill:1/800};
 const veinClock=()=>!document.hidden&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;
 const minePlaying=()=>S.tab==='mine'&&veinClock();
 const veinOn=()=>!!S.vein&&S.vein.left>0&&minePlaying();
 function veinTick(){if(!veinClock())return;if(S.vein){if((S.vein.left-=1)<=0)endVein();else veinPop();return}if(!S.tutDone)return;if((S.veinT-=1)<=0)startVein()}
-function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={left:VEIN_SEC,pot,got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);
-  A.joy=.9;sfx('rare');if(S.tab==='mine'){toast(`황금 광맥이 드러났어요! ${VEIN_SEC}초 동안 캐면 골드가 쏟아져요.`);for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5})}
+function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={left:veinSec(),pot,got:0,len:veinSec()};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);
+  A.joy=.9;sfx('rare');if(S.tab==='mine'){toast(`황금 광맥이 드러났어요! ${veinSec()}초 동안 캐면 골드가 쏟아져요.`);for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5})}
   veinPop();renderMineHud()}
 // 알림 띠: 황금 광맥이 떠 있는데 다른 탭을 보고 있을 때만
 function veinPop(){const el=$('veinPop'),on=!!S.vein&&S.tab!=='mine';if(el.hidden===on){el.hidden=!on}if(on)$('veinPopT').textContent=`${Math.max(0,Math.ceil(S.vein.left))}초`}

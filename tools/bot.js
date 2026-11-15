@@ -52,7 +52,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
       else if(upOpen('auto')&&autoCost(S.auto)<av*.2){S.gold-=autoCost(S.auto);S.auto++;did=true}
       else if(upOpen('furn')&&S.furnace<5&&furnCost(S.furnace)<av*.1){S.gold-=furnCost(S.furnace);S.furnace++;did=true}
       else if(cap()/Math.max(.01,(tapPower()*TAPS+autoDps())/layerHp(S.layer))<1200&&upOpen('wh')&&whCost(S.wh)<av*.4){S.gold-=whCost(S.wh);S.wh++;did=true}
-      if(!did)for(const k of ['crit','haggle','metal','gem','bulk','refiner','great','autosell'])if(!upMax(k)&&upCost(k)<av*.12){buyUp(k);did=true;break}
+      if(!did)for(const k of ['crit','haggle','metal','gem','bulk','refiner','great','autosell',...(opt.noVheat?[]:['vheat'])])if(!upMax(k)&&upCost(k)<av*.12){buyUp(k);did=true;break}
       if(!did)break}
     // 탑
     // 확신이 큰 소문이 돌고 있으면 탑 짓기를 잠깐 미루고 돈을 굴린다
@@ -74,7 +74,7 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
     // 탭 1번 = pot×VEIN_K.tap, 드릴 0.25초마다 pot×VEIN_K.drill, 상한 없음 (pot = 지금 채굴 수입 4분치)
     if(S.vein){const v=S.vein,add=Math.round(v.pot*(TAPS*VEIN_K.tap+(S.auto>0&&S.autoOn?4*VEIN_K.drill:0)));if(add>0){v.got+=add;S.gold+=add;S.earned+=add;veinG+=add}if(--v.left<=0)S.vein=null}
     else{if(space()>0)mine(tapPower()*TAPS*(1+2*critP()),false);if(S.auto>0)mine(autoDps(),true);
-      if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:VEIN_SEC,pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);veinN++}}
+      if(opt.vein!==false&&(S.veinT-=1)<=0){S.vein={left:veinSec(),pot:Math.max(100,Math.round(playIncome()*240)),got:0};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);veinN++}}
     tickMarket(1,false);S.rentAcc+=rentPerSec();
     t++;wall++;if(t%10===0){decide();hit=hitF()}
     if(opt.sess&&++sOn>=opt.sess[si%opt.sess.length][0]*60){const off=opt.sess[si%opt.sess.length][1]*60;si++;sOn=0;wall+=off;S.vein=null;

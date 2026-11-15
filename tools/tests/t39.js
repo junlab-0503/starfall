@@ -15,25 +15,24 @@ if(L==='ko'){
   ok(Object.values(isz).every(([w,hh])=>hh<=64&&w<=72),`아이콘은 다른 아이콘처럼 작은 도트(${JSON.stringify(isz)})`);
   // 자동 재련소 없음
   ok(await p.evaluate(()=>!$('rqPanel')&&!$('smeltQ')&&typeof rqRun==='undefined'&&!('rq' in fresh())&&!UPS.qslot&&!UPS.qspeed),'자동 재련소 · 맡기기 · 자동 재련 강화 없음');
-  ok(await p.evaluate(()=>SHOPS.find(s=>s.who==='미르').ups.join()==='furn,great,cata,salv'),'미르의 용광로: 풀무 · 별빛 불씨 · 촉매 연구 · 광재 되살리기');
-  // 촉매: 성공하면 재료 하나 돌려받음 / 되살리기: 실패해도 재료 둘 다 돌아오고 광재 없음
-  const ct=await p.evaluate(()=>{const R=Math.random;S.up.cata=10;S.up.salv=5;S.found=[];const i=RECIPES.findIndex(r=>r.a!==r.b&&r.L<=4);const r=RECIPES[i];
-    S.inv={};S.inv[r.a]=5;S.inv[r.b]=5;S.slots=[r.a,r.b];let k=0;const seq=[.001,.01,.5];Math.random=()=>seq[k++]??.5;const x=smeltOnce();const used=10-cnt(r.a)-cnt(r.b);
-    S.inv[r.a]=5;S.inv[r.b]=5;S.inv.slag=0;S.slots=[r.a,r.b];k=0;const seq2=[.999,.01];Math.random=()=>seq2[k++]??.5;const y=smeltOnce();const used2=10-cnt(r.a)-cnt(r.b);
-    S.up.salv=0;S.inv[r.a]=5;S.inv[r.b]=5;S.slots=[r.a,r.b];Math.random=()=>.999;const z=smeltOnce();Math.random=R;S.up={};return{x:x.kind,saved:x.saved,used,y:y.kind,salv:y.salv,used2,slag:cnt('slag'),z:z.kind}});
-  ok(ct.saved===1&&ct.used===1,`촉매 연구: 성공하면 재료 하나 돌려받음(쓴 재료 ${ct.used}개)`);
-  ok(ct.salv===1&&ct.used2===0&&ct.z==='bad'&&ct.slag===1,`광재 되살리기: 실패해도 재료를 모두 되살림(쓴 재료 ${ct.used2}개), 강화가 없으면 예전처럼 광재`);
+  ok(await p.evaluate(()=>SHOPS.find(s=>s.who==='미르').ups.join()==='furn,great,vheat'&&!UPS.cata&&!UPS.salv),'미르의 용광로: 풀무 · 별빛 불씨 · 별의 열 붙잡기');
+  // 별의 열 붙잡기: 황금 광맥이 단계마다 2초 더 머묾(30초 → 10단계 50초)
+  const vh=await p.evaluate(()=>{const o=[];for(const l of [0,1,10]){S.up.vheat=l;startVein();o.push(S.vein.left);endVein()}S.up={};return o});
+  ok(vh.join()==='30,32,50',`별의 열 붙잡기: 황금 광맥 ${vh.join('초 → ')}초`);
+  ok(await p.evaluate(()=>{const i=RECIPES.findIndex(r=>r.a!==r.b);const r=RECIPES[i];S.inv={};S.inv[r.a]=5;S.inv[r.b]=5;S.slots=[r.a,r.b];const R=Math.random;Math.random=()=>.5;smeltOnce();Math.random=R;return cnt(r.a)===4&&cnt(r.b)===4}),'재련은 예전과 같음(재료 1개씩)');
   // 옛 저장: 자동 재련 칸 2단계 · 센 불꽃 3단계 → 그만큼 골드를 돌려줌, 맡겨 둔 목록은 사라짐
   const rf=await p.evaluate(()=>{const d=JSON.parse(JSON.stringify(S));d.up={qslot:2,qspeed:3,great:1};d.rq=[{r:0,n:5,t:0,loop:false}];d.gold=1000;const c=BAL.ups;
     const cost=(k,lv)=>{let g=0;for(let i=0;i<lv;i++)g+=upCostOf(k,i);return g};const exp=cost('qslot',2)+cost('qspeed',3);const s2=cleanSave(d);return{exp,gold:s2.gold,ref:s2.rqRefund,up:JSON.stringify(s2.up),rq:'rq' in s2}});
   ok(rf.gold===1000+rf.exp&&rf.ref===rf.exp&&rf.up==='{"great":1}'&&!rf.rq,`옛 저장의 자동 재련 강화 → +${rf.exp}G 돌려줌, 다른 강화는 그대로`);
-  // 재련 탭 순서 · 레시피 도감은 도감 창
-  ok(await p.evaluate(()=>{setTab('forge');const f=$('tab-forge');return f.children[0].id==='forgePanel'&&f.children[1].id==='qcPanel'&&!f.contains($('book'))&&$('sub-book').contains($('book'))}),'재련 탭: 용광로 → 빠른 제작, 레시피 도감은 도감 창으로');
-  await p.evaluate(()=>{S.found=[RECIPES.findIndex(r=>r.out==='bronze')];openSheet('book')});await p.waitForTimeout(150);
-  ok(await p.evaluate(()=>!!document.querySelector('#book [data-fill]')&&$('book').offsetParent!==null),'도감 창에 레시피 도감 보임');
-  await p.click('#book [data-fill]');await p.waitForTimeout(150);ok(await p.evaluate(()=>S.tab==='forge'&&$('sheet').hidden&&S.slots.join()==='copper,tin'),'레시피 도감 [넣기] → 재련 탭 용광로에 재료');
+  // 재련 탭: 위에 고르는 칸(용광로 · 빠른 제작 · 레시피), 레시피는 목록만
+  const fg=await p.evaluate(()=>{setTab('forge');const seg=[...document.querySelectorAll('#fgSeg [data-fgs]')].map(b=>b.dataset.fgs).join();return{seg,vis:[!$('forgePanel').hidden,$('qcPanel').hidden,$('recPanel').hidden],inBook:$('sub-book').contains($('book'))}});
+  ok(fg.seg==='furn,quick,rec'&&fg.vis.every(Boolean)&&!fg.inBook,`재련 탭 고르는 칸 ${fg.seg}, 처음엔 용광로만, 레시피는 재련 탭에`);
+  await p.click('[data-fgs="rec"]');await p.waitForTimeout(100);
+  ok(await p.evaluate(()=>$('forgePanel').hidden&&$('qcPanel').hidden&&!$('recPanel').hidden&&!document.querySelector('#book [data-fill]')&&!document.querySelector('#book button')),'[레시피] → 레시피 목록만(넣기 단추 없음)');
+  await p.click('[data-fgs="quick"]');await p.waitForTimeout(100);ok(await p.evaluate(()=>!$('qcPanel').hidden&&$('forgePanel').hidden&&S.fgSub==='quick'),'[빠른 제작] → 빠른 제작만');
+  ok(await p.evaluate(()=>{S.tutDone=false;S.fgSub='quick';renderFgSub();const r=!$('forgePanel').hidden&&$('fgSeg').hidden;S.tutDone=true;S.fgSub='quick';renderFgSub();return r}),'튜토리얼 중엔 고르는 칸 없이 용광로');
   // 빠른 제작 개수
-  await p.evaluate(()=>{S.slots=[null,null];S.inv={copper:7,tin:5};renderForge()});await p.waitForTimeout(100);
+  await p.evaluate(()=>{S.slots=[null,null];S.found=[RECIPES.findIndex(r=>r.out==='bronze')];S.inv={copper:7,tin:5};S.fgSub='quick';renderForge();renderFgSub()});await p.waitForTimeout(100);
   const qn=async()=>p.evaluate(()=>({n:+document.querySelector('.qc-n').textContent,btn:$('qcGo').textContent}));
   await p.click('[data-qn="1"]');await p.click('[data-qn="1"]');let s1=await qn();ok(s1.n===3&&/3회 재련/.test(s1.btn),`[+] 두 번 → ${s1.btn}`);
   await p.click('[data-qn="max"]');s1=await qn();ok(s1.n===5,`[최대] → 재료로 만들 수 있는 만큼(${s1.n})`);

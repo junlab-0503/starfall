@@ -10,7 +10,7 @@ await p.evaluate(()=>{S.tutDone=true;S.unlocked=3;S.whHint=1;S.seen=Object.keys(
 if(L==='ko'){
   // 빠른 제작
   await p.evaluate(()=>setTab('forge'));await p.waitForTimeout(200);
-  ok(await p.evaluate(()=>!document.querySelector('[data-qc]')&&!!$('qcPanel')&&$('tab-forge').firstElementChild.id==='forgePanel'&&$('forgePanel').nextElementSibling.id==='qcPanel'),'재련 탭: 용광로 아래 빠른 제작, 성공한 레시피가 없으면 목록 비어 있음');
+  ok(await p.evaluate(()=>!document.querySelector('[data-qc]')&&!!$('qcPanel')&&$('tab-forge').firstElementChild.id==='fgSeg'&&!!$('qcPanel')),'재련 탭: 위에 고르는 칸 · 빠른 제작, 성공한 레시피가 없으면 목록 비어 있음');
   const i0=await p.evaluate(()=>{const i=RECIPES.findIndex(r=>r.a!==r.b&&r.L<=S.unlocked);const r=RECIPES[i];S.inv[r.a]=3;S.inv[r.b]=3;S.slots=[r.a,r.b];renderForge();Math.random=()=>.99;$("smelt").click();return i});
   ok(await p.evaluate(i=>!S.found.includes(i)&&!document.querySelector('[data-qc]')&&cnt('slag')===1,i0),'실패(광재)한 레시피는 빠른 제작에 안 나옴');
   await p.evaluate(()=>{Math.random=()=>.001;$('smelt').click();Math.random=()=>.5;renderAll()});

@@ -435,3 +435,16 @@ button.matl.mgo:active{transform:translateY(1px)}
 .story[data-cat="p"] .story-ill img{width:100%;height:auto;object-fit:cover}
 /* 빠른 제작이 비어 있을 때 안내 글은 칸 하나가 아니라 상자 너비 전체로 */
 .qc-grid .qc-empty{grid-column:1/-1;margin:2px 2px 0;text-align:left;line-height:1.6}
+/* v24.3: 원본 그림 그대로(무손실) — 지층 192×112 · 엔딩 192×152, 도트가 번지지 않게 */
+.story .story-ill img{image-rendering:pixelated}
+.story[data-cat="b"] .story-ill img{aspect-ratio:192/112;object-fit:contain}
+.story[data-cat="e"] .story-ill img{aspect-ratio:192/152;object-fit:contain}
+/* 엔딩(그리고 나중의 프롤로그): 그림 바로 아래 글, 화면 가운데에 한 덩어리로(빈 띠 없이) */
+.story.m-full .story-card{justify-content:center;background:#17111b;padding:16px 0 calc(env(safe-area-inset-bottom,0px) + 14px);overflow-y:auto}
+.story.m-full .story-ill{position:relative;top:auto;left:auto;right:auto;flex:none;width:calc(100% - 28px);max-width:452px;margin:0 auto 12px;border:3px solid #3a2a1a;box-shadow:0 0 0 3px #0a0705}
+.story.m-full .story-ill::after{display:none}
+.story.m-full .story-ill img{max-height:none;height:auto}
+.story.m-full .story-kick{margin-top:0}
+.story.m-full p{max-height:none;text-shadow:none}
+.story.m-full #storyNext{margin-top:4px}
+.fg-seg{margin-bottom:8px}

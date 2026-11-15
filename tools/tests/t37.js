@@ -25,7 +25,7 @@ const b3=await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textCont
 ok(/B3/.test(b3.t)&&/곡괭이 자국/.test(b3.b)&&(withArt?b3.card&&b3.ill:!b3.card&&!b3.ill),`${tag} B3 개척: ${withArt?'가운데 삽화 + 일지 카드':'글만'}`);await p.click('#storyNext');
 await p.evaluate(()=>revealJournal(12));await p.waitForTimeout(100);
 const b13=await p.evaluate(()=>({t:$('storyT').textContent,b:$('storyB').textContent,hero:$('story').classList.contains('m-hero'),ill:!!$('storyIllImg').getAttribute('src'),vis:getComputedStyle($('storyIll')).display!=='none'}));
-ok(/B13/.test(b13.t)&&/9,999m/.test(b13.b)&&b13.hero&&b13.vis&&b13.ill===withArt,`${tag} B13 별의 심장: 특별 전체 화면(그림 ${withArt?'있음':'없어도 빛나는 자리'})`);await p.click('#storyNext');
+const b13c=await p.evaluate(()=>$('story').classList.contains('m-card'));ok(/B13/.test(b13.t)&&/9,999m/.test(b13.b)&&!b13.hero&&b13.ill===withArt&&b13c===withArt,`${tag} B13 별의 심장: B1~B12와 같은 카드(그림 ${withArt?'있음':'없으면 글만'})`);await p.click('#storyNext');
 ok(await p.evaluate(()=>$('story').hidden&&!['m-full','m-card','m-hero'].some(k=>$('story').classList.contains(k))),`${tag} 창을 닫으면 연출 클래스 정리`);
 // 일반 이야기 창(입주자 등)은 그대로
 await p.evaluate(()=>{S.floors=6;tenantCard(1)});await p.waitForTimeout(100);ok(await p.evaluate(()=>!$('story').classList.contains('m-card')&&!$('story').classList.contains('m-full')&&$('storyIll').hidden),`${tag} 입주자 · 보상 같은 일반 이야기 창은 그대로`);await p.click('#storyNext');

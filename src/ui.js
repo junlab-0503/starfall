@@ -17,7 +17,7 @@ function renderMineHud(){
   // 스위치 하나가 켜 둔 동안과 자리 비운 동안 모두를 정함
   $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';$('autoSub').textContent=S.autoOn?(f?'창고 가득 · 보관함에 모아요':'자리 비워도 캐요'):'자리 비워도 쉬어요';
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
-  const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/VEIN_SEC,0,1)*100)+'%';
+  const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
   $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
@@ -95,7 +95,7 @@ $('sellRaw').onclick=()=>askSellAll('raw');$('sellRef').onclick=()=>askSellAll('
 $('storyX').addEventListener('click',e=>{if(!e.target.closest('#sellGo')||!SELLG)return;const g=SELLG;SELLG=null;sellAll(g);sfx('coin');nextStory()});
 function renderLog(){const el=$('log');if(el)setHTML(el,S.log.slice(0,40).map(l=>`<div>${l}</div>`).join(''))}
 /* 도감·일지·기록 */
-const journalCard=(i,k)=>{const ev=LAYER_EVENT[i+1];return{gold:1,k,t:`B${i+1} ${LAYERS[i].n}`,b:(ev?ev+'\n\n':'')+`"${JOURNAL[i]}"`,ill:'b'+(i+1),mode:i===LAYERS.length-1?'hero':'card'}};
+const journalCard=(i,k)=>{const ev=LAYER_EVENT[i+1];return{gold:1,k,t:`B${i+1} ${LAYERS[i].n}`,b:(ev?ev+'\n\n':'')+`"${JOURNAL[i]}"`,ill:'b'+(i+1),mode:'card'}};   // B13도 B1~B12와 같은 카드
 function revealJournal(i){if(S.journal.includes(i))return;S.journal.push(i);story([journalCard(i,`할아버지의 일지 · ${S.journal.length}/13`)])}
 function renderBookTab(){
   $('jCount').textContent=`${S.journal.length}/13`;
@@ -162,8 +162,8 @@ function setTab(t){if(t==='manage'){t='mine'}if(!TABS.includes(t))t='mine';if(!$
   if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;veinPop();renderTab();scrollTo(0,0)}
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 function renderManage(){if(!SHEET_T[S.sub])S.sub='store';['store','shaft','book','set'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);
-  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book'){renderBookTab();renderBook()}if(S.sub==='set'){renderPkg();renderSnd()}}
-function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='equip')renderEquip();if(!$('sheet').hidden)renderManage()}
+  if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book')renderBookTab();if(S.sub==='set'){renderPkg();renderSnd()}}
+function renderTab(force){renderHeader();if(S.tab==='mine')renderMineHud();if(S.tab==='forge'){renderForge();renderBook();renderFgSub()}if(S.tab==='market')renderMarket(force);if(S.tab==='tower')renderTower();if(S.tab==='equip')renderEquip();if(!$('sheet').hidden)renderManage()}
 function renderAll(){renderTab(true)}
 /* 아래 탭 아이콘 (도트) */
 // 아래 탭 아이콘(사용자 그림 art/ui/nav_*.png)

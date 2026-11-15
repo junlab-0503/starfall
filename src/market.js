@@ -15,7 +15,7 @@ function buy(id,n){const c=ask(id),k=Math.max(0,Math.min(n,Math.floor(S.gold/c),
 function splitDrops(n,L=S.layer){const o={};if(n>2000){const d=dropW(L),tot=d.reduce((s,x)=>s+x[1],0);let left=n;d.forEach(([id,w],i)=>{const k=i===d.length-1?left:Math.min(left,Math.round(n*w/tot));if(k>0)o[id]=k;left-=k})}
   else for(let i=0;i<n;i++){const id=rollDrop(L);o[id]=(o[id]||0)+1}
   for(const id in o)o[id]=Math.round(o[id]*(1+extraP(ITEMS[id].s)));return o}
-// 넘친 광석 팔기: 원석 값의 50% (자동 재련 장치가 있으면 재련해서 더 비싸게)
+// 넘친 광석 팔기: 원석 값의 50% (핀의 자동 판매 장치를 키우면 더 비싸게). 싼 것부터가 아니라, 보관함에 못 들어간 바로 그 광석을 판다
 function sellOverflow(id,n){if(n<=0)return 0;const g=bid(id)*n*ofMul(ul('refiner'));S.gold+=g;S.earned+=g;S.ofN=(S.ofN||0)+n;S.ofG=(S.ofG||0)+g;return g}
 // 채굴 보관함으로 (넘치면 판매)
 function toBox(id,n){const b=Math.min(n,Math.max(0,boxCap()-boxUsed()));if(b>0)boxAdd(id,b);if(n>b)sellOverflow(id,n-b)}

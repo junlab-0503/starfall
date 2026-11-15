@@ -14,7 +14,7 @@ if(had)resume();else clockCheck();
 function welcome(r){const ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot=ores.reduce((s,o)=>s+o[1],0);
   const rows=[];if(r.rent>0)rows.push(`<span>${ico('coin','sm')} 입주자 월세</span><span>+${big(r.rent)}G</span>`);
   ores.slice(0,6).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(n)}</span>`));if(ores.length>6)rows.push(`<span>그 밖의 광석</span><span>×${big(ores.slice(6).reduce((s,o)=>s+o[1],0))}</span>`);
-  if(r.sold&&r.sold.n>0)rows.push(`<span>${ico(ul('refiner')?'crysteel':'brick','sm')} 넘친 광석 ${big(r.sold.n)}개 ${ul('refiner')?'재련해서 ':''}판매</span><span>+${big(r.sold.g)}G</span>`);
+  if(r.sold&&r.sold.n>0)rows.push(`<span>${ico(ul('refiner')?'crysteel':'brick','sm')} 넘친 광석 ${big(r.sold.n)}개 판매</span><span>+${big(r.sold.g)}G</span>`);
   if(r.drillOff)rows.push(`<span class="dim">드릴 로봇</span><span class="dim">스위치가 꺼져 있어 쉬었어요</span>`);
   if(!rows.length)return;
   story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`${r.drillOff?'탑의 입주자들이 일했어요. 드릴 로봇은 꺼 둔 채라 쉬었어요.':'탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.'}${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 채굴 보관함에서 받을 수 있어요.':''}</p>`}])}
