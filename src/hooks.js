@@ -11,7 +11,8 @@
  w('nextStory',()=>{if(!$('story').hidden)sfx($('portrait').hidden?'page':'tenant')});
  document.addEventListener('click',e=>{if(e.target.closest('button')&&!e.target.closest('#scene'))sfx('click')},true);}
 /* 설정: 음량, 튜토리얼 다시 보기 */
-function renderSnd(){S.sound=S.sound||{sfx:.6,bgm:.3};$('volSfx').value=Math.round(S.sound.sfx*100);$('volBgm').value=Math.round(S.sound.bgm*100);$('lowFx').checked=!!S.lowFx}
+function renderSnd(){S.sound=S.sound||{sfx:.6,bgm:.3};$('volSfx').value=Math.round(S.sound.sfx*100);$('volBgm').value=Math.round(S.sound.bgm*100);$('lowFx').checked=!!S.lowFx;$('vibOn').checked=S.vib!==false}
+$('vibOn').addEventListener('change',e=>{S.vib=e.target.checked;save();if(S.vib)buzz(30)});
 $('lowFx').addEventListener('change',e=>{S.lowFx=e.target.checked;save()});
 $('volSfx').addEventListener('input',e=>{S.sound.sfx=e.target.value/100;applyVol();sfx('coin')});
 $('volBgm').addEventListener('input',e=>{S.sound.bgm=e.target.value/100;applyVol()});

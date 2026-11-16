@@ -65,19 +65,20 @@ function craftShowHtml(a,anim){const K=craftKind(a.k),to=a.lv+1,top=a.lv>=CRAFT_
 /* 강화 연출(효과 팩 안내 + v28 긴장 시간). 결과는 이미 저장됨
    긴장: 세공침이 반쯤 내려와 멈춘 채 떨리고, 째깍 소리가 점점 빨라지고, 세공품이 점점 빛남(0.9초 + 단계마다 0.09초: +1 약 1초 · +10 약 1.8초)
    → 세공침이 내리꽂힘 → 닿는 순간 멈칫(성공 55 · 실패 75 · +10 90ms) + 화면 흔들림(2 · 3 · 4px) + 소리
+   진동(설정 [진동]): 내려가기 시작 톡 · 째깍마다 아주 짧게 · 내리꽂힐 때 조금 세게 · 닿는 순간 성공/실패/+10 따로
    → 효과 프레임(65 · 65 · 70ms씩 13 · 15 · 20장) → 성공: 세공품이 1.06배로 튀었다 돌아옴 · 실패: 금이 간 뒤 사라짐 · +10: 1.1배로 커지며 빛남
    '흔들림 · 번쩍임 줄이기'(설정) 또는 기기의 동작 줄이기 설정이면 흔들림 · 효과 프레임 없이 결과만 */
-const CFX={ok:{n:13,ms:65,stop:55,shk:2},fail:{n:15,ms:65,stop:75,shk:3},ten:{n:20,ms:70,stop:90,shk:4}};
+const CFX={ok:{n:13,ms:65,stop:55,shk:2,vib:45},fail:{n:15,ms:65,stop:75,shk:3,vib:[70,50,90]},ten:{n:20,ms:70,stop:90,shk:4,vib:[60,40,60,40,160]}};   // vib: 닿는 순간 진동(성공 단단히 · 실패 투둑 · +10 길게)
 const lowFx=()=>!!S.lowFx||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 function shakeView(px){const el=document.querySelector('#sheet .sheet-card');if(!el)return;el.style.setProperty('--shk',px+'px');el.classList.remove('shk');void el.offsetWidth;el.classList.add('shk');setTimeout(()=>el.classList.remove('shk'),300)}
 function craftDoTry(){const r=craftTry();if(!r)return;CRAFT_BUSY=true;CRFX=r;renderCraft();
   const md=r.ok?(r.to===CRAFT_MAX?'ten':'ok'):'fail',C=CFX[md],low=lowFx(),m=$('crMedal'),fx=$('crFx'),it=$('crItem'),at=(t,f)=>setTimeout(()=>{try{f()}catch(e){}},t),nextArt=()=>{if(r.ok)it.src=craftArt(r.snap.k,r.to)};
   const pre=900+90*r.to;m.style.setProperty('--pre',pre+'ms');m.style.setProperty('--aim',Math.round(pre*.35)+'ms');
-  sfx('click');m.classList.add('aim');if(!low)m.classList.add('sus');
+  sfx('click');buzz(12);m.classList.add('aim');if(!low)m.classList.add('sus');
   // 째깍: 간격 240ms → 60ms, 소리도 점점 높게
-  {const tick=i=>{if(AC&&S.sound&&S.sound.sfx)tone(520+i*45,.035,'square',.07)};let t=120,k=0;while(t<pre-110){const kk=k++;at(t,()=>tick(kk));t+=Math.round(240-180*t/pre)}}
-  at(pre-110,()=>{m.classList.remove('aim','sus');m.classList.add('drop')});   // 내리꽂기
-  at(pre,()=>{m.classList.add('hit');sample('craft_'+md);if(!low)shakeView(C.shk)});
+  {const tick=i=>{if(AC&&S.sound&&S.sound.sfx)tone(520+i*45,.035,'square',.07);buzz(8)};let t=120,k=0;while(t<pre-110){const kk=k++;at(t,()=>tick(kk));t+=Math.round(240-180*t/pre)}}
+  at(pre-110,()=>{m.classList.remove('aim','sus');m.classList.add('drop');buzz(20)});   // 내리꽂기
+  at(pre,()=>{m.classList.add('hit');sample('craft_'+md);buzz(C.vib);if(!low)shakeView(C.shk)});
   const f0=pre+C.stop;
   at(f0,()=>{m.classList.remove('hit','drop');m.classList.add('rise',md);m.classList.add('done');if(low){if(r.ok){nextArt();m.classList.add(md==='ten'?'big':'pop')}else m.classList.add('gone');return}
     fx.style.backgroundImage=`url(${ART['craft_fx_'+md]})`;fx.style.backgroundSize=`${C.n*100}% 100%`;fx.style.display='block'});

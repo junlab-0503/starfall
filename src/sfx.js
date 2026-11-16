@@ -13,6 +13,12 @@ addEventListener('pagehide',()=>audioHold('hidden',true));addEventListener('page
 document.addEventListener('freeze',()=>audioHold('hidden',true));document.addEventListener('resume',()=>audioHold('hidden',document.hidden));
 addEventListener('blur',()=>audioHold('blur',true));addEventListener('focus',()=>audioHold('blur',false));
 window.starfallAudio=on=>audioHold('native',!on);
+/* 진동(설정 [진동], 기본 켬): 앱에 @capacitor/haptics가 있으면 그걸로(안드로이드 · 아이폰 모두),
+   없으면 브라우저 진동(navigator.vibrate — 안드로이드만, 아이폰 사파리나 다른 사이트 안에 들어간 화면에선 안 됨). 앱이 뒤로 가 있거나 무음 중엔 안 울림
+   p: 밀리초 하나 또는 [울림, 쉼, 울림, …] */
+function buzz(p){if(!S||S.vib===false||MUTE.size)return;try{const H=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Haptics;
+  if(H){const ms=Array.isArray(p)?p.filter((_,i)=>i%2===0).reduce((a,b)=>a+b,0):p;if(ms<=15)H.impact({style:'LIGHT'});else if(ms<=45)H.impact({style:'MEDIUM'});else H.vibrate({duration:Math.min(ms,400)});return}
+  if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
 /* 녹음한 효과음(art/sfx/*.mp3 → SFXD): 처음 쓸 때 한 번 풀어 두고, 효과음 음량 · 무음 규칙을 그대로 따름(SFXG) */
 const SBUF={};
 function sampleLoad(k){if(!AC||typeof SFXD==='undefined'||!SFXD[k])return null;

@@ -73,5 +73,17 @@ const od=await p.evaluate(()=>{openSheet('craft');const bad=[];const num=t=>{con
 ok(!od.length,'단계 +1~+10 모두: 화면 성공 확률 = 실제(5천 번) · 성공하면 값 = 실제 판매가 · 강화 비용 = 실제 차감'+(od.length?' 어긋남 '+od:''));
 // 10) 채굴 화면 [세공] 단추도 창고 단추와 같이 둥둥
 ok(await p.evaluate(()=>{closeSheet();setTab('mine');renderAll();const a=getComputedStyle($('crBtnImg')).animationName,b=getComputedStyle($('whBtn').querySelector('img')).animationName;return a==='icb'&&a===b}),'[세공] 단추가 창고 단추와 같은 둥둥 애니메이션');
+// 11) 진동: 내려가기 시작 톡 → 째깍마다 짧게 → 내리꽂힐 때 → 닿는 순간(성공 45ms). 설정을 끄면 안 울림. 앱 진동 플러그인이 있으면 그걸로
+await p.evaluate(()=>{window.__vib=[];Object.defineProperty(navigator,'vibrate',{configurable:true,value:x=>{__vib.push(x);return true}});S.lowFx=false;S.vib=true;S.gold=1e9;S.inv.platbar=5;CR().a=null;openSheet('craft');CR().sel='plat';renderCraft()});
+await p.click('#crMake');await p.waitForTimeout(150);await p.evaluate(()=>{window.__R=Math.random;Math.random=()=>0});await p.click('#crTry');await p.evaluate(()=>{Math.random=window.__R});await p.waitForTimeout(1300);
+const vb=await p.evaluate(()=>[...__vib]);const ticks=vb.filter(x=>x===8).length;
+ok(vb[0]===12&&ticks>=4&&vb.includes(20)&&vb[vb.length-1]===45&&vb.indexOf(20)<vb.indexOf(45),`진동 순서: 시작 12ms → 째깍 ${ticks}번(8ms) → 내리꽂기 20ms → 성공 45ms`);
+await p.waitForTimeout(1200);await p.evaluate(()=>{__vib.length=0;closeSheet();openSheet('set')});await p.click('#vibOn');
+const off=await p.evaluate(()=>({vib:S.vib,saved:JSON.parse(localStorage.getItem(SAVE_KEY)).vib}));
+await p.evaluate(()=>{closeSheet();openSheet('craft');renderCraft();window.__R=Math.random;Math.random=()=>0;craftDoTry();Math.random=window.__R});await p.waitForTimeout(1500);
+ok(off.vib===false&&off.saved===false&&(await p.evaluate(()=>__vib.length))===0,'설정 [진동] 끄면 저장되고 진동 없음');
+const hp=await p.evaluate(()=>{S.vib=true;const L=[];window.Capacitor={Plugins:{Haptics:{impact:o=>L.push('impact:'+o.style),vibrate:o=>L.push('vibrate:'+o.duration)}}};buzz(8);buzz(45);buzz([70,50,90]);delete window.Capacitor;return L.join(',')});
+ok(hp==='impact:LIGHT,impact:MEDIUM,vibrate:160','앱 진동 플러그인(@capacitor/haptics)이 있으면 그걸로: '+hp);
+await p.waitForTimeout(1200);
 ok(errs.length===0,'오류 없음 '+errs.join(' | '));
 await b.close()})();
