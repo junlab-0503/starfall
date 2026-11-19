@@ -15,15 +15,15 @@ ok(await p.evaluate(()=>SECTIONS[1].t.name==='셈'&&SECTIONS[1].t.art==='sem'&&!
 await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
 await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await p.waitForTimeout(200);await closeStory();
 // 개발자 코드: 탑은 그대로
-const f0=await p.evaluate(()=>__d().S.floors);
+const b0=await p.evaluate(()=>{const S=__d().S;return{fl:S.floors,un:S.unlocked,found:S.found.length}}),f0=b0.fl;
 await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.evaluate(()=>{document.getElementById('devForm').hidden=false});await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(400);await closeStory();
 const d=await p.evaluate(()=>{const S=__d().S;return{fl:S.floors,un:S.unlocked,gold:S.gold,found:S.found.length,rec:RECIPES.length,inv:cnt('stone'),shops:SHOPS.map((s,i)=>shopOpen(i)?1:0).join(''),msg:$('devMsg').textContent}});
-ok(d.fl===f0&&d.un===13&&d.gold>9e14&&d.found===d.rec&&d.inv>=9999,`개발자 코드: 탑 ${f0}층 그대로, 지층 ${d.un}개 열림, 골드 무한, 레시피 ${d.found}/${d.rec}, 돌 ${d.inv}`);
-ok(/탑은 열지 않았어요/.test(d.msg),'안내: '+d.msg.slice(0,60));
+ok(d.fl===f0&&d.un===b0.un&&d.gold===9.999e15&&d.found===b0.found,`개발자 코드(v29): 골드만 9,999조 · 탑 ${f0}층 그대로 · 지층 ${d.un}개 그대로 · 레시피 ${d.found}/${d.rec} 그대로`);
+ok(/골드 9,999조/.test(d.msg),'안내: '+d.msg.slice(0,60));
 ok(d.shops==='10000'||d.shops.split('').filter(x=>x==='1').length<=1,'가게는 탑을 쌓은 만큼만 열림: '+d.shops);
 // 직접 쌓기: 6층(석조 기단)까지 쌓으면 셈 입주 → 셈 가게 열림
 const before=await p.evaluate(()=>{const i=SHOPS.findIndex(s=>s.who==='셈');return{i,open:shopOpen(i)}});
-await p.evaluate(()=>{const S=__d().S;for(let k=0;k<20&&S.floors<6;k++)buildFloor(true);renderAll()});await p.waitForTimeout(300);await closeStory();
+await p.evaluate(()=>{const S=__d().S;for(let k=0;k<20&&S.floors<6;k++){floorCost(S.floors+1).mats.forEach(([id,q])=>S.inv[id]=Math.max(S.inv[id]||0,q));buildFloor(true)}renderAll()});await p.waitForTimeout(300);await closeStory();
 const after=await p.evaluate(i=>({fl:__d().S.floors,open:shopOpen(i)}),before.i);
 ok(!before.open&&after.fl>=6&&after.open,`탑을 직접 쌓으면 입주 · 가게 열림: 셈 가게 ${before.open?'열림':'잠김'} → ${after.fl}층에서 ${after.open?'열림':'잠김'}`);
 // 탑 그림: 조금 굵은 도트(높이 200)를 330 높이로

@@ -10,7 +10,7 @@ const reopen=async(fn)=>{const raw=await p.evaluate(()=>localStorage.getItem(SAV
   await q.goto('file://'+process.cwd()+'/dbg40t.html');await q.waitForTimeout(800);if(await q.isVisible('#titleScr'))await q.click('#titleScr');await q.waitForTimeout(300);const r=await q.evaluate(fn);await c.close();return r};
 await p.goto('file://'+process.cwd()+'/dbg40t.html');await start();
 await p.evaluate(()=>{S.tutDone=true;S.ntDone=['셈','핀','루카','미르','린'];S.whHint=1;S.unlocked=3;S.review='done';renderAll()});
-ok(await p.evaluate(()=>$('crBtn').hidden&&!craftOpen()),'B4 전: 세공 작업대 안 보임');
+ok(await p.evaluate(()=>!$('crBtn').hidden&&$('crBtn').classList.contains('locked')&&!craftOpen()),'B4 전(v29): 세공 단추는 흑백 잠김으로 보임');
 ok(await p.evaluate(()=>document.querySelectorAll('.bnav .nb').length===5&&SECTIONS.length===13&&SECTIONS.every(s=>s.t.name!=='린')),'하단 탭 5개 그대로, 탑 입주자 13명 그대로(린은 따로)');
 // B4 개척 → 일지 → 린 4장(한 번)
 await p.evaluate(()=>{const L=LAYERS[3];S.gold=L.req.g+1;Object.entries(L.req.items).forEach(([id,n])=>S.inv[id]=n);unlockLayer(3)});await p.waitForTimeout(150);

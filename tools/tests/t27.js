@@ -30,7 +30,7 @@ ok(await p.evaluate(()=>{const S=__d().S,f=S.floors;S.floors=88;refreshBonus();c
 await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.waitForTimeout(200);ok(await p.evaluate(()=>!$('devForm').hidden),'개발자 코드 칸 보임');
 // 채굴 보관함
 await p.evaluate(()=>{const S=__d().S;S.auto=3;S.autoOn=false;S.box={stone:120,copper:44,clay:30};['stone','copper','clay'].forEach(i=>S.seen.includes(i)||S.seen.push(i));setTab('mine')});await p.waitForTimeout(300);await closeStory();
-const bx=await p.evaluate(()=>({tag:$('boxBtn').querySelector('.ic-tag').textContent,n:$('boxN').textContent,has:$('boxBtn').classList.contains('has')}));ok(bx.tag==='로봇 보관함'&&bx.has&&bx.n==='194','보관함 버튼: '+JSON.stringify(bx));
+const bx=await p.evaluate(()=>({tag:$('boxBtn').querySelector('.ic-tag').innerText.replace(/\n/g,' '),n:$('boxN').textContent,has:$('boxBtn').classList.contains('has')}));ok(bx.tag==='로봇 보관함'&&bx.has&&bx.n==='194','보관함 버튼: '+JSON.stringify(bx));
 await p.click('#boxBtn');await p.waitForTimeout(200);const rows=await p.evaluate(()=>[...document.querySelectorAll('.boxr')].length);
 const cu0=await p.evaluate(()=>cnt('copper'));await p.click('[data-boxget="copper"]');const g0=await p.evaluate(()=>__d().S.gold);await p.click('[data-boxsell="clay"]');await p.waitForTimeout(100);
 const b2=await p.evaluate(()=>({box:__d().S.box,cu:cnt('copper'),g:__d().S.gold,rows:document.querySelectorAll('.boxr').length,btn:$('storyNext').textContent}));

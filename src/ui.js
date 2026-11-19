@@ -1,17 +1,23 @@
 /* ═════════ 화면 ═════════ */
-// 칸보다 글자가 길면 글씨를 줄여서 잘리지 않게 (말줄임표 대신)
-function fitText(el,t){if(el.textContent===t&&el.dataset.fit)return;el.textContent=t;el.dataset.fit=1;el.style.fontSize='';for(const fs of[13,12,11,10]){if(el.scrollWidth<=el.clientWidth)break;el.style.fontSize=fs+'px'}}
+/* 상단 상태창(v29): 네 칸 모두 같은 글씨(15px). 수가 커져도 글씨를 줄이지 않고 수를 짧게(1만 넘으면 1.2만 · 12K · 1.2M),
+   탑은 짧게(99층 · 99F · 99層). 칸을 누르면 정확한 수가 알림으로. 아주 좁은 화면에서만 13px까지(그 아래로는 안 줄임) */
+function fitText(el,t){if(el.textContent===t&&el.dataset.fit)return;el.textContent=t;el.dataset.fit=1;el.style.fontSize='';if(el.scrollWidth>el.clientWidth+1)el.style.fontSize='13px'}
+const hudN=n=>n<1e4?String(Math.floor(n)):cbig(n);
+const hudFloors=()=>LANG==='en'?S.floors+'F':LANG==='zh'?S.floors+'層':S.floors+'층';
 function renderHeader(){
-  fitText($('gold'),big(S.gold)+'G');$('depth').textContent=`−${fmt(LAYERS[S.layer].d)}m`;
-  const u=used(),c=cap(),st=$('store');fitText(st,`${cbig(u)}/${cbig(c)}`);st.style.color=u>=c?'var(--bad)':u>=c*.85?'var(--lamp)':'';
-  $('towerStat').textContent=big(S.floors)+'층';
+  fitText($('gold'),(S.gold<1e4?fmt(S.gold):cbig(S.gold))+'G');fitText($('depth'),`−${fmt(LAYERS[S.layer].d)}m`);
+  const u=used(),c=cap(),st=$('store');fitText(st,`${hudN(u)}/${hudN(c)}`);st.style.color=u>=c?'var(--bad)':u>=c*.85?'var(--lamp)':'';
+  fitText($('towerStat'),hudFloors());
   const B=badges();$('towerDot').hidden=!B.tower;$('equipDot').hidden=!B.equip;
 }
+document.querySelector('.stats').addEventListener('click',e=>{const s=e.target.closest('.stat');if(!s)return;const id=s.querySelector('.v').id;
+  toast(id==='gold'?`${T('골드')} ${fmt(S.gold)}G`:id==='store'?`${T('창고')} ${fmt(used())} / ${fmt(cap())}`:id==='depth'?`${T('깊이')} ${fmt(LAYERS[S.layer].d)}m`:`${T('탑')} ${hudFloors()}`)});
 // 빨간 점: 지금 할 수 있는 업그레이드·개척·탑 짓기·월세가 있으면 탭 → 하위 탭 → 그 버튼까지
 function badges(){const equip=SHOPS.some(sh=>sh.ups.some(upCan)),shaft=S.unlocked<LAYERS.length&&reqMet(LAYERS[S.unlocked]),
   build=!towerBlocked()&&canBuild(floorCost(S.floors+1)),rent=S.rentAcc>=rentPerSec()*1800&&rentPerSec()>0,fin=towerBlocked()&&cnt('philo')>=1&&cnt('starshard')>=10;
   return{equip,shaft,manage:shaft,build,rent,tower:build||rent||fin}}
-function renderMineHud(){
+function renderMineHud(){{const w=LANG==='en'?'Storage':LANG==='zh'?'倉庫':'창고';if($('whTag').textContent!==w)$('whTag').textContent=w;const bt=$('boxTag'),bw=LANG==='en'?'Robot<br>Stash':LANG==='zh'?'機器人<br>保管箱':'로봇<br>보관함';if(bt.dataset.l!==LANG){bt.dataset.l=LANG;bt.innerHTML=bw}}   // v29: 창고 단추 이름표는 짧게(영어 Storage)
+
   const f=used()>=cap(),ab=$('autoBtn'),bx=$('boxBtn'),bu=boxUsed();
   ab.hidden=!(S.auto>0);ab.classList.toggle('on',!!S.autoOn);ab.classList.toggle('full',!!S.autoOn&&f);ab.setAttribute('aria-checked',S.autoOn?'true':'false');
   // 스위치 하나가 켜 둔 동안과 자리 비운 동안 모두를 정함
@@ -19,7 +25,7 @@ function renderMineHud(){
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
   const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
   $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
-  {const cb=$('crBtn'),op=craftOpen(),a=CR().a,was=cb.hidden;cb.hidden=!op;if(op&&was)requestAnimationFrame(syncBob);if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
+  {const cb=$('crBtn'),op=craftOpen(),a=CR().a,was=cb.classList.contains('locked')||cb.hidden;cb.hidden=false;cb.classList.toggle('locked',!op);if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;if(!op)$('crBtnLv').textContent='';if(op&&was)requestAnimationFrame(syncBob);if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
@@ -161,13 +167,16 @@ $('storyNext').onclick=nextStory;
 // v24: 아래 탭 다섯 개(제련 · 장터 · 채굴 · 탑 · 장비). 예전 '관리' 탭은 채굴 화면 버튼이 여는 창(시트)으로 옮김. 저장된 tab이 manage면 채굴로
 const TABS=['forge','market','mine','tower','equip'];
 const SHEET_T={store:'창고',shaft:'갱도 개척',book:'도감 · 할아버지의 일지',set:'설정',craft:'린의 세공 작업대'};
-function openSheet(sub){if(!SHEET_T[sub])sub='store';if(S.tab!=='mine')setTab('mine');S.sub=sub;$('sheetT').textContent=SHEET_T[sub];$('sheet').hidden=false;$('sheetBody').scrollTop=0;sfx('click');renderManage();tutGlow()}
+// v29: 시트는 화면 전체를 덮는 창이라 지금 보던 탭을 그대로 두고 연다(닫으면 그 탭 · 그 스크롤 위치로)
+function openSheet(sub){if(!SHEET_T[sub])sub='store';S.sub=sub;$('sheetT').textContent=SHEET_T[sub];$('sheet').hidden=false;$('sheetBody').scrollTop=0;sfx('click');renderManage();tutGlow()}
 function closeSheet(){if($('sheet').hidden)return;$('sheet').hidden=true;renderTab(true)}
 $('sheetX').onclick=closeSheet;$('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeSheet()});
 $('whBtn').onclick=()=>openSheet('store');$('bookBtn').onclick=()=>openSheet('book');$('setBtn').addEventListener('click',()=>openSheet('set'));
 ['nextL','bookBtn'].forEach(k=>$(k).addEventListener('pointerdown',e=>e.stopPropagation()));
-function setTab(t){if(t==='manage'){t='mine'}if(!TABS.includes(t))t='mine';if(!$('sheet').hidden)$('sheet').hidden=true;S.tab=t;document.querySelector('main').classList.toggle('mine-mode',t==='mine');document.querySelector('main').scrollTop=0;TABS.forEach(k=>$('tab-'+k).hidden=k!==t);document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;veinPop();renderTab();scrollTo(0,0)}
+// v29: 탭마다 스크롤 위치를 기억해 돌아오면 그 자리로(목록이 짧아졌으면 끝까지만). 새 게임 · 처음 연 탭은 맨 위
+const TAB_Y={};
+function setTab(t){if(t==='manage'){t='mine'}if(!TABS.includes(t))t='mine';if(!$('sheet').hidden)$('sheet').hidden=true;const M=document.querySelector('main');if(TABS.includes(S.tab)&&S.tab!=='mine')TAB_Y[S.tab]=M.scrollTop;S.tab=t;M.classList.toggle('mine-mode',t==='mine');M.scrollTop=0;TABS.forEach(k=>$('tab-'+k).hidden=k!==t);document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  if(t==='mine')setTimeout(()=>{fitScene();if(!IW)sceneResize()},0);if(t==='market')$('newsDot').hidden=true;veinPop();renderTab();scrollTo(0,0);if(t!=='mine'&&TAB_Y[t])requestAnimationFrame(()=>{if(S.tab===t)M.scrollTop=Math.min(TAB_Y[t],M.scrollHeight-M.clientHeight)})}
 document.querySelectorAll('.nb').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 function renderManage(){if(!SHEET_T[S.sub])S.sub='store';['store','shaft','book','set','craft'].forEach(k=>$('sub-'+k).hidden=k!==S.sub);
   if(S.sub==='store'){renderInv();renderLog()}if(S.sub==='shaft')renderLayers();if(S.sub==='book'){renderBookTab();$('crRecPanel').hidden=!craftOpen();if(craftOpen())renderCraftRec()}if(S.sub==='craft')renderCraft();if(S.sub==='set'){renderPkg();renderSnd()}}
@@ -180,7 +189,7 @@ function navIcons(){const st=document.createElement('style');st.textContent=['mi
 /* 광고 두 가지 + 광고 제거 패키지 (프로토타입: 가짜 광고 화면, 결제 없음) */
 const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
 function renderAdBtns(){const now=gtime(),gl=giftLeft(),gb=$('giftBtn');gb.disabled=gl<=0;gb.classList.toggle('ready',gl>0);$('giftTag').textContent=gl>0?`${gl}/${GIFT_MAX}`:'내일';
-  const bb=$('boostBtn'),bl=boostLeft(),on=boostOn();bb.disabled=on||bl<=0;bb.classList.toggle('live',on);bb.classList.toggle('ready',!on&&bl>0);$('boostTag').textContent=on?mmss(S.ads.boostUntil-now):bl>0?`×2 ${bl}/${BOOST_MAX}`:'내일'}
+  const bb=$('boostBtn'),bl=boostLeft(),on=boostOn();bb.disabled=on||bl<=0;bb.classList.toggle('live',on);bb.classList.toggle('ready',!on&&bl>0);$('boostTag').textContent=on?mmss(S.ads.boostUntil-now):bl>0?`${bl}/${BOOST_MAX}`:'내일'}
 let AD_CB=null,AD_T=null;
 function showAd(title,cb){if(S.noAds){cb();return}AD_CB=cb;$('adT').textContent=title;let n=5;$('adCnt').textContent=n;$('adDone').disabled=true;$('adModal').hidden=false;clearInterval(AD_T);
   AD_T=setInterval(()=>{n--;$('adCnt').textContent=n>0?n:'끝!';if(n<=0){clearInterval(AD_T);$('adDone').disabled=false}},1000)}
@@ -234,6 +243,9 @@ function haloUrl(){if(HALO_URL)return HALO_URL;const N=40,[c,x]=cvs(N*2,N),C=19.
 // 처음 캔 원석: 도감 카드가 도트 후광과 함께 → "광석을 발견했다!"
 function discover(id){const it=ITEMS[id],L=it.L;sfx('sparkle');
   story([{gold:1,k:'광석을 발견했다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} B${L} ${LAYERS[L-1].n}에서 처음 캐냈어요.`,extra:`<div class="halo"><span class="hr" style="background-image:url(${haloUrl()})"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 원석</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${S.seen.filter(x=>ITEMS[x].L).length} / ${RAW.length}</span></div>`}])}
+// 처음 만든 제련품(v29): 원석 발견과 같은 카드 — "새 제련품을 만들었다!" (hooks.js의 smeltOnce 감싸기에서, 처음 만든 순간 한 번)
+function discoverMade(id,a,b){const it=ITEMS[id];sfx('sparkle');const tot=ORDER.filter(x=>ITEMS[x].cr).length,have=S.seen.filter(x=>ITEMS[x].cr).length;
+  story([{gold:1,k:'새 제련품을 만들었다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${ITEMS[a].n} + ${ITEMS[b].n}로 처음 만들었어요.`,extra:`<div class="halo"><span class="hr" style="background-image:url(${haloUrl()})"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 제련품</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${have} / ${tot}</span></div>`}])}
 function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 찾지 못한 광물이에요. 더 깊이 파 내려가거나 새로운 조합을 시도해 보세요.'}]);return}
   const it=ITEMS[id],L=itemLayer(id),src=it.cr?(()=>{const i=RMAP[key(INS[id][0],INS[id][1])];return S.found.includes(i)?`${ITEMS[INS[id][0]].n} + ${ITEMS[INS[id][1]].n}로 만들어요.`:'만드는 법은 아직 몰라요.'})():id==='slag'?'':`B${L} ${LAYERS[L-1].n}에서 캘 수 있어요.`;
   const uses=OUTS[id].filter(o=>S.found.some(i=>RECIPES[i].out===o)).map(o=>ITEMS[o].n);

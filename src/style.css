@@ -558,3 +558,52 @@ img{-webkit-user-drag:none;-webkit-touch-callout:none}
 
 .cr-btn img{animation:icb 1.4s steps(2) infinite}
 @media (prefers-reduced-motion:reduce){.cr-btn img{animation:none}}
+
+/* ═════════ v29 모바일 UI 정밀 수정 (디자인 · 기능은 그대로, 크기 · 줄바꿈 · 터치 영역만) ═════════ */
+/* 1) 상단 상태창: 네 칸 같은 글씨(15px, 아주 좁을 때만 13px), 짧게 줄인 수가 칸에 맞도록 칸 너비 다시 나눔. 누르면 정확한 수 */
+.stats{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.25fr) minmax(0,.75fr);gap:6px}
+.stat{cursor:pointer;touch-action:manipulation}
+.stat .v{font-size:15px;overflow:visible;text-overflow:clip;line-height:1.3}
+/* 2) 글자 잘림: 장터 광물 줄은 이름이 가운데 전체 폭을 쓰고(개수 · 값은 아랫줄), 로봇 보관함 이름표는 두 줄까지 */
+.orow{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"ic nm ac" "ic ct ac" "ic pr ac";row-gap:1px}
+.orow .ocnt{text-align:left;align-self:center;line-height:1.2}.orow .opr{text-align:left;align-self:start}
+.orow .onm{white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:anywhere}
+.ov-box .ic-tag{white-space:nowrap;width:max-content;text-align:center;line-height:13px;padding:1px 4px;bottom:-4px}
+.qty{display:flex;gap:4px;justify-content:center}.qty input{flex:1 1 64px;min-width:56px;max-width:96px;width:auto}
+/* 3) 작은 글씨: 10~11px 보조 글씨를 12px(같은 픽셀 글꼴의 제 크기)로 */
+.ic-btn .ic-tag,.ov-box .ic-tag{font-size:12px;font-family:var(--f11);line-height:14px}
+#boxN,.cr-btn b{font-size:12px;font-family:var(--f11);line-height:14px}
+.tier{font-size:12px;font-family:var(--f11);line-height:14px}
+#invSeg .c{font-size:12px}
+.layer .d{font-size:12px;font-family:var(--f11)}
+.sc-sw .lb small{font-size:12px;font-family:var(--f11)}
+.dg-t small{font-size:12px}
+.qc-grid .pk span,.qc span{font-size:12px}
+.cr-warn{font-size:12px;white-space:nowrap;display:inline-block;line-height:14px}
+.credit p{font-size:12px;font-family:var(--f11)}
+html[lang="en"] .shopc .plate{font-family:var(--f11);font-size:12px;letter-spacing:-.5px}
+@media (max-width:370px){.mine-foot .odds{font-size:12px}}
+/* 4) 터치 영역: 단추 높이 44px 이상(주요 단추 48px), 좁은 단추도 폭 44px 이상. 글씨는 가운데 */
+.px-btn{min-height:44px;min-width:44px}
+.px-btn.lamp.grow,#qcGo,#crTry,#crSell,#exitYes,#qtyOk,#finaleBtn,#buildBtn{min-height:48px}
+.seg button{min-height:44px}
+.chip{min-height:44px;display:inline-flex;align-items:center}
+.gear-btn{width:44px;height:44px}
+.sc-sw{min-height:44px}
+.mine-foot .ic-btn{min-width:52px;min-height:48px;display:flex;justify-content:center;align-items:center}
+.set-chk{min-height:44px;cursor:pointer}.set-chk input{width:22px;height:22px}
+.snd input[type=range]{height:44px;margin:0}
+.irow .nmb{min-height:44px;min-width:44px}.irow .nmb span{white-space:normal;word-break:keep-all;overflow-wrap:anywhere;text-align:left;line-height:1.2}
+.qc-qty .px-btn{min-width:44px}
+/* 7) 창고가 가득 차 광석을 놓칠 때 창고 단추가 붉게 한 번 깜빡 */
+.wh-btn.warn img{animation:whwarn .5s steps(2) 2}
+@keyframes whwarn{50%{filter:drop-shadow(0 0 0 #ff5a4a) drop-shadow(2px 0 0 #ff5a4a) drop-shadow(-2px 0 0 #ff5a4a) brightness(1.15)}}
+@media (prefers-reduced-motion:reduce){.wh-btn.warn img{animation:none}}
+/* 세공 아이콘: B4를 열기 전엔 흑백 · 멈춤(누르면 안내 창) */
+.cr-btn.locked img{filter:grayscale(1) brightness(.8);opacity:.75;animation:none}
+.cr-lockill{display:flex;justify-content:center;margin:4px 0 8px}.cr-lockill img{height:72px;image-rendering:pixelated;filter:grayscale(1) brightness(.85)}
+@media (max-width:370px){.mine-foot{gap:4px}.mine-foot .ic-btn{min-width:48px}.mine-foot .odds{white-space:normal;line-height:1.15;max-width:66px;padding:2px 6px;text-align:center}}
+.pk span{white-space:normal;word-break:keep-all;overflow-wrap:anywhere;text-align:center;line-height:1.15}
+/* v29: 한 화면에 들어가야 하는 곳(시트 머리 [닫기] · 세공 작업대의 제작/강화/판매)은 보이는 크기는 v28 그대로 두고, 누르는 자리만 투명하게 위아래로 넓힘(48px) */
+#sheetX,#crMake,#crTry,#crSell{min-height:0;position:relative}
+#sheetX::before,#crMake::before,#crTry::before,#crSell::before{content:'';position:absolute;left:0;right:0;top:50%;height:48px;transform:translateY(-50%)}

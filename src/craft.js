@@ -87,7 +87,7 @@ function craftDoTry(){const r=craftTry();if(!r)return;CRAFT_BUSY=true;CRFX=r;ren
     if(md==='ten'&&i===6){nextArt();m.classList.add('big')}
     if(md==='fail'&&i===C.n-3)m.classList.add('gone')});
   at(f0+(low?520:C.n*C.ms)+120,()=>{fx.style.display='none';CRAFT_BUSY=false;CRFX=null;linSay(r.ok?linOk(r.to):LIN.fail);if(r.ok&&r.to===CRAFT_MAX)toast(`${craftKind(r.snap.k).n} +10!`);renderCraft();renderMineHud()})}
-function openCraft(){if(!craftOpen())return;if(!CR().met){linIntro(true);return}openSheet('craft');samplePreload('craft_ok','craft_fail','craft_ten')}
+function openCraft(){if(!craftOpen()){sfx('click');story([{k:'세공',t:'???',b:'지층 4층에서 누군가가 돌아올지도 몰라요!',extra:`<div class="cr-lockill"><img src="${ART.craft_icon}" alt=""></div>`}]);return}if(!CR().met){linIntro(true);return}openSheet('craft');samplePreload('craft_ok','craft_fail','craft_ten')}
 // 린 첫 등장(한 번만): B4를 열 때 일지 다음에, 옛 저장이면 작업대를 처음 누를 때
 function linIntro(thenOpen){const L=['"여기가 별빛골이야? 광산이 다시 열린다기에 와 봤는데… 꽤 괜찮은 금속들이 있네!"','"나는 린. 이곳저곳 떠돌며 금속을 세공하는 장인이야."','"창고 옆에 작업대를 하나 차려도 될까? 평범한 금속도 어떻게 두드리느냐에 따라 엄청난 가치를 가질 수 있거든."','"하지만 조심해야 해. 욕심내서 너무 두드리면… 그대로 깨져 버릴 수도 있으니까!"'];
   story(L.map((b,i)=>({k:'떠돌이 세공사',t:'린',b,art:'lin',...(i===L.length-1?{done:()=>{CR().met=1;npcTutQueue('린');save();renderMineHud()},after:()=>{toast('창고 옆에 린의 세공 작업대가 생겼어요.');if(thenOpen)openSheet('craft')}}:{})})))}

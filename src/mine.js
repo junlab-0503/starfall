@@ -97,8 +97,11 @@ let ofFxT=0;
 // 최근 채굴 수입(숯의 선물에 씀): 캔 광석 값 + 황금 광맥 골드를 모아 1초마다 10분 평균(지수 평균)으로
 let MR_ACC=0;
 function mrTick(){S.mr=(S.mr||0)+(MR_ACC-(S.mr||0))/600;MR_ACC=0}
+// v29: 창고가 가득 차서 직접 캔 광석을 놓칠 때 — 작은 알림(2.5초에 한 번만, 겹치지 않게) + 창고 단추가 붉게 한 번 깜빡. 채굴 · 창고 계산은 그대로
+let FULLW=0;
+function fullWarn(){const now=performance.now();if(now-FULLW<2500)return;FULLW=now;floatText('창고가 가득 차 광석을 놓쳤어요','#ff9a7a');const b=$('whBtn');if(b){b.classList.remove('warn');void b.offsetWidth;b.classList.add('warn')}}
 function gain(id,n,auto){S.mined+=n;MR_ACC+=bid(id)*n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&space()<n&&ul('autosell'))autoSellRoom();let ok=Math.min(n,space());
-  if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else S.lost=(S.lost||0)+rest}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
+  if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else{S.lost=(S.lost||0)+rest;fullWarn()}}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
 let FLOATS=[];
 function floatText(t,c,id){const wrap=$('sceneWrap');const ex=id&&FLOATS.find(f=>f.id===id&&f.life>.3);
   const gid=id==='$g'||id==='$d';if(ex){ex.n+=gid?ex.add:1;ex.el.querySelector('b').textContent=gid?`${id==='$d'?'드릴 ':''}+${big(ex.n)}G`:`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}

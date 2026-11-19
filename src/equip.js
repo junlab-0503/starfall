@@ -60,13 +60,16 @@ const veinSecAt=l=>VEIN_SEC+2*l;
 const THANKS={"무쇠": ["자, 받아! 이 날 좀 봐, 번쩍번쩍하지?", "하하! 바위가 무서워서 도망가겠는데?", "이번 건 진짜 잘 나왔다. 내 자랑이야!", "손에 쥐어 봐. 딱 맞지?"], "핀": ["짜잔! 훨씬 좋아졌죠?", "로봇들이 신났어요!", "이거 제 최고 걸작이에요, 진짜로요!", "위이잉— 들리죠? 기분 좋은 소리!"], "미르": ["…불이 한결 맑아졌어요.", "좋은 선택이에요. …정말로.", "…별이 조금 더 가까워졌어요.", "고마워요. …불도 고마워하네요."], "셈": ["좋아, 장부에 적어 둘게.", "이제 좀 넉넉하겠네.", "계산 끝. 손해 본 사람 없어.", "깔끔하네. 마음에 들어."], "루카": ["거래 성사! 후회 안 하실 거예요.", "역시 보는 눈이 있으시네요!", "손님 같은 분만 있으면 장사할 맛 나죠~", "이 거래, 제 장부에 금색으로 적어 둘게요!"]};
 // 사람 · 배경: art/shop (tools/shop_art.py), 고르는 액자: 입주자 초상화(art/portraits) + 가게 이름표. flip = 말풍선 쪽을 보게 뒤집기
 const SHOP_ART={'무쇠':{k:'musoe',sign:'대장간'},'핀':{k:'pin',sign:'공방'},'미르':{k:'mir',sign:'용광로'},'셈':{k:'sem',sign:'창고'},'루카':{k:'luka',sign:'정보소'}};
+// v29: 영어 가게 이름표는 액자 폭(좁은 화면 53px)에 맞는 짧은 이름. 다른 곳의 번역(Warehouse · Workshop · Info Desk)은 그대로
+const SIGN_EN={'대장간':'Smithy','창고':'Storage','공방':'Tinker','정보소':'Info','용광로':'Furnace'};
+const shopSign=w=>LANG==='en'?SIGN_EN[SHOP_ART[w].sign]:SHOP_ART[w].sign;
 const shopLine={};let shopType=null,shopPose='idle',shopPoseT=null;
 function shopSay(text,pose){const p=$('npcSay');if(!p)return;text=T(text);clearInterval(shopType);clearTimeout(shopPoseT);let i=0;p.textContent='';
   shopType=setInterval(()=>{i++;p.textContent=text.slice(0,i);npcPose(pose==='happy'?'happy':(i%4<2?'talk':'idle'));if(i>=text.length){clearInterval(shopType);shopPoseT=setTimeout(()=>npcPose('idle'),pose==='happy'?1400:200)}},28)}
 function npcPose(p){if(p===shopPose)return;shopPose=p;const n=$('npcImg');if(n)n.dataset.pose=p}
 let shopShown=-1;
 function renderEquip(){const si=Math.min(SHOPS.length-1,S.shop|0),sh=SHOPS[si];
-  setHTML($('shopTabs'),SHOPS.map((x,i)=>`<button class="shopc${i===si?' on':''}${shopOpen(i)?'':' lock'}" data-shop="${i}" type="button"><span class="fr"><img src="${shopOpen(i)?ART[SHOP_ART[x.who].k]:ART['shop_'+SHOP_ART[x.who].k]}" alt="${shopOpen(i)?x.who:'아직 돌아오지 않은 사람'}"></span><span class="plate">${shopOpen(i)?SHOP_ART[x.who].sign:`탑 ${SECTIONS[tenantSec(x.who)].to}층`}</span>${x.ups.some(upCan)?'<i class="dot"></i>':''}</button>`).join(''));
+  setHTML($('shopTabs'),SHOPS.map((x,i)=>`<button class="shopc${i===si?' on':''}${shopOpen(i)?'':' lock'}" data-shop="${i}" type="button"><span class="fr"><img src="${shopOpen(i)?ART[SHOP_ART[x.who].k]:ART['shop_'+SHOP_ART[x.who].k]}" alt="${shopOpen(i)?x.who:'아직 돌아오지 않은 사람'}"></span><span class="plate">${shopOpen(i)?shopSign(x.who):`탑 ${SECTIONS[tenantSec(x.who)].to}층`}</span>${x.ups.some(upCan)?'<i class="dot"></i>':''}</button>`).join(''));
   const op=shopOpen(si);
   if(shopShown!==si+(op?'':'x')){shopShown=si+(op?'':'x');const st=$('shopStage');st.className='panel stage '+(si%2?'side-r':'side-l');
     const a=SHOP_ART[sh.who];st.style.backgroundImage=`url(${ART['shop_bg_'+a.k]})`;

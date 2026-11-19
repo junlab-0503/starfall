@@ -23,8 +23,8 @@ await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.evaluate(()=
 const st=await p.evaluate(()=>{const e=$('store');return{t:e.textContent,ov:e.scrollWidth>e.clientWidth}});ok(!st.ov&&!/…/.test(st.t),'헤더 창고 표기 잘림 없음: '+st.t);
 await p.click('[data-tab="mine"]');await p.waitForTimeout(400);const sc=await p.evaluate(()=>$('nextL').innerText.replace(/\n/g,' '));ok(true,'다음 지층 칸: '+sc);await p.screenshot({path:'v83_dev_mine.png'});
 await p.click('[data-tab="tower"]');await p.waitForTimeout(800);await p.screenshot({path:'v83_tower99.png'});
-// 광고 하루 횟수
-await p.click('[data-tab="mine"]');await p.waitForTimeout(300);
+// 광고 하루 횟수 (v29: 개발자 코드가 골드만 바꾸므로 발견 팝업이 뜰 수 있음 → 먼저 닫기)
+await p.evaluate(()=>{STQ.length=0;while(!$('story').hidden)nextStory()});await p.click('[data-tab="mine"]');await p.waitForTimeout(300);
 const r=await p.evaluate(()=>{const S=__d().S;S.noAds=true;const g0=S.gold;let n=0;for(let i=0;i<8;i++){if(giftReady()){openGift();n++}while(!$('story').hidden)nextStory()}
   const inc=playIncome()*900;let bn=0;for(let i=0;i<14;i++){S.ads.boostUntil=0;if(boostLeft()>0){startBoost();bn++}}renderAdBtns();return{n,bn,gold:S.gold-g0,inc,gift:$('giftBtn').innerText,boost:$('boostBtn').innerText}});
 ok(r.n===5&&r.bn===10,`선물 ${r.n}번, 부스트 ${r.bn}번 / 선물 1번 ≈ ${Math.round(r.gold/5)}G (15분치 ${Math.round(r.inc)}G) / ${r.gift.replace(/\n/g,' ')} / ${r.boost.replace(/\n/g,' ')}`);
