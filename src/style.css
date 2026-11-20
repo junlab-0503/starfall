@@ -607,3 +607,10 @@ html[lang="en"] .shopc .plate{font-family:var(--f11);font-size:12px;letter-spaci
 /* v29: 한 화면에 들어가야 하는 곳(시트 머리 [닫기] · 세공 작업대의 제작/강화/판매)은 보이는 크기는 v28 그대로 두고, 누르는 자리만 투명하게 위아래로 넓힘(48px) */
 #sheetX,#crMake,#crTry,#crSell{min-height:0;position:relative}
 #sheetX::before,#crMake::before,#crTry::before,#crSell::before{content:'';position:absolute;left:0;right:0;top:50%;height:48px;transform:translateY(-50%)}
+/* v30: 로봇 보관함 이름표가 상자를 가리던 것 → 상자 아래로(넓은 화면 한 줄, 좁은 화면 두 줄) */
+.ov-box{display:flex;flex-direction:column;align-items:center;gap:1px;line-height:0}
+.ov-box .ic-tag{position:static;transform:none;left:auto;bottom:auto;margin:0;white-space:nowrap;line-height:14px;padding:1px 4px}
+.ov-box .ic-tag br{display:none}
+@media (max-width:360px){.ov-box .ic-tag br{display:inline}.ov-box .ic-tag{text-align:center}}
+/* v30: 단추 모서리 바깥에 걸친 빨간 알림 점 — 모양 · 자리는 그대로, 크기 0인 점의 그림자로 그려서 단추 넓이(scrollWidth)에 잡히지 않게 */
+.px-btn.ndot::after{top:0;right:0;width:0;height:0;background:none;box-shadow:1px -1px 0 4px var(--bad),1px -1px 0 6px rgba(0,0,0,.55)}

@@ -20,22 +20,22 @@ const TUT=[
    이장 할머니 튜토리얼과 같은 말풍선을 쓰고, 이름 · 초상화만 바뀐다. 줄(S.ntq)에 쌓아 두고 이야기 창이 닫힌 뒤 하나씩. 다 본 사람은 S.ntDone */
 const goShop=i=>()=>S.tab==='equip'?`[data-shop="${i}"]`:'.nb[data-tab="equip"]',atShop=i=>()=>S.tab==='equip'&&(S.shop|0)===i;
 const NPC_TUT={
-  '셈':[{t:'창고지기 셈이야. 아래 [장비]에서 [창고] 가게를 골라 봐.',sel:goShop(1),done:atShop(1)},
-       {t:'[창고 늘리기]로 칸을 넓혀. 창고가 꽉 차면 캔 광석이 로봇 보관함에 쌓이고, 거기도 차면 넘친 광석은 헐값에 팔려 버려.',sel:'[data-up="wh"]',next:true},
-       {t:'[알뜰 정리]를 들이면 창고가 가득 찰 때 싼 원석부터 알아서 팔아 줘. [월세 금고]는 탑 월세를 더 오래 모아 두는 금고야. 이상, 끝.',sel:'[data-up="autosell"]',next:true}],
-  '핀':[{t:'꼬마 기계공 핀이에요! [장비]에서 제 [공방]을 골라 주세요!',sel:goShop(2),done:atShop(2)},
-       {t:'[드릴 로봇]을 늘리면 탭하지 않아도 저절로 캐요. 채굴 화면의 드릴 스위치를 켜 두면 자리를 비워도 계속 캐요!',sel:'[data-up="auto"]',next:true},
-       {t:'로봇이 캔 광석은 채굴 화면 오른쪽 아래 [로봇 보관함]에 모여요. [채굴 보관함]으로 크기를 키우고, [자동 판매 장치]로 넘친 광석을 더 비싸게 팔 수 있어요!',sel:'[data-up="box"]',next:true}],
-  '루카':[{t:'떠돌이 상인 루카예요! 아래 [장터]로 와 보세요~',sel:'.nb[data-tab="market"]',done:()=>S.tab==='market'},
-       {t:'[지층 출입권]을 사 두면 그 지층 광석이 조금씩 로봇 보관함으로 들어와요.',sel:()=>S.mkSub==='pass'?'#passes':'[data-mks="pass"]',next:true},
-       {t:'소문 게시판도 꼭 보세요. 소문이 사실이면 그 지층 출입권 값이 크게 오르고, 헛소문이면 내려요. 산 뒤 1분 동안은 이익이 +1%까지만 나니까 미리 사 두는 게 요령이에요~',sel:'#rumors',next:true},
-       {t:'[장비]의 제 [정보소]에서 [소문 감정]을 키우면 소문이 진짜인지 귀띔해 드려요. 처음엔 50%, 한 단계마다 5%씩 올라 최대 90%까지!',sel:'.nb[data-tab="equip"]',next:true}],
-  '미르':[{t:'…연금술사 미르예요. [장비]에서 [용광로]를 골라 주세요.',sel:goShop(4),done:atShop(4)},
-       {t:'…[풀무]를 키우면 제련이 더 잘 돼요. [별빛 불씨]는 대성공 확률을 올려요. 대성공이면 두 개가 나와요.',sel:'[data-up="furn"]',next:true},
-       {t:'…[별빛 여운]은 황금 광맥이 더 오래 머물게 해요. 광맥이 반짝이면… 힘껏 두드려 주세요.',sel:'[data-up="vheat"]',next:true}],
+  '셈':[{t:'내 가게는 [장비]에 있어. [창고] 칸을 눌러 봐.',sel:goShop(1),done:atShop(1)},
+       {t:'[창고 늘리기]. 칸이 모자라면 여기서 늘려. 꽉 차면 로봇이 캔 건 보관함으로 가고, 거기도 차면 헐값에 팔려 나가.',sel:'[data-up="wh"]',next:true},
+       {t:'[알뜰 정리]를 들이면 꽉 찼을 때 싼 원석부터 내가 알아서 판다. [월세 금고]는 월세를 더 오래 쌓아 두는 거고. 끝.',sel:'[data-up="autosell"]',next:true}],
+  '핀':[{t:'제 공방은 [장비]에 있어요! 얼른 와 보세요!',sel:goShop(2),done:atShop(2)},
+       {t:'[드릴 로봇]을 키우면 손 안 대도 알아서 캐요. 곡괭이가 좋을수록 드릴도 세져요! 스위치만 켜 두면 자리를 비워도 일하고요.',sel:'[data-up="auto"]',next:true},
+       {t:'로봇이 캔 건 창고로 가요. 창고가 차면 오른쪽 아래 [로봇 보관함]에 쌓이고요. [채굴 보관함]은 그 상자를 키우고, [자동 판매 장치]는 넘친 걸 제값에 가깝게 팔아 줘요!',sel:'[data-up="box"]',next:true}],
+  '루카':[{t:'아래 [장터]로 와 보세요~ 보여 드릴 게 있거든요.',sel:'.nb[data-tab="market"]',done:()=>S.tab==='market'},
+       {t:'이게 [지층 출입권]이에요. 가지고만 있어도 그 지층 광석이 조금씩 로봇 보관함으로 들어와요.',sel:()=>S.mkSub==='pass'?'#passes':'[data-mks="pass"]',next:true},
+       {t:'그리고 소문 게시판! 10분쯤마다 소문이 돌고 몇 분 뒤에 발표가 나요. 사실이면 그 지층 출입권 값이 뛰고, 헛소문이면 떨어져요. 막 산 출입권은 1분 동안 +1%까지만 오르니까 미리 사 두세요~',sel:'#rumors',next:true},
+       {t:'누구 말을 믿어야 할지 모르겠으면 [장비] 제 [정보소]에서 [소문 감정]을 키워 보세요. 진짜인지 귀띔해 드릴게요. 처음엔 반반이지만 90%까지 맞혀요.',sel:'.nb[data-tab="equip"]',next:true}],
+  '미르':[{t:'…[장비]에서 [용광로]를 골라 주세요.',sel:goShop(4),done:atShop(4)},
+       {t:'[풀무]를 키우면 제련이 잘 돼요. [별빛 불씨]는… 대성공을 불러요. 대성공이면 두 개가 나오고요.',sel:'[data-up="furn"]',next:true},
+       {t:'[별빛 여운]은 황금 광맥을 조금 더 붙잡아 둬요. 반짝이면… 힘껏 두드려 주세요.',sel:'[data-up="vheat"]',next:true}],
   '린':[{t:'내 작업대는 채굴 화면 아래 [세공]이야. 눌러 봐!',sel:()=>S.tab==='mine'?'#crBtn':'.nb[data-tab="mine"]',done:()=>!$('sheet').hidden&&S.sub==='craft'},
-       {t:'은괴 · 금괴 · 백금괴 · 별빛강 중 하나를 고르고 개수를 정해 [제작]을 눌러. 넣은 재료값이 세공품의 기본값이 돼.',sel:'#crSeg',next:true},
-       {t:'[강화 도전]에 성공할 때마다 값이 크게 뛰어. 하지만 실패하면 깨져서 사라져! 적당할 때 [판매]하는 게 요령이야.',sel:'#crBody',next:true}]};
+       {t:'은괴 · 금괴 · 백금괴 · 별빛강 중에 하나 고르고, 개수를 정해서 [제작]. 넣은 재료값이 세공품의 기본값이 돼.',sel:'#crSeg',next:true},
+       {t:'[강화 도전]에 성공하면 값이 확 뛰어. 대신 실패하면 깨져서 없어져! 욕심은 적당히, 팔 때를 잘 골라.',sel:'#crBody',next:true}]};
 const NPC_P={'린':{name:'린',art:'lin'}},TUT_GRANNY={name:'이장 할머니',art:'granny',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'};
 function npcTutQueue(who){if(!NPC_TUT[who]||S.ntDone.includes(who)||S.ntq.includes(who))return;S.ntq.push(who)}
 const ntOn=()=>S.tutDone&&S.ntq.length>0&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;

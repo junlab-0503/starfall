@@ -57,7 +57,7 @@ const TAP_MAX=30,TAPQ=[];
 function tapAllowed(now){   // hooks.js의 doTap 감싸개(효과음)보다 앞에서 검사
   while(TAPQ.length&&now-TAPQ[0]>=1000)TAPQ.shift();if(TAPQ.length>=TAP_MAX)return false;TAPQ.push(now);return true}
 function doTap(){
-  if(full()&&!(ul('autosell')&&autoSellRoom())){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}
+  if(!veinOn()&&full()&&!(ul('autosell')&&autoSellRoom())){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}   // v30: 황금 광맥 동안엔 광석 대신 골드만 나오니 창고가 차도 캔다(예전엔 여기서 막혀 골드 0)
   swing();let d=tapPower();if(Math.random()<critP()){d*=3;A.shake=3;const w=charW();for(let i=0;i<10;i++)PARTS.push({x:w.x-10,y:w.y-14,vx:-30+Math.random()*60,vy:-60-Math.random()*50,life:.6,c:'#fff2b0',sz:1,star:Math.random()<.4});floatText('크게!','#ffd36a')}
   applyDmg(d,false);veinGold(VEIN_K.tap,true);
 }
@@ -118,7 +118,7 @@ function update(dt){
   A.stepT=Math.max(0,A.stepT-dt);A.bobT+=dt;A.blinkT-=dt;if(A.blinkT<0){A.blink=.14;A.blinkT=2+Math.random()*3}A.blink=Math.max(0,A.blink-dt);A.head=Math.max(0,A.head-dt);A.joy=Math.max(0,A.joy-dt);A.yawn=Math.max(0,A.yawn-dt);if(A.sw<0&&!full()){A.yawnT-=dt;if(A.yawnT<0){A.yawn=1.2;A.yawnT=14+Math.random()*12}}else A.yawnT=Math.max(A.yawnT,6);A.shake=Math.max(0,A.shake-dt*8);
   // 자동 드릴
   // 시작 화면 · 광맥 입구 장면이 떠 있는 동안엔 드릴도 기다림
-  if(S.auto>0&&S.autoOn&&$('titleScr').hidden&&$('entry').hidden){A.autoT+=dt;A.botPh+=dt*12;while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(VEIN_K.drill,false)}}
+  if(S.auto>0&&S.autoOn&&$('titleScr').hidden&&$('entry').hidden){A.autoT+=dt;A.botPh+=dt*(10+Math.min(14,4*Math.log2(1+autoRate())));while(A.autoT>=.25){A.autoT-=.25;applyDmg(autoDps()*.25,true);veinGold(VEIN_K.drill,false)}}
   const fwx=faceWX()+1;
   PARTS.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.grav?260:140)*dt;p.life-=dt;
     // 돌 조각: 막장(주인공 앞 바위) 쪽으로는 못 가고, 주인공 뒤 굴 바닥에 떨어져 튕긴 뒤 잠깐 쌓였다 사라짐
@@ -198,11 +198,11 @@ function draw(t){
   g.setTransform(K,0,0,K,sh*K,0);
   if(boostOn()&&Math.random()<.5)PARTS.push({x:w.x-4+Math.random()*24,y:w.y-30+Math.random()*24,vx:0,vy:-20,life:.6,c:'#ffe9a8',sz:1,star:Math.random()<.3});
   // 드릴 로봇: 드릴 끝이 막장에 닿게(주인공과 겹치고, 주인공이 앞에 그려짐 → 드릴이 주인공이 아니라 바위를 파는 것으로 보임)
-  if(S.auto>0){const st2=!S.autoOn?'off':full()?'full':'on',ph=st2==='off'?1:Math.floor(A.botPh)%3+1,bs=spr(`robot_${st2}${ph}`);
+  if(S.auto>0){const st2=!S.autoOn?'off':full()&&boxUsed()>=boxCap()?'full':'on',ph=st2==='off'?1:Math.floor(A.botPh)%3+1,bs=spr(`robot_${st2}${ph}`);
     if(bs){g.setTransform(1,0,0,1,sh*K,0);const bw=Math.round(bs.width*kk),bh=Math.round(bs.height*kk),body=Math.round(55*kk),rx=faceS-8-(bw-body),ry=fyS+5;shadow(rx+(bw-body)+Math.round(body*.6),ry,Math.round(body*.7));g.drawImage(bs,rx,ry-bh+kk*2,bw,bh);g.setTransform(K,0,0,K,sh*K,0)}
     if(st2==='full'&&Math.random()<.2)PARTS.push({x:w.x+4,y:w.y-14,vx:(Math.random()-.5)*6,vy:-14,life:1,c:'rgba(180,170,160,.7)',sz:2})}
   // 주인공: 직접 그린 스프라이트(art/hero)
-  const sit=full()&&A.sw<0,fxw=Math.round(w.x+6-camX)-bite/K,fyw=Math.round(w.y-camY)+Math.round(bite*SL)/K;
+  const sit=full()&&!veinOn()&&A.sw<0,fxw=Math.round(w.x+6-camX)-bite/K,fyw=Math.round(w.y-camY)+Math.round(bite*SL)/K;
   g.setTransform(1,0,0,1,sh*K,0);shadow(heroS-2,fyS,24);g.setTransform(K,0,0,K,sh*K,0);
   if(HERO.img){const k=heroFrameKey(sit,t),[sx,sy,sw,sh,fx]=HERO_META[k],hs=HERO_META._s||1,bob=k==='rest'&&Math.sin(A.bobT*2.2)>.6?1:0;
     g.drawImage(HERO.img,sx,sy,sw,sh,fxw-fx/hs,fyw-sh/hs+1+bob,sw/hs,sh/hs);   // 2배 도트를 절반 크기로 → 화면 1px = 그림 1px

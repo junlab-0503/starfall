@@ -11,3 +11,4 @@ calib*.log
 exports/*.zip
 lang_dump_tmp.html
 audit*.json
+__pycache__/

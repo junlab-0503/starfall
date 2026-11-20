@@ -345,19 +345,6 @@ You can sell ore from the [Warehouse] at the bottom of the mining screen, or buy
 The [Open] button at the top left of the mining screen shows what you need to open the next layer. Gather it all, then press it to go deeper. The book at the top right holds your grandfather's journal and the codex.
 The higher the tower, the more of those who left come back, one by one, and open shops. Build up to floor 6 and Sem the warehouse keeper will come back to expand your warehouse. When someone arrives, they'll tell you themselves.
 Now follow your grandfather's journal and take your time going down. Granny just… wants to see the village lively again, the way it once was. I'll always be here.
-## intro
-Musoe's Smithy
-"Haha, I'm back at the hammer! Come by the smithy in the [Gear] tab. I'll put an edge on your pickaxe. The sharper the edge, the easier the rock splits!"
-Sem's Warehouse
-"Warehouse feeling cramped? I'll add shelves at my warehouse in the [Gear] tab. And when it's full, leave it to me to clear out the cheapest raw ore first."
-Pin's Workbench
-"Grandpa's mining machine? I can fix it! At my workbench in the [Gear] tab I'll make the drill robots faster and make the stash bigger, too."
-Layer Passes
-"I've opened [Layer Passes] at the market! Hold a pass and ore from that layer trickles into your mining stash."
-Rumor Board
-"And rumors! A layer rumor goes around about every 10 minutes, and 6–8 minutes later it's announced whether it was true. Watch who said it, whether others say the same, and whether clues turn up in that layer. If it proves true, the pass price jumps."
-Mir's Furnace
-"…I'll look after the furnace. Grow the bellows in the [Gear] tab and smelting goes better. …And the star's heat you feel in a golden vein — I can hold it a little longer."
 ## shopLines
 Edge gone dull? Hand it over, I'll have it sharp in no time!
 Had another bout with the rocks today, huh? Haha!

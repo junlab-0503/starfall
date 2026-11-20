@@ -1,5 +1,5 @@
 // UI 점검(v29): 320×640 · 393×852 · 430×932 × ko/en/zh × 24화면(후반 상태: 큰 골드 · 99층 · 레시피 다 앎 · 아이템 많음 · 세공 +8)
-// 글자 넘침(over) · 화면 밖(off) · 부모 상자에 잘림(clip) · 12px 미만 글씨(small) · 44px 미만 터치(touch, ::before 투명 확장 포함) · 가로 스크롤
+// 글자 넘침(over) · 화면 밖(off) · 부모 상자에 잘림(clip) · 글자가 아이콘을 25% 넘게 덮음(cover, v30) · 12px 미만 글씨(small) · 44px 미만 터치(touch, ::before 투명 확장 포함) · 가로 스크롤
 // 사용: node tools/tests/ui_audit.js dist/starfall.html [out.json] [shots]   (shots면 화면마다 shot_폭_언어_화면.png)
 const {chromium}=require('playwright');const fs=require('fs');
 const html=process.argv[2],out=process.argv[3]||'audit.json',SHOTS=process.argv[4]==='shots';
@@ -16,7 +16,7 @@ const SCREENS=[
  ['pop-info',"setTab('forge');itemInfo('starsteel')"],
  ['pop-exit',"setTab('mine');exitAsk()"],
 ];
-const AUDIT=()=>{const vw=innerWidth,vh=innerHeight,res={hs:0,over:[],small:[],touch:[],off:[],clip:[]};
+const AUDIT=()=>{const vw=innerWidth,vh=innerHeight,res={hs:0,over:[],small:[],touch:[],off:[],clip:[],cover:[]};
   const se=document.scrollingElement;res.hs=Math.max(se.scrollWidth-vw,document.querySelector('main').scrollWidth-document.querySelector('main').clientWidth,0);
   const vis=e=>{if(!e.getClientRects().length)return false;const cs=getComputedStyle(e);if(cs.visibility==='hidden'||+cs.opacity===0)return false;let p=e;while(p){if(p.hidden)return false;p=p.parentElement}return true};
   const name=e=>(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.trim().split(/\s+/).join('.'):'')||e.tagName.toLowerCase();
@@ -35,7 +35,9 @@ const AUDIT=()=>{const vw=innerWidth,vh=innerHeight,res={hs:0,over:[],small:[],t
       {const rg=document.createRange();rg.selectNodeContents(e);const t=rg.getBoundingClientRect();let a=e.parentElement;while(a&&a!==document.body){const cs2=getComputedStyle(a);if(/auto|scroll/.test(cs2.overflowY+cs2.overflowX))break;if(/hidden|clip/.test(cs2.overflowY+cs2.overflowX)){const q=a.getBoundingClientRect();if(t.bottom>q.bottom+2||t.top<q.top-2||t.right>q.right+2||t.left<q.left-2)res.clip.push(`${name(e)} "${txt(e)}" in ${name(a)}`);break}a=a.parentElement}}
       if(!inScroll&&(r.right>vw+1||r.left<-1))res.off.push(`${name(e)} "${txt(e)}" x ${Math.round(r.left)}~${Math.round(r.right)}`)}
     if(e.matches('button,.nb,[data-dx],[data-pk],[data-crk],[data-shop],[data-sec],[data-qc],label.set-chk,input[type=range],summary')&&!e.disabled){const pb=getComputedStyle(e,'::before'),ext=pb.content!=='none'&&pb.position==='absolute'&&getComputedStyle(e).position!=='static';const hh=ext?Math.max(r.height,parseFloat(pb.height)||0):r.height,ww=ext?Math.max(r.width,parseFloat(pb.width)||0):r.width;if(hh<44||ww<44)res.touch.push(`${Math.round(r.width)}×${Math.round(r.height)} ${name(e)} "${txt(e)}"`)}}
-  for(const k of['over','small','touch','off','clip'])res[k]=[...new Set(res[k])];return res};
+  // 글자가 그림(아이콘)을 덮는 비율: 단추 안 그림 넓이의 25% 넘게 덮이면 보고
+  for(const im of root.querySelectorAll('button img,.ic-btn img')){if(!vis(im))continue;const a=im.getBoundingClientRect();if(a.width<8)continue;const box=im.closest('button,.ic-btn');for(const t of box.querySelectorAll('span,b,small')){if(!vis(t)||!t.textContent.trim())continue;const c=t.getBoundingClientRect(),ix=Math.max(0,Math.min(a.right,c.right)-Math.max(a.left,c.left)),iy=Math.max(0,Math.min(a.bottom,c.bottom)-Math.max(a.top,c.top)),f=ix*iy/(a.width*a.height);if(f>.25)res.cover.push(`${name(box)} "${txt(t)}" 그림의 ${Math.round(f*100)}%`)}}
+  for(const k of['over','small','touch','off','clip','cover'])res[k]=[...new Set(res[k])];return res};
 (async()=>{const b=await chromium.launch();const R={};const src=fs.readFileSync(html,'utf8');fs.writeFileSync('dbgaudit.html','<!doctype html><html><head><meta charset=utf8><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>'+src+'</body></html>');
 for(const[w,h]of RES)for(const L of LANGS){const c=await b.newContext({viewport:{width:w,height:h},deviceScaleFactor:SHOTS?2:1,isMobile:true,hasTouch:true,locale:L==='zh'?'zh-TW':L==='en'?'en-US':'ko-KR'});
   await c.addInitScript(l=>{try{localStorage.setItem('starfall.lang',l)}catch(e){}},L);const p=await c.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
@@ -52,6 +54,6 @@ for(const[w,h]of RES)for(const L of LANGS){const c=await b.newContext({viewport:
   if(errs.length)R[`${w}x${h} ${L} errors`]={errs};await c.close()}
 await b.close();fs.writeFileSync(out,JSON.stringify(R,null,1));
 // 요약
-const sum={over:{},small:{},touch:{},off:{},clip:{},hs:[]};for(const[k,v]of Object.entries(R)){if(v.errs){console.log('ERR',k,v.errs);continue}if(v.hs>0)sum.hs.push(k+' '+v.hs);for(const t of['over','small','touch','off','clip'])for(const x of v[t]){(sum[t][x]=sum[t][x]||[]).push(k)}}
-for(const t of['over','off','clip','small','touch']){const ks=Object.keys(sum[t]);console.log(`\n== ${t}: ${ks.length}종`);ks.sort((a,b)=>sum[t][b].length-sum[t][a].length).slice(0,t==='touch'||t==='small'?40:80).forEach(x=>console.log(`  [${sum[t][x].length}] ${x}  (${sum[t][x].slice(0,2).join(' | ')})`))}
+const sum={over:{},small:{},touch:{},off:{},clip:{},cover:{},hs:[]};for(const[k,v]of Object.entries(R)){if(v.errs){console.log('ERR',k,v.errs);continue}if(v.hs>0)sum.hs.push(k+' '+v.hs);for(const t of['over','small','touch','off','clip','cover'])for(const x of v[t]){(sum[t][x]=sum[t][x]||[]).push(k)}}
+for(const t of['over','off','clip','cover','small','touch']){const ks=Object.keys(sum[t]);console.log(`\n== ${t}: ${ks.length}종`);ks.sort((a,b)=>sum[t][b].length-sum[t][a].length).slice(0,t==='touch'||t==='small'?40:80).forEach(x=>console.log(`  [${sum[t][x].length}] ${x}  (${sum[t][x].slice(0,2).join(' | ')})`))}
 console.log('\n== 가로 스크롤',sum.hs.length,sum.hs.slice(0,10))})();

@@ -30,7 +30,7 @@ await E(()=>{const S=__d().S;S.auto=0;S.hp=1});for(let i=0;i<8;i++){await p.mous
 const vr=await E(()=>({inv:JSON.stringify(__d().S.inv),gold:__d().S.gold}));ok(vr.inv===inv0&&vr.gold>g0,`황금 광맥 동안엔 골드만: 광석 그대로, 골드 +${Math.round(vr.gold-g0)}`);
 await E(()=>{endVein()});
 // 3) 드릴 스위치: 켜 둔 동안과 자리 비운 동안 같은 규칙
-const sw=await E(()=>{const S=__d().S;S.auto=3;S.autoOn=true;renderMineHud();return $('autoSt').textContent+' / '+$('autoSub').textContent});ok(/ON/.test(sw)&&/자리 비워도 캐요/.test(sw),'스위치 표시: '+sw);
+const sw=await E(()=>{const S=__d().S;S.auto=3;S.autoOn=true;renderMineHud();return $('autoSt').textContent+' / '+$('autoSub').textContent});ok(/ON/.test(sw)&&/초당 [\d.,]+개씩 캐요/.test(sw),'스위치 표시(v30: 켜 두면 초당 몇 개 캐는지): '+sw);
 const off=await E(()=>{const S=__d().S;S.autoOn=false;renderMineHud();const t=$('autoSt').textContent+' / '+$('autoSub').textContent;S.box={};S.hp=layerHp(S.layer);const hp0=S.hp;
   const r=catchUp(3*3600);let ores=0;for(const k in r.ores)ores+=r.ores[k];return{t,ores,drillOff:r.drillOff}});
 ok(off.ores===0&&off.drillOff&&/OFF/.test(off.t),`OFF: 자리 비운 3시간 동안 광석 ${off.ores}개, 안내 표시 / ${off.t}`);

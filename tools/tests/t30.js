@@ -10,7 +10,7 @@ const r=await p.evaluate(()=>{const out=[];for(const n of [1,10,50,150]){S.up.bu
   const L=4,P=PM(L);P.imp=0;S.gold=1e12;const g0=S.gold;for(let i=0;i<10;i++)passBuy(L,7);for(let i=0;i<7;i++)passSell(L,10);passBuy(L,20);passSell(L,999);out.push({mix:Math.round(S.gold-g0),imp:+P.imp.toFixed(9)});return out});
 ok(r.slice(0,4).every(x=>Math.abs(x.diff)<=1&&Math.abs(x.imp)<1e-9),'사자마자 팔면 본전: '+r.slice(0,4).map(x=>`${x.n}장 ${x.diff}G`).join(', '));
 ok(Math.abs(r[4].mix)<=2,'나눠 사고 팔기를 섞어도 본전: '+r[4].mix+'G');
-ok(await p.evaluate(()=>!TENANT_INTRO['루카'].some(c=>/많이 사면|값이 조금씩 올라/.test(c.b))),'루카 안내에 "많이 사면 값이 올라요" 없음');
+ok(await p.evaluate(()=>typeof TENANT_INTRO==='undefined'&&!NPC_TUT['루카'].some(c=>/많이 사면|값이 조금씩 올라/.test(typeof c.t==='string'?c.t:''))),'루카 안내에 "많이 사면 값이 올라요" 없음');
 // 2) 제련 실패 → 레시피 안 남음, 성공 → 남음
 const f=await p.evaluate(()=>{const R=Math.random,idx=RMAP[key('copper','tin')];S.found=S.found.filter(i=>i!==idx);S.inv.copper=10;S.inv.tin=10;S.slots=['copper','tin'];
   Math.random=()=>.999;const a=smeltOnce();const f1=S.found.includes(idx);Math.random=()=>.5;const b=smeltOnce();const f2=S.found.includes(idx);Math.random=R;return{a:a.kind,f1,b:b.kind,f2}});

@@ -9,7 +9,6 @@ const D=await p.evaluate(()=>{const o={};
   o.says=[].concat(...SECTIONS.map(s=>s.t.says));
   o.journal=JOURNAL.slice();o.event=Object.values(LAYER_EVENT);o.proT=PROLOGUE.map(c=>c.t);o.proB=PROLOGUE.map(c=>c.b);o.endT=ENDING.map(c=>c.t);o.endB=ENDING.map(c=>c.b);
   o.tut=[];TUT.forEach(st=>{if(typeof st.t==='string')o.tut.push(st.t)});
-  o.intro=[];Object.values(TENANT_INTRO).forEach(a=>a.forEach(c=>{o.intro.push(c.t);o.intro.push(c.b)}));
   o.shopLines=[].concat(...SHOPS.map(s=>s.lines));o.thanks=[].concat(...SHOPS.map(s=>THANKS[s.who]));o.signs=SHOPS.map(s=>SHOP_ART[s.who].sign);
   o.ups=Object.values(UPS).map(u=>u.n);o.shape=Object.values(SHAPE_TXT);o.sect=Object.values(SECT).map(s=>s.n);o.hints=RECIPES.map(r=>r.hint);o.picks=PICK_TIERS.map(t=>t[1]);o.src=Object.keys(SOURCES);
   return o});

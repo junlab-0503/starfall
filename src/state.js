@@ -15,7 +15,7 @@ const DAY=240; // 게임 속 하루 = 4분
 const SAVE_KEY='starfall-v1';
 function fresh(){return{v:SAVE_VER,gold:0,inv:{},seen:[],unlocked:1,layer:0,hp:LAYERS[0].hp,next:null,digs:{},pick:1,auto:0,autoOn:true,furnace:0,intel:0,wh:0,
   found:[],slots:[null,null],box:{},log:[],floors:0,rentAcc:0,ended:false,journal:[],up:{},shop:0,ofN:0,ofG:0,prologue:false,
-  clock:0,day:0,playT:0,whHint:0,mr:0,lowFx:false,vib:true,ntq:[],ntDone:[],nts:0,fgSub:'furn',craft:{a:null,rec:{},met:0,sel:'silver'},pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
+  clock:0,day:0,playT:0,whHint:0,mr:0,lowFx:false,vib:true,ntq:[],ntDone:[],nts:0,fgSub:'furn',craft:{a:null,rec:{},met:0,sel:'silver'},pass:{},pm:{},pdv:{},rum:[],rumDone:[],srcRec:{},rumT:300,rumN:0,review:null,vein:null,veinT:600,legacy:0,tutBrk:0,dev:0,mkSub:'pass',
   ads:{boostUntil:0,day:0,gift:0,boost:0},noAds:false,sound:{sfx:.6,bgm:.3},tut:0,tutDone:false,mined:0,crafts:0,earned:0,bestSale:0,t0:gtime(),lastSeen:gtime(),maxClock:gtime(),tab:'mine',sub:'store'}}
 /* 시계 조작 방지
    게임 시간 = 기기 시계 + 보정값(CLK.off).
@@ -50,6 +50,8 @@ function cleanSave(d){const f=fresh(),S2={};
   const pass={};for(const i in S2.pass||{}){const h=S2.pass[i];if(LAYERS[i]&&h&&num(h.n)&&h.n>0&&num(h.c)){pass[i]={n:h.n|0,c:h.c};if(num(h.bt))pass[i].bt=h.bt;if(num(h.bm))pass[i].bm=h.bm}}S2.pass=pass;
   const pm={};for(const i in S2.pm||{}){const P=S2.pm[i];if(LAYERS[i]&&P&&num(P.m))pm[i]={m:clamp(P.m,.15,8),a:num(P.a)?clamp(P.a,.15,8):1,imp:num(P.imp)?P.imp:0}}S2.pm=pm;
   S2.rum=(Array.isArray(S2.rum)?S2.rum:[]).filter(r=>r&&LAYERS[r.L]&&SOURCES[r.src]&&num(r.t)&&num(r.dur));S2.rumDone=(Array.isArray(S2.rumDone)?S2.rumDone:[]).slice(0,4);
+  // v30: 리뷰 부탁 상태 · 소문 번호(예전엔 저장 정리 때 빠져서 리뷰 창이 다시 뜨고, 소문 번호가 1부터 다시 매겨져 진행 중인 소문과 겹칠 수 있었음)
+  S2.review=['later','done','no'].includes(S2.review)?S2.review:null;S2.rumN=Math.max(S2.rumN|0,...S2.rum.map(r=>r.id|0),...S2.rumDone.map(r=>r.id|0),0);
   S2.unlocked=clamp(S2.unlocked|0,1,LAYERS.length);S2.layer=clamp(S2.layer|0,0,S2.unlocked-1);
   if(!['pass','ore'].includes(S2.mkSub))S2.mkSub='pass';
   const up={};for(const k in S2.up||{})if(UPS[k]&&num(S2.up[k])&&S2.up[k]>0)up[k]=Math.min(S2.up[k]|0,UPS[k].max??999);S2.up=up;
@@ -67,7 +69,11 @@ function cleanSave(d){const f=fresh(),S2={};
   return S2}
 function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>localStorage.removeItem(k));
   const raw=localStorage.getItem(SAVE_KEY);if(raw){try{S=cleanSave(JSON.parse(raw));return true}catch(e){try{localStorage.setItem(SAVE_KEY+'-bak',raw)}catch(e2){}}}}catch(e){}S=fresh();return false}   // 저장을 못 읽으면 새 게임으로 덮어쓰기 전에 원본을 -bak에 남김
-function save(){if(!CLK.hold){S.lastSeen=gtime();S.maxClock=Math.max(S.maxClock||0,S.lastSeen)}try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
+// v30: 저장이 실패하면(저장 공간 부족 · 막힘) 게임은 멈추지 않고 1분에 한 번만 알림. 다시 저장되면 알려 줌
+let SAVE_FAIL=0,SAVE_WARN_T=-1e9;
+function save(){if(!CLK.hold){S.lastSeen=gtime();S.maxClock=Math.max(S.maxClock||0,S.lastSeen)}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));if(SAVE_FAIL){SAVE_FAIL=0;if(typeof toast==='function')toast('저장이 다시 잘 되고 있어요.')}}
+  catch(e){SAVE_FAIL++;try{console.warn('save failed',e&&e.name)}catch(_){}const now=performance.now();if(now-SAVE_WARN_T>60000&&typeof toast==='function'){SAVE_WARN_T=now;toast('진행 상황을 저장하지 못했어요. 기기 저장 공간을 확인해 주세요.')}}}
 // 화면 갱신: 같은 내용이면 건드리지 않고, 긴 목록은 바뀐 줄만 바꾼다 (매초 다시 그려도 끊기지 않게)
 const HC=new WeakMap();
 function setHTML(el,h){if(!el||HC.get(el)===h)return;HC.set(el,h);el.innerHTML=h}
@@ -96,7 +102,11 @@ const boostMul=()=>boostOn()?2:1;
 const tapPower=()=>pickPower(S.pick)*BON.tap*boostMul();
 const pickCost=l=>Math.round(BAL.pick[0]*Math.pow(BAL.pick[1],l-1));
 const autoCost=n=>Math.round(BAL.auto[0]*Math.pow(BAL.auto[1],n));
-const autoDps=()=>S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto*boostMul();
+// v30: 드릴 로봇 힘 = 레벨 × (1 + 레벨/autoQ) — 곡괭이처럼 높은 레벨일수록 한 단계가 더 크게(예전엔 레벨에 정비례라 50레벨쯤엔 몇 조를 써도 체감이 거의 없었음)
+const autoMul=n=>n*(1+Math.max(0,n-(BAL.autoK||0))/(BAL.autoQ||1e9));
+const autoDps=()=>autoMul(S.auto)*pickPower(S.pick)*BAL.autoEff*BON.auto*boostMul();
+const autoRate=(n=S.auto)=>autoMul(n)*pickPower(S.pick)*BAL.autoEff*BON.auto*boostMul()/layerHp(S.layer);   // 드릴이 지금 지층에서 1초에 캐는 개수
+const rateTxt=x=>x<10?(Math.round(x*10)/10).toString():big(x);
 const furnCost=n=>Math.round(BAL.furn[0]*Math.pow(BAL.furn[1],n));
 const whCost=n=>Math.round(BAL.wh[0]*Math.pow(BAL.wh[1],n));
 const intelCost=n=>n>=INTEL_MAX?Infinity:Math.round(BAL.intel[0]*Math.pow(BAL.intel[1],n));
@@ -114,7 +124,7 @@ const boxUsed=()=>Object.values(S.box||{}).reduce((a,b)=>a+b,0);
 // 채굴 보관함: 꺼 둔 동안 캔 광석만 담는다 (한도는 오프라인 시간으로 정해짐)
 // 자리 비움 보상: 8시간에 걸쳐 천천히 차서 '켜 두고 1시간 플레이한 만큼'이 되면 멈춘다 (패키지는 2시간치). 밤샘 근무는 차는 속도만 올린다
 const OFF_FILL=8,offCapH=()=>S.noAds?2:1,offEquiv=sec=>Math.min(sec*offEff()/OFF_FILL,offCapH()*3600);
-const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+S.auto*pickPower(S.pick)*BAL.autoEff*BON.auto)/layerHp(S.layer);
+const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+autoMul(S.auto)*pickPower(S.pick)*BAL.autoEff*BON.auto)/layerHp(S.layer);
 const boxCap=()=>boxCapOf(ul('box'));
 function boxAdd(id,n){S.box=S.box||{};if(n>0)S.box[id]=(S.box[id]||0)+n;return n}
 const used=()=>Object.values(S.inv).reduce((a,b)=>a+b,0);

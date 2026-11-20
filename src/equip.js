@@ -12,7 +12,7 @@ const UPS={
   metal:{n:'쇠맥 찾기',ic:()=>'goldbar',max:20,d:l=>`금속 광석을 캘 때 ${pc(extraAt(l))}% 확률로 하나 더${l<20?` → ${pc(extraAt(l+1))}%`:''}`},
   gem:{n:'보석 눈썰미',ic:()=>'cutemerald',max:20,d:l=>`보석 원석을 캘 때 ${pc(extraAt(l))}% 확률로 하나 더${l<20?` → ${pc(extraAt(l+1))}%`:''}`},
   auto:{n:'드릴 로봇',ic:()=>'gear',lv:()=>S.auto,cost:()=>autoCost(S.auto),buy:()=>{S.auto++;if(S.auto===1)log('핀이 만들어 준 드릴 로봇이 일을 시작했어요.',true)},
-    d:()=>S.auto?`드릴 로봇 Lv.${S.auto} · 초당 ${big(autoDps())} 피해`:'혼자서도 바위를 깨는 작은 로봇을 들여요'},
+    d:()=>S.auto?`드릴 로봇 Lv.${S.auto} · 지금 지층에서 초당 ${rateTxt(autoRate())}개 → ${rateTxt(autoRate(S.auto+1))}개`:'혼자서도 바위를 깨는 작은 로봇을 들여요'},
   box:{n:'채굴 보관함',ic:()=>'brick',d:l=>`창고가 차면 로봇이 여기에 모아요 · ${big(boxCapOf(l))}칸 → ${big(boxCapOf(l+1))}칸`},
   refiner:{n:'자동 판매 장치',ic:()=>'crysteel',max:10,d:l=>`보관함이 넘치면 넘친 광석을 원석 값의 ${Math.round(ofMul(l)*100)}%로 팔아요${l<10?` → ${Math.round(ofMul(l+1)*100)}%`:''}`},
   night:{n:'밤샘 근무',ic:()=>'moonstone',max:10,d:l=>`자리 비운 보상이 ${pc(nightAt(l))}% 더 빨리 차요${l<10?` → ${pc(nightAt(l+1))}%`:''}`},
@@ -51,7 +51,8 @@ const nightAt=l=>l<=5?l*.15:.75+(l-5)*.05;           // 10단계 +100%(8시간 �
 const critP=()=>critAt(ul('crit'));
 const extraP=s=>s==='metal'?extraAt(ul('metal')):s==='gem'?extraAt(ul('gem')):0;
 const boxCapOf=l=>Math.floor(BAL.box[0]*Math.pow(BAL.box[1],l));
-const ofMul=l=>l<=5?.5+.2*l:1.5+(l-5)*.05;   // 넘친 광석 판매 배율 (자동 판매 장치, 10단계 175%)
+// 넘친 광석 판매 배율 (자동 판매 장치). v30: 예전엔 10단계 175%라 직접 파는 것(100%)보다 비싸게 팔려 창고를 꽉 채워 두는 게 이득이었음 → BAL.of=[처음, 단계마다, 최대]로 최대 100%
+const ofMul=l=>BAL.of?Math.min(BAL.of[2],BAL.of[0]+BAL.of[1]*l):l<=5?.5+.2*l:1.5+(l-5)*.05;
 const offEff=()=>1+nightAt(ul('night'));      // 자리 비운 보상이 차는 속도(상한은 그대로 '켜 두고 1시간치')
 const rentCapH=l=>offlineH()+4*l;
 // 미르(연금술사)는 '별의 열'을 느끼는 사람 → 황금 광맥을 더 오래 붙잡아 둠(기본 30초, 단계마다 +2초, 10단계 50초)

@@ -16,12 +16,12 @@ document.querySelector('.stats').addEventListener('click',e=>{const s=e.target.c
 function badges(){const equip=SHOPS.some(sh=>sh.ups.some(upCan)),shaft=S.unlocked<LAYERS.length&&reqMet(LAYERS[S.unlocked]),
   build=!towerBlocked()&&canBuild(floorCost(S.floors+1)),rent=S.rentAcc>=rentPerSec()*1800&&rentPerSec()>0,fin=towerBlocked()&&cnt('philo')>=1&&cnt('starshard')>=10;
   return{equip,shaft,manage:shaft,build,rent,tower:build||rent||fin}}
-function renderMineHud(){{const w=LANG==='en'?'Storage':LANG==='zh'?'倉庫':'창고';if($('whTag').textContent!==w)$('whTag').textContent=w;const bt=$('boxTag'),bw=LANG==='en'?'Robot<br>Stash':LANG==='zh'?'機器人<br>保管箱':'로봇<br>보관함';if(bt.dataset.l!==LANG){bt.dataset.l=LANG;bt.innerHTML=bw}}   // v29: 창고 단추 이름표는 짧게(영어 Storage)
+function renderMineHud(){{const w=LANG==='en'?'Storage':LANG==='zh'?'倉庫':'창고';if($('whTag').textContent!==w)$('whTag').textContent=w;const bt=$('boxTag'),bw=LANG==='en'?'Robot <br>Stash':LANG==='zh'?'機器人<br>保管箱':'로봇 <br>보관함';if(bt.dataset.l!==LANG){bt.dataset.l=LANG;bt.innerHTML=bw}}   // v29: 창고 단추 이름표는 짧게(영어 Storage)
 
   const f=used()>=cap(),ab=$('autoBtn'),bx=$('boxBtn'),bu=boxUsed();
   ab.hidden=!(S.auto>0);ab.classList.toggle('on',!!S.autoOn);ab.classList.toggle('full',!!S.autoOn&&f);ab.setAttribute('aria-checked',S.autoOn?'true':'false');
   // 스위치 하나가 켜 둔 동안과 자리 비운 동안 모두를 정함
-  $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';$('autoSub').textContent=S.autoOn?(f?'창고 가득 · 보관함에 모아요':'자리 비워도 캐요'):'자리 비워도 쉬어요';
+  $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';{const bf=f&&boxUsed()>=boxCap(),e=$('autoSub'),v=S.autoOn?(bf?'보관함도 가득 · 넘친 건 팔아요':f?'창고 가득 · 보관함에 모아요':`초당 ${rateTxt(autoRate())}개씩 캐요`):'자리 비워도 쉬어요';if(e.dataset.v!==v){e.dataset.v=v;e.textContent=v}}   // v30: 켜 둔 동안 실제로 초당 몇 개 캐는지
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
   const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
   $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
@@ -61,7 +61,7 @@ $('veinPop').onclick=()=>setTab('mine');
 function askReview(force){if(!force&&(S.review==='done'||S.review==='no'))return;
   story([{gold:1,review:1,btn:'나중에',k:'숯의 부탁',t:'별빛광맥이 마음에 드나요?',b:'여기까지 와 줘서 고마워요. 재미있게 하고 있다면 별점과 리뷰를 남겨 주세요.\n짧은 한마디도 마을을 다시 일으키는 데 큰 힘이 돼요.',
     extra:'<div class="row-btns" style="justify-content:center;margin:2px 0 4px"><button class="px-btn lamp" id="revGo" type="button">★ 리뷰 남기기</button></div>',done:()=>{if(!force)S.review=S.review==='later'?'no':'later'}}])}
-$('storyX').addEventListener('click',e=>{if(!e.target.closest('#revGo'))return;S.review='done';save();nextStory();toast('고마워요! 출시 후에는 여기서 스토어 리뷰 화면이 열려요.')});
+$('storyX').addEventListener('click',e=>{if(!e.target.closest('#revGo'))return;S.review='done';save();nextStory();const N=NATIVE();if(N&&typeof N.requestReview==='function'){Promise.resolve().then(()=>N.requestReview()).catch(()=>{})}else toast('고마워요! 출시 후에는 여기서 스토어 리뷰 화면이 열려요.')});
 $('storyX').addEventListener('click',e=>{if(!e.target.closest('#whGo'))return;nextStory();setTab('tower')});
 $('devReview').onclick=()=>{if(S.dev)askReview(true)};
 $('devVein').onclick=()=>{if(!S.dev)return;if(S.vein)endVein();startVein()};
@@ -163,6 +163,8 @@ function nextStory(){const prev=STC,c=STQ.shift();STC=c||null;if(!c){$('story').
   const p=$('portrait'),pa=$('portraitArt'),art=c.art&&typeof ART!=='undefined'&&ART[c.art];pa.hidden=!art;if(art){pa.src=art;pa.alt=c.t||''}
   if(c.portrait&&!art){p.hidden=false;drawPortrait(p,c.portrait,!!c.hide)}else p.hidden=true;$('storyNext').textContent=c.btn||(STQ.length?'다음':'계속');$('story').querySelector('.story-card').classList.toggle('gold',!!c.gold);$('story').hidden=false;if(c.done)c.done()}
 $('storyNext').onclick=nextStory;
+// v30: 이야기 창이 열린 채 언어를 바꾸면 본문도 새 언어로(본문은 T()로 미리 번역해 넣어 원문 글자 마디가 없음). 다시 그리기만 — done · after · 보상은 다시 실행하지 않음
+function storyRelang(){if(!STC||$('story').hidden)return;$('storyB').innerHTML=T(STC.b||'').replace(/\n/g,'<br>')}
 /* 탭 */
 // v24: 아래 탭 다섯 개(제련 · 장터 · 채굴 · 탑 · 장비). 예전 '관리' 탭은 채굴 화면 버튼이 여는 창(시트)으로 옮김. 저장된 tab이 manage면 채굴로
 const TABS=['forge','market','mine','tower','equip'];
@@ -191,7 +193,14 @@ const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)
 function renderAdBtns(){const now=gtime(),gl=giftLeft(),gb=$('giftBtn');gb.disabled=gl<=0;gb.classList.toggle('ready',gl>0);$('giftTag').textContent=gl>0?`${gl}/${GIFT_MAX}`:'내일';
   const bb=$('boostBtn'),bl=boostLeft(),on=boostOn();bb.disabled=on||bl<=0;bb.classList.toggle('live',on);bb.classList.toggle('ready',!on&&bl>0);$('boostTag').textContent=on?mmss(S.ads.boostUntil-now):bl>0?`${bl}/${BOOST_MAX}`:'내일'}
 let AD_CB=null,AD_T=null;
-function showAd(title,cb){if(S.noAds){cb();return}AD_CB=cb;$('adT').textContent=title;let n=5;$('adCnt').textContent=n;$('adDone').disabled=true;$('adModal').hidden=false;clearInterval(AD_T);
+/* v30: 앱(안드로이드) 연동 자리 — 앱이 window.starfallNative 를 넣어 주면 진짜 광고 · 결제 · 복원 · 리뷰를 쓰고, 없으면(HTML 미리보기) 예전 모의 화면 그대로.
+   showRewarded(이름) → Promise<true면 끝까지 봄>, purchase('no_ads') → Promise<true면 결제 확인됨>, restore() → Promise<true면 이미 산 것 있음>, requestReview() → Promise
+   보상은 true를 받았을 때 한 번만(진행 중엔 다시 못 누름 · 취소 · 실패 · 오프라인이면 보상 없음) */
+const NATIVE=()=>(window.starfallNative&&typeof window.starfallNative==='object')?window.starfallNative:null;
+let AD_BUSY=false,BUY_BUSY=false;
+function nativeAd(N,title,cb){if(AD_BUSY)return;AD_BUSY=true;
+  Promise.resolve().then(()=>N.showRewarded(title)).then(ok=>{AD_BUSY=false;if(ok===true){cb();save()}else toast('광고를 끝까지 보지 않아서 보상은 없어요.')},()=>{AD_BUSY=false;toast('지금은 광고를 불러올 수 없어요. 잠시 뒤에 다시 해 주세요.')})}
+function showAd(title,cb){if(S.noAds){cb();return}{const N=NATIVE();if(N&&typeof N.showRewarded==='function'){nativeAd(N,title,cb);return}}AD_CB=cb;$('adT').textContent=title;let n=5;$('adCnt').textContent=n;$('adDone').disabled=true;$('adModal').hidden=false;clearInterval(AD_T);
   AD_T=setInterval(()=>{n--;$('adCnt').textContent=n>0?n:'끝!';if(n<=0){clearInterval(AD_T);$('adDone').disabled=false}},1000)}
 $('adDone').onclick=()=>{$('adModal').hidden=true;const cb=AD_CB;AD_CB=null;if(cb)cb()};
 $('adCancel').onclick=()=>{clearInterval(AD_T);$('adModal').hidden=true;AD_CB=null};
@@ -205,14 +214,20 @@ const GIFT_MIN=15;
 const giftGold=()=>Math.max(50,Math.round(Math.max(playIncomeAt(S.unlocked-1),S.mr||0)*GIFT_MIN*60));
 function openGift(){if(!giftReady())return;showAd('숯의 선물 상자',()=>{if(!giftReady())return;adsDay().gift++;
   const gold=giftGold();S.gold+=gold;
-  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>${S.noAds?'':'<p class="dim small ad-hint">광고 제거 패키지로 광고 없이 받아 보세요! (관리 → 설정)</p>'}`}]);renderAll()})}
+  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>${S.noAds?'':'<p class="dim small ad-hint">광고 제거 패키지로 광고 없이 받아 보세요! (채굴 화면 톱니바퀴 → 설정)</p>'}`}]);renderAll()})}
 // 10분 동안 채굴 2배 (하루 10번, 켜져 있는 동안은 다시 못 씀)
 function startBoost(){if(boostOn()||boostLeft()<=0)return;showAd('10분 동안 채굴 2배',()=>{if(boostOn()||boostLeft()<=0)return;adsDay().boost++;S.ads.boostUntil=gtime()+10*60000;A.joy=1;toast(`10분 동안 곡괭이와 자동 드릴이 2배로 강해져요! (오늘 ${boostLeft()}번 남음)`);renderAll()})}
 $('giftBtn').onclick=openGift;$('boostBtn').onclick=startBoost;
-$('buyPkg').onclick=()=>{if(S.noAds)return;$('shopModal').hidden=false};
+function grantNoAds(msg){if(S.noAds)return;S.noAds=true;save();log(msg,true);renderAll()}
+$('buyPkg').onclick=()=>{if(S.noAds)return;const N=NATIVE();
+  if(N&&typeof N.purchase==='function'){if(BUY_BUSY)return;BUY_BUSY=true;Promise.resolve().then(()=>N.purchase('no_ads')).then(ok=>{BUY_BUSY=false;if(ok===true)grantNoAds('광고 제거 패키지가 적용됐어요. 고마워요!')},()=>{BUY_BUSY=false;toast('결제를 마치지 못했어요. 결제되지 않았으니 다시 시도해 주세요.')});return}
+  $('shopModal').hidden=false};
+// 구매 복원(앱에서만 보임): 다른 기기 · 다시 설치한 뒤 이미 산 광고 제거를 되살림
+function restorePkg(){const N=NATIVE();if(!N||typeof N.restore!=='function'||BUY_BUSY)return;BUY_BUSY=true;Promise.resolve().then(()=>N.restore()).then(ok=>{BUY_BUSY=false;if(ok===true)grantNoAds('구매한 광고 제거 패키지를 되살렸어요.');else toast('되살릴 구매 기록이 없어요.')},()=>{BUY_BUSY=false;toast('지금은 구매 기록을 확인할 수 없어요.')})}
 $('shopCancel').onclick=()=>$('shopModal').hidden=true;
-$('shopOk').onclick=()=>{S.noAds=true;$('shopModal').hidden=true;log('광고 제거 패키지가 적용됐어요. 고마워요!',true);renderAll()};
-function renderPkg(){const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAds?'구매 완료':'구매하기';$('pkgState').textContent=S.noAds?'적용 중':'';const pr=pkgPrice();$('pkgPrice').textContent=pr;$('pkgPrice2').textContent=pr}
+$('shopOk').onclick=()=>{$('shopModal').hidden=true;grantNoAds('광고 제거 패키지가 적용됐어요. 고마워요!')};   // HTML 미리보기 전용 모의 결제(앱에선 위 purchase를 씀)
+$('restorePkg').onclick=restorePkg;
+function renderPkg(){{const r=$('restorePkg'),N=NATIVE();if(r)r.hidden=!(N&&typeof N.restore==='function')||S.noAds}const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAds?'구매 완료':'구매하기';$('pkgState').textContent=S.noAds?'적용 중':'';const pr=pkgPrice();$('pkgPrice').textContent=pr;$('pkgPrice2').textContent=pr}
 // 광고 제거 패키지 값: 나라별(기기 지역) 한국 5,900원 · 대만 NT$149 · 그 밖(미국 기준) US$4.99. 출시 땐 스토어가 알려 주는 현지 가격으로 바꿀 자리
 function pkgRegion(){const L=[].concat(navigator.languages||[],navigator.language||[]);for(const l of L){const m=String(l).match(/^([a-z]{2,3})(?:-([A-Za-z]{4}))?(?:-([A-Za-z]{2}))?/i);if(!m)continue;const lg=m[1].toLowerCase(),sc=(m[2]||'').toLowerCase(),rg=(m[3]||'').toUpperCase();
   if(rg)return rg==='KR'||rg==='TW'?rg:'US';if(lg==='ko')return'KR';if(lg==='zh'&&sc==='hant')return'TW'}return'US'}

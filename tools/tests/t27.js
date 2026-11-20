@@ -7,11 +7,11 @@ const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 const closeStory=async()=>{for(let i=0;i<30&&await p.isVisible('#storyNext');i++)await p.click('#storyNext')};
 await p.goto('file://'+process.cwd()+'/dbg27.html');await p.waitForTimeout(800);
 // 이야기 · 문구
-const T=await p.evaluate(()=>({letter:PROLOGUE[0].b,journal:PROLOGUE.find(c=>c.t==='할아버지의 일지')?.b||'',machine:PROLOGUE.some(c=>c.t==='느리게 도는 기계'),art:PROLOGUE.some(c=>c.art),end:ENDING.some(c=>c.t==='이장 할머니'),last:TUT[TUT.length-1].t,bau:!!TENANT_INTRO['바우'],intro:Object.keys(TENANT_INTRO).join()}));
+const T=await p.evaluate(()=>({letter:PROLOGUE[0].b,journal:PROLOGUE.find(c=>c.t==='할아버지의 일지')?.b||'',machine:PROLOGUE.some(c=>c.t==='느리게 도는 기계'),art:PROLOGUE.some(c=>c.art),end:ENDING.some(c=>c.t==='이장 할머니'),last:TUT[TUT.length-1].t,bau:typeof TENANT_INTRO!=='undefined',intro:''}));
 ok(/철거 예정/.test(T.letter)&&/아직 죽지 않았다/.test(T.journal)&&/숨 쉬고/.test(T.journal)&&/하늘로 가는 길/.test(T.journal)&&T.machine&&!T.art,'프롤로그: 편지 · 일지 문구, 느리게 도는 기계 그대로, 이장 할머니 그림 없음');
 ok(!T.end,'에필로그에 이장 할머니 카드 없음');
 ok(!/99층|별을 하늘로/.test(T.last)&&/마을/.test(T.last),'튜토리얼 마지막 말: '+T.last.slice(0,40));
-ok(!T.bau&&T.intro==='무쇠,셈,핀,루카,미르','입주 뒤 한 장 더 설명하는 사람은 가게 주인만: '+T.intro);
+ok(!T.bau,'(v30) 입주 카드 뒤 "새로 열렸어요" 카드 없음 — 설명은 그 사람의 말풍선 안내로만');
 ok(await p.evaluate(()=>{const pk=[...document.querySelectorAll('#sub-set .panel')].find(e=>/광고 제거/.test(e.textContent));return pk&&!/Galmuri/.test(pk.textContent)&&/Galmuri/.test(document.querySelector('.credit').textContent)&&/© 2026 jun/.test(document.querySelector('.t-copy').textContent)&&!/배당/.test(document.getElementById('tab-market').innerHTML)}),'글꼴 · 저작권 표기는 관리 탭 아래와 시작 화면 아래(광고 제거 패키지 칸엔 없음) · 장터에 "배당" 단어 없음');
 await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
 await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await closeStory();
@@ -22,8 +22,8 @@ ok(fr.who==='무쇠,셈,핀,루카,미르'&&/탑 1층.*탑 6층.*탑 10층.*탑 
 ok(new Set(fr.hs).size===1&&fr.hs[0]===fr.ws[0],'잠긴 액자 5칸 모두 같은 정사각: '+fr.hs.join());
 // 강화 한도 · 출입권 한도
 const up=await p.evaluate(()=>({crit:UPS.crit.max,c20:critAt(20),m20:extraAt(20),hag:UPS.haggle.max,night:UPS.night.max,n10:nightAt(10),ref:ofMul(10),q:UPS.vheat.max,pm:passMax(),bulk:UPS.bulk.max,c11:upCostOf('crit',11)/upCostOf('crit',10),c5:upCostOf('crit',5)/upCostOf('crit',4)}));
-ok(up.crit===20&&Math.abs(up.c20-.4)<1e-9&&Math.abs(up.m20-.7)<1e-9&&up.hag===20&&up.night===10&&Math.abs(up.n10-1)<1e-9&&Math.abs(up.ref-1.75)<1e-9&&up.q===10,'강화 한도: 힘껏 내려치기 20(40%) · 쇠맥/보석 20(70%) · 흥정 20 · 밤샘 10(+100%) · 자동 제련 장치 10(175%) · 자동 제련 칸 5');
-ok(Math.abs(up.c5-2.1)<.01&&Math.abs(up.c11-1.4)<.01,`강화 값: 예전 한도까지 ×${up.c5.toFixed(2)}, 그 뒤 ×${up.c11.toFixed(2)}`);
+ok(up.crit===20&&Math.abs(up.c20-.4)<1e-9&&Math.abs(up.m20-.7)<1e-9&&up.hag===20&&up.night===10&&Math.abs(up.n10-1)<1e-9&&Math.abs(up.ref-1)<1e-9&&up.q===10,'강화 한도: 힘껏 내려치기 20(40%) · 쇠맥/보석 20(70%) · 흥정 20 · 밤샘 10(+100%) · 자동 판매 장치 10(v30: 100% — 직접 파는 값보다 비싸지 않게) · 자동 제련 칸 5');
+ok(Math.abs(up.c5-1.7)<.01&&Math.abs(up.c11-1.3)<.01,`강화 값(v30 힘껏 내려치기 1.7/1.3): 예전 한도까지 ×${up.c5.toFixed(2)}, 그 뒤 ×${up.c11.toFixed(2)}`);
 ok(up.pm===50&&up.bulk===10,'출입권 한도: 지층마다 50장(큰손 거래처 1단계마다 +10장, 10단계)');
 ok(await p.evaluate(()=>{const S=__d().S,f=S.floors;S.floors=88;refreshBonus();const a=BON.veinFast;S.floors=f;refreshBonus();return a===.7&&BON.veinFast===1&&/황금 광맥/.test(SECTIONS[11].t.bonus)}),'노을 입주 효과: 황금 광맥 간격 ×0.7');
 // 개발자 코드 칸: 다시 보이게(v19, 출시 전에 지울 것)

@@ -5,21 +5,15 @@ function floorCost(f){const i=secOf(f),s=i>=0?SECTIONS[i]:SKY,from=i>=0?s.from:1
 const canBuild=c=>S.gold>=c.gold&&c.mats.every(([id,q])=>cnt(id)>=q);
 const towerBlocked=()=>S.floors>=99&&!S.ended;
 const rentPerSec=()=>SECTIONS.reduce((s,x)=>s+(S.floors>=x.to?x.g*BAL.rent/3600:0),0);
-// 새 입주자가 들어오면 역할 · 입주 효과 카드 한 장. 가게나 새 기능을 여는 사람만 그 사람이 직접 한 장 더 알려 준다
-const TENANT_INTRO={
-  '무쇠':[{t:'무쇠네 대장간',b:'"하하, 망치 다시 잡는다! [장비] 탭 대장간으로 와. 곡괭이 날 세워 줄게. 날이 설수록 바위가 쉽게 갈라지거든!"'}],
-  '셈':[{t:'셈의 창고',b:'"창고가 비좁지? [장비] 탭 내 창고에서 칸을 늘려 줄게. 꽉 차면 싼 원석부터 알아서 정리하는 것도 맡겨 둬."'}],
-  '핀':[{t:'핀의 작업대',b:'"할아버지 채굴 기계요? 제가 고칠 수 있어요! [장비] 탭 작업대에서 드릴 로봇을 더 빠르게 만들고, 보관함도 넓혀 드릴게요."'}],
-  '루카':[{t:'지층 출입권',b:'"장터에 [지층 출입권]을 열었어요! 출입권을 가지고 있으면 그 지층 광석이 조금씩 채굴 보관함에 들어와요."'},
-          {t:'소문 게시판',b:'"그리고 소문! 10분쯤마다 지층 소문이 돌고, 6~8분 뒤에 사실인지 발표돼요. 누가 한 말인지, 다른 사람도 같은 말을 하는지, 그 지층에서 단서가 나오는지 잘 보세요. 사실로 밝혀지면 출입권 값이 크게 올라요."'}],
-  '미르':[{t:'미르의 용광로',b:'"…용광로는 제가 돌볼게요. [장비] 탭에서 풀무를 키우면 제련이 더 잘 돼요. …그리고 황금 광맥에서 느껴지는 별의 열, 제가 조금 더 오래 붙잡아 둘 수 있어요."'}]};
+// 새 입주자가 들어오면 역할 · 한마디 · 입주 효과 카드 한 장. 가게나 새 기능을 여는 사람은 이어서 그 사람이 말풍선으로 직접 짧게 알려 준다(tut.js NPC_TUT)
+// v30: 예전엔 그 사이에 '새로 열렸어요' 카드(TENANT_INTRO)가 한 장 더 있어 같은 소개 · 설명이 세 번 반복됐음 → 뺌
 function buildFloor(quiet){if(towerBlocked())return false;const f=S.floors+1,c=floorCost(f);if(!canBuild(c))return false;
   S.gold-=c.gold;c.mats.forEach(([id,q])=>add(id,-q));S.floors=f;
   if(f%5===0){const gift=c.gold*3;S.gold+=gift;log(`${f}층 완공 기념! 마을 사람들이 축하금을 보냈어요: +${big(gift)}G`,!quiet)}
   const sec=SECTIONS.findIndex(s=>s.to===f);
   if(sec>=0){refreshBonus();const t=SECTIONS[sec].t;log(`${SECTIONS[sec].n} 완공! ${t.role} ${J(t.name,'이가')} 탑에 들어왔어요.`);
     story([{gold:1,k:`${SECTIONS[sec].n} 완공 · 새 입주자`,t:`${t.role} ${t.name}`,b:`"${t.line}"`,portrait:t,extra:`<div class="say"><span class="who">입주 효과</span> ${t.bonus}<br><span class="dim">월세 시간당 ${big(SECTIONS[sec].g*BAL.rent)}G</span></div>`}]);
-    story((TENANT_INTRO[t.name]||[]).map(c=>({gold:1,k:'새로 열렸어요',t:c.t,b:c.b,portrait:t,art:t.art})));npcTutQueue(t.name)}
+    npcTutQueue(t.name)}
   if(f===99)story([{k:'99층',t:'하늘에 닿았다',b:'탑 꼭대기에 천공의 용광로를 놓을 자리가 생겼다. 현자의 원석과 별의 파편이 있으면, 별을 돌려보낼 수 있다.'}]);
   return true}
 function buildMax(){let n=0;while(n<200&&buildFloor(true))n++;if(n)toast(`${n}층을 쌓았어요!`);renderAll()}

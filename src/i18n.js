@@ -39,4 +39,4 @@ function applyLang(lang,keep){if(lang&&LANG_NAMES[lang]){LANG=lang;if(keep)try{l
   document.querySelectorAll('[placeholder],[aria-label],[alt]').forEach(trAttr);
   document.title=T('별빛광맥');document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG))}
 function initLang(){LANG_OBS.observe(document.body,{subtree:true,childList:true,characterData:true});applyLang();
-  const box=document.getElementById('langSeg');if(box)box.addEventListener('click',e=>{const b=e.target.closest('[data-lang]');if(!b||b.dataset.lang===LANG)return;applyLang(b.dataset.lang,true);if(typeof renderAll==='function')renderAll()})}
+  const box=document.getElementById('langSeg');if(box)box.addEventListener('click',e=>{const b=e.target.closest('[data-lang]');if(!b||b.dataset.lang===LANG)return;applyLang(b.dataset.lang,true);if(typeof storyRelang==='function')storyRelang();if(typeof renderAll==='function')renderAll()})}

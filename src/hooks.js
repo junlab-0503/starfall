@@ -1,6 +1,6 @@
 /* ═════════ 소리 연결 ═════════ */
 {const w=(name,fn)=>{const o=window[name];window[name]=function(...a){const r=o.apply(this,a);try{fn(r,a)}catch(e){}return r}};
- const _tap=doTap;doTap=function(){if(!tapAllowed(performance.now()))return;sfx(full()&&!ul('autosell')?'deny':'hit');return _tap()};
+ const _tap=doTap;doTap=function(){if(!tapAllowed(performance.now()))return;sfx(full()&&!ul('autosell')&&!veinOn()?'deny':'hit');return _tap()};
  w('breakWall',(r,a)=>sfx(a[0]?'breakSoft':'break'));
  const _gain=gain;gain=function(id,n,auto){const isNew=!S.seen.includes(id);const r=_gain(id,n,auto);if(isNew&&ITEMS[id].L&&S.prologue)discover(id);sfx(isNew||ITEMS[id].L>=S.layer+1?'rare':'gain');return r};
  {const _sm=smeltOnce;smeltOnce=function(){const[a,b]=S.slots,i=a&&b?RMAP[key(a,b)]:null,out=i!=null?RECIPES[i].out:null,fresh=out&&!S.seen.includes(out);const r=_sm.apply(this,arguments);if(r&&fresh&&S.seen.includes(out)&&S.prologue)discoverMade(out,a,b);return r}}   // 새 제련품을 처음 만들면 발견 카드
