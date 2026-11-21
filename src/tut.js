@@ -36,12 +36,12 @@ const NPC_TUT={
   '린':[{t:'내 작업대는 채굴 화면 아래 [세공]에 있어. 한번 눌러 봐!',sel:()=>S.tab==='mine'?'#crBtn':'.nb[data-tab="mine"]',done:()=>!$('sheet').hidden&&S.sub==='craft'},
        {t:'은괴 · 금괴 · 백금괴 · 별빛강 중에서 재료를 고르고, 개수를 정한 뒤 [제작]을 누르면 돼. 쓴 재료의 값이 세공품 기본값이 되지.',sel:'#crSeg',next:true},
        {t:'[강화 도전]에 성공하면 값이 확 올라. 대신 실패하면 깨져서 사라진다는 거, 잊지 마! 언제 팔지도 잘 생각하고.',sel:'#crBody',next:true}]};
-const NPC_P={'린':{name:'린',art:'lin'}},TUT_GRANNY={name:'이장 할머니',art:'granny',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'};
+const NPC_P={'린':{name:'린',art:'lin'}};
 function npcTutQueue(who){if(!NPC_TUT[who]||S.ntDone.includes(who)||S.ntq.includes(who))return;S.ntq.push(who)}
 const ntOn=()=>S.tutDone&&S.ntq.length>0&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;
 const ntStep=()=>ntOn()?NPC_TUT[S.ntq[0]][S.nts|0]:null;
 let TUTP='';   // 말풍선 초상화 주인(바뀔 때만 다시 그림)
-function tutWho(who){if(TUTP===who)return;TUTP=who;$('tutWho').textContent=who;const i=tenantSec(who);drawPortrait($('tutPor'),NPC_P[who]||(i>=0?SECTIONS[i].t:TUT_GRANNY),false)}
+function tutWho(who){if(TUTP===who)return;TUTP=who;$('tutWho').textContent=who;const c=$('tutPor'),i=tenantSec(who),P=NPC_P[who]||(i>=0?SECTIONS[i].t:null);setHid(c,!P);if(P)drawPortrait(c,P,false)}   // v34: 이장 할머니는 액자 없이 이름 · 말만(주민 안내는 초상화 그대로)
 function ntTick(){if(!ntOn())return false;let st=ntStep();
   while(st&&!st.next&&st.done()){S.nts=(S.nts|0)+1;st=ntStep();sfx('page')}
   if(!st){ntEnd();return ntTick()}

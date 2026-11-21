@@ -631,3 +631,5 @@ html[lang="en"] .shopc .plate{font-family:var(--f11);font-size:12px;letter-spaci
 .crp-strip img.on{opacity:1;outline:2px solid var(--lamp);outline-offset:1px}.crp-strip img.sil{filter:brightness(0);opacity:.4}
 .crp-head{text-align:center;margin:6px 0 0}
 .crp-strip img{cursor:pointer}.crp-strip img.sil{cursor:default}
+/* v34: 한국어 긴 글은 낱말 중간에서 줄이 바뀌지 않게(“화 / 면을” 방지). 칸보다 긴 낱말만 어쩔 수 없이 나눔 */
+html:lang(ko) :is(#tutT,#storyB,.bubble,.say,.toast){word-break:keep-all;overflow-wrap:anywhere}

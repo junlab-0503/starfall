@@ -7,11 +7,11 @@ const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});const p=a
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 const closeStory=async()=>{for(let i=0;i<30&&await p.isVisible('#storyNext');i++)await p.click('#storyNext')};
 await p.goto(url);await p.waitForTimeout(800);
-// 튜토리얼 말풍선 초상화 = 이장 할머니 그림
-const tp=await p.evaluate(()=>{const c=$('tutPor');return{w:c.width,ink:(()=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i])n++;return n})(),art:!!ART.granny}});
-ok(tp.art&&tp.w===128&&tp.ink>128*128*.9,'튜토리얼 초상화 = 이장 할머니 그림 '+JSON.stringify(tp));
+// v34: 튜토리얼 말풍선에 이장 할머니 액자 없음(이름 · 말만), 그림도 빌드에서 뺌
+const tp=await p.evaluate(()=>({hid:$('tutPor').hidden,who:$('tutWho').textContent,art:!!ART.granny}));
+ok(tp.hid&&!tp.art,'튜토리얼(이장 할머니): 초상화 액자 없음 '+JSON.stringify(tp));
 ok(await p.evaluate(()=>PROLOGUE.every(c=>!c.art)&&ENDING.every(c=>!c.art&&c.t!=='이장 할머니')),'프롤로그 · 에필로그에는 이장 할머니 초상화 없음(v17), 튜토리얼 말풍선에만');
-ok(await p.evaluate(()=>SECTIONS[1].t.name==='셈'&&SECTIONS[1].t.art==='sem'&&!!ART.sem&&ART.sem!==ART.granny),'셈 초상화(새 그림, 이장 할머니와 다름)');
+ok(await p.evaluate(()=>SECTIONS[1].t.name==='셈'&&SECTIONS[1].t.art==='sem'&&!!ART.sem),'셈 초상화(새 그림)');
 await p.click('#titleScr');await p.waitForTimeout(200);await closeStory();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
 await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await p.waitForTimeout(200);await closeStory();
 // 개발자 코드: 탑은 그대로

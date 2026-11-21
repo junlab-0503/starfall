@@ -101,5 +101,6 @@ for k in KEYS+['sem']:
             dk=[q for q in cnt if luma[q]<55]
             q=max(dk,key=lambda q:cnt[q]) if dk and sum(cnt[q] for q in dk)>=n*.3 else cnt.most_common(1)[0][0]
             out[j,i]=pal[q]
+    if k=='granny':continue   # v34: 이장 할머니 액자는 게임에서 뺌(배경 양피지만 다른 초상화에 씀)
     Image.fromarray(out).convert('P',palette=Image.Palette.ADAPTIVE,colors=48).save(f'art/portraits/{k}.png',optimize=True)  # 48색 팔레트 PNG(용량 절약)
 print('ok',len(boxes))
