@@ -12,7 +12,7 @@ const UPS={
   metal:{n:'쇠맥 찾기',ic:()=>'goldbar',max:20,d:l=>`금속 광석을 캘 때 ${pc(extraAt(l))}% 확률로 하나 더${l<20?` → ${pc(extraAt(l+1))}%`:''}`},
   gem:{n:'보석 눈썰미',ic:()=>'cutemerald',max:20,d:l=>`보석 원석을 캘 때 ${pc(extraAt(l))}% 확률로 하나 더${l<20?` → ${pc(extraAt(l+1))}%`:''}`},
   auto:{n:'드릴 로봇',ic:()=>'gear',lv:()=>S.auto,cost:()=>autoCost(S.auto),buy:()=>{S.auto++;if(S.auto===1)log('핀이 만들어 준 드릴 로봇이 일을 시작했어요.',true)},
-    d:()=>S.auto?`드릴 로봇 Lv.${S.auto} · 지금 지층에서 초당 ${rateTxt(autoRate())}개 → ${rateTxt(autoRate(S.auto+1))}개`:'혼자서도 바위를 깨는 작은 로봇을 들여요'},
+    d:()=>{if(!S.auto)return'혼자서도 바위를 깨는 작은 로봇을 들여요';const a=drillPow(),b=drillPow(S.auto+1);return`드릴 파워 ${big(a)} → ${big(b)} (+${Math.round((b/a-1)*100)}%)`}},   // v32: 다음 단계에 드릴 파워가 몇 % 오르는지
   box:{n:'채굴 보관함',ic:()=>'brick',d:l=>`창고가 차면 로봇이 여기에 모아요 · ${big(boxCapOf(l))}칸 → ${big(boxCapOf(l+1))}칸`},
   refiner:{n:'자동 판매 장치',ic:()=>'crysteel',max:10,d:l=>`보관함이 넘치면 넘친 광석을 원석 값의 ${Math.round(ofMul(l)*100)}%로 팔아요${l<10?` → ${Math.round(ofMul(l+1)*100)}%`:''}`},
   night:{n:'밤샘 근무',ic:()=>'moonstone',max:10,d:l=>`자리 비운 보상이 ${pc(nightAt(l))}% 더 빨리 차요${l<10?` → ${pc(nightAt(l+1))}%`:''}`},

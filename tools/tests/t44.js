@@ -11,8 +11,9 @@ await p.evaluate(()=>{$('titleScr').hidden=true;$('entry').hidden=true;STQ.lengt
 const close=()=>p.evaluate(()=>{STQ.length=0;while(!$('story').hidden)nextStory()});
 
 // 1) 밸런스 값
-const bal=await p.evaluate(()=>({m10:autoMul(10),m23:autoMul(23),m50:autoMul(50),of0:ofMul(0),of5:ofMul(5),of10:ofMul(10),of20:ofMul(20),c5:upCostOf('crit',5),hp4:BAL.hp[3]}));
-ok(bal.m10===10&&Math.abs(bal.m23-23*(1+13/30))<1e-9&&Math.abs(bal.m50-50*(1+40/30))<1e-9,`드릴 힘: 10레벨까지 그대로(${bal.m10}) · 23레벨 ${bal.m23.toFixed(1)}(예전 23) · 50레벨 ${bal.m50.toFixed(1)}(예전 50)`);
+const pickPower1=await p.evaluate(()=>pickPower(1));
+const bal=await p.evaluate(()=>({d1:drillPow(1,1),d2:drillPow(2,1),d20:drillPow(20,1),d21:drillPow(21,1),dp:drillPow(20,30)-drillPow(20,1),g:BAL.drill[1],c:BAL.auto[1],of0:ofMul(0),of5:ofMul(5),of10:ofMul(10),of20:ofMul(20),c5:upCostOf('crit',5),hp4:BAL.hp[3]}));
+ok(Math.abs(bal.d1-pickPower1*1.05)<1e-6&&Math.abs(bal.d21/bal.d20-1.3)<.01&&bal.dp<200,`(v32) 드릴 파워: 1단계 ${bal.d1.toFixed(2)}(예전 그대로) · 20단계 ${Math.round(bal.d20)} → 21단계 ${Math.round(bal.d21)}(드릴 몫 +30%) · 곡괭이 1 → 30으로 바꿔도 +${Math.round(bal.dp)}뿐(곡괭이와 거의 따로) · 값 ×${bal.c}/단계`);
 ok(bal.of0===.5&&Math.abs(bal.of5-.75)<1e-9&&bal.of10===1&&bal.of20===1,`넘친 광석 판매: 50% → 75% → 최대 100%(직접 파는 값과 같음, 예전 175%)`);
 ok(bal.c5===Math.round(494*Math.pow(1.7,5))&&bal.hp4===200,`힘껏 내려치기 5단계 ${bal.c5}G(예전 ${Math.round(494*Math.pow(2.1,5))}G) · B4 바위 강도 200(예전 351)`);
 const ofs=await p.evaluate(()=>{S.up.refiner=10;const g0=S.gold;const g=sellOverflow('copper',100);return{g,bid:bid('copper')*100}});
@@ -24,7 +25,7 @@ const ds=await p.evaluate(async()=>{S.inv={};renderMineHud();const on=$('autoSub
   S.shop=2;setTab('equip');await new Promise(r=>setTimeout(r,150));const d=[...document.querySelectorAll('[data-up="auto"]')].map(e=>e.closest('.urow,.irow,li,div').innerText).join(' ');setTab('mine');return{on,r,full1,full2,d}});
 ok(/^초당 [\d.,]+개씩 캐요$/.test(ds.on)&&ds.r>0,`드릴 스위치: "${ds.on}" (계산 ${ds.r.toFixed(1)}개/초)`);
 ok(/창고 가득/.test(ds.full1)&&/보관함도 가득/.test(ds.full2),`창고만 가득: "${ds.full1}" · 보관함도 가득: "${ds.full2}"`);
-ok(/지금 지층에서 초당 [\d.,]+개 → [\d.,]+개/.test(ds.d),'장비 탭 드릴 로봇 설명: '+(ds.d.match(/드릴 로봇 Lv[^\n]*?개 → [\d.,]+개/)||[''])[0]);
+ok(/드릴 파워 [\d.,]+[만억조경]? → [\d.,]+[만억조경]? \(\+\d+%\)/.test(ds.d),'(v32) 장비 탭 드릴 설명: '+(ds.d.match(/드릴 파워[^\n]*?%\)/)||[''])[0]);
 
 // 3) 로봇 보관함 이름표: 상자 아래(가리지 않음)
 await p.evaluate(()=>{S.box={stone:5};renderMineHud()});await W(100);
@@ -85,4 +86,20 @@ for(const [w,h] of [[412,915],[393,852],[360,640]]){const c2=await b.newContext(
   const r=await q.evaluate(async()=>{$('titleScr').hidden=true;$('entry').hidden=true;STQ.length=0;$('story').hidden=true;S.tutDone=true;S.prologue=true;S.unlocked=9;S.ntq=[];S.ntDone=['셈','핀','루카','미르','린'];CR().met=1;S.gold=1e9;renderAll();setTab('mine');
     const o={};for(const st of ['pick','work']){CR().a=st==='work'?{k:'gold',n:5,base:5000,lv:3,t:0}:null;openSheet('craft');await new Promise(r=>setTimeout(r,250));const sb=$('sheetBody');o[st]={stage:$('crStage').offsetHeight,lin:$('crNpc').offsetHeight,scroll:sb.scrollHeight>sb.clientHeight+1};closeSheet()}CR().a=null;return o});
   const big=w>=393;ok(big?(r.work.stage>138&&r.work.stage<=230&&!r.work.scroll&&!r.pick.scroll&&r.work.lin===r.work.stage+6):r.work.stage===138,`세공 작업대 ${w}×${h}: 린 무대 ${r.pick.stage}/${r.work.stage}px(린 ${r.work.lin}px) · 새 스크롤 ${r.work.scroll||r.pick.scroll?'있음':'없음'}`);await c2.close()}
+// 13) (v32) 사용자 상황: 곡괭이는 1단계인데 드릴에 1조 · 9,999조를 쓴 경우 가장 깊은 B13에서도 확실히 캐짐(예전엔 0.02개/초)
+const us=await p.evaluate(()=>{const keep={p:S.pick,a:S.auto,L:S.layer,u:S.unlocked,f:S.floors};S.pick=1;S.unlocked=13;S.layer=12;S.floors=99;refreshBonus();const lv=g=>{let n=0,t=0;while(t+autoCost(n)<=g){t+=autoCost(n);n++}return n};
+  const o={};for(const g of [1e12,9.999e15]){S.auto=lv(g);o[g]={lv:S.auto,r:autoRate()};renderMineHud();o[g].sub=$('autoSub').textContent}Object.assign(S,{pick:keep.p,auto:keep.a,layer:keep.L,unlocked:keep.u,floors:keep.f});refreshBonus();renderMineHud();return o});
+ok(us[1e12].r>=5&&us[9.999e15].r>=100&&/초당/.test(us[1e12].sub),`곡괭이 1단계 · B13: 드릴에 1조 → Lv${us[1e12].lv} 초당 ${us[1e12].r.toFixed(1)}개 · 9,999조 → Lv${us[9.999e15].lv} 초당 ${Math.round(us[9.999e15].r)}개 ("${us[1e12].sub}")`);
+const sl=await p.evaluate(()=>{const keep={a:S.auto,L:S.layer};S.auto=1;S.layer=12;renderMineHud();const t=$('autoSub').textContent;S.auto=keep.a;S.layer=keep.L;renderMineHud();return t});
+ok(/^\d+초에 1개씩 캐요$/.test(sl),'느린 드릴은 "초당 0개" 대신: '+sl);
+
+// 14) (v32) 세공: 옥 종류를 누르면 이름 · 몇 강 · 단계 이름 · 설명 팝업, 린 무대 크기는 종류를 바꿔도 그대로
+const cj=await p.evaluate(async()=>{const w=()=>new Promise(r=>setTimeout(r,200));S.unlocked=Math.max(S.unlocked,4);CR().met=1;CR().a=null;S.inv.silverbar=30;S.inv.goldbar=30;craftRec('gold').best=5;openSheet('craft');await w();
+  const h0=$('crStage').offsetHeight;document.querySelector('[data-crk="gold"]').click();await w();const pop={t:$('storyT').innerText,k:$('storyKick').innerText,x:$('storyX').innerText,sil:document.querySelectorAll('#storyX .crp-strip img.sil').length,lv:($('storyX').querySelector('.crp-lv')||{}).textContent};
+  STQ.length=0;while(!$('story').hidden)nextStory();const h1=$('crStage').offsetHeight;document.querySelector('[data-crk="silver"]').click();await w();STQ.length=0;while(!$('story').hidden)nextStory();const h2=$('crStage').offsetHeight;
+  CR().a={k:'gold',n:5,base:5000,lv:3,t:0};renderCraft();await w();const h3=$('crStage').offsetHeight;document.querySelector('#crBody .cr-slot').click();await w();const pop2={t:$('storyT').innerText,lv:($('storyX').querySelector('.crp-lv')||{}).textContent,nm:($('storyX').querySelector('.crp-nm')||{}).textContent,b:$('storyB').innerText};
+  STQ.length=0;while(!$('story').hidden)nextStory();CR().a=null;closeSheet();return{pop,pop2,hs:[h0,h1,h2,h3],sel:CR().sel}});
+ok(cj.pop.t==='금옥'&&cj.pop.lv==='+5'&&/최고 단계/.test(cj.pop.x)&&cj.pop.sil===3,`금옥 누르면: "${cj.pop.k} · ${cj.pop.t} ${cj.pop.lv}" · 아직 못 간 단계 그림자 ${cj.pop.sil}개`);
+ok(cj.pop2.lv==='+3'&&cj.pop2.nm==='용이 깃든 금옥'&&/용/.test(cj.pop2.b),`세공기 속 세공품 누르면: ${cj.pop2.t} ${cj.pop2.lv} · ${cj.pop2.nm} · "${cj.pop2.b}"`);
+ok(new Set(cj.hs).size===1,'린 무대 크기 고정(은옥 ↔ 금옥 · 만들기 ↔ 강화): '+cj.hs.join(' / ')+'px');
 console.log('errors',errs);await b.close()})();

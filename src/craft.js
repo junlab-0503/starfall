@@ -45,7 +45,7 @@ function linSay(t){CRSAY=t;const p=$('crSay');if(p)p.textContent=T(t)}
 function renderCraft(){if($('sub-craft').hidden)return;const c=CR(),a=c.a;
   const st=$('crStage');st.style.backgroundImage=`url(${ART.craft_bg||ART.shop_bg_musoe})`;$('crNpc').src=ART.craft_lin;linSay(CRSAY);
   const cur=CRFX?CRFX.snap:a,sel=cur?cur.k:c.sel;   // 다듬는 중(연출 중 포함)엔 그 종류만
-  setHTML($('crSeg'),CRAFT_KINDS.map(K=>`<button data-crk="${K.k}" type="button" class="${K.k===sel?'on':''}" ${cur&&K.k!==cur.k?'disabled':''}><img src="${craftArt(K.k,0)}" alt=""><span>${K.n}</span></button>`).join(''));
+  setHTML($('crSeg'),CRAFT_KINDS.map(K=>`<button data-crk="${K.k}" type="button" class="${K.k===sel?'on':''}" ${cur&&K.k!==cur.k?'data-off="1"':''}><img src="${craftArt(K.k,0)}" alt=""><span>${K.n}</span></button>`).join(''));
   const K=craftKind(sel),M=ITEMS[K.mat];
   if(CRFX){setHTML($('crBody'),craftShowHtml(CRFX.snap,true));return}
   if(a){setHTML($('crBody'),craftShowHtml(a,false));return}
@@ -95,7 +95,8 @@ function linIntro(thenOpen){const L=['"여기가 별빛골이야? 광산이 다�
   story(L.map((b,i)=>({k:'떠돌이 세공사',t:'린',b,art:'lin',...(i===L.length-1?{done:()=>{CR().met=1;npcTutQueue('린');save();renderMineHud()},after:()=>{toast('창고 옆에 린의 세공 작업대가 생겼어요.');if(thenOpen)openSheet('craft')}}:{})})))}
 $('crBtn').addEventListener('click',openCraft);
 $('sub-craft').addEventListener('click',e=>{const c=CR();
-  const kb=e.target.closest('[data-crk]');if(kb&&!c.a){c.sel=kb.dataset.crk;CRQ=1;sfx('click');renderCraft();return}
+  const kb=e.target.closest('[data-crk]');if(kb){if(CRFX)return;const k=kb.dataset.crk;if(!c.a&&c.sel!==k){c.sel=k;CRQ=1;renderCraft()}craftInfo(k);return}   // v32: 고르면서 그 옥 보기(만드는 중엔 다른 종류는 보기만)
+  if(e.target.closest('.cr-slot')&&!CRFX){craftInfo(c.a?c.a.k:c.sel);return}
   const qb=e.target.closest('[data-crq]');if(qb){const K=craftKind(c.sel),have=cnt(K.mat),v=qb.dataset.crq;CRQ=v==='max'?have:craftQty(CRQ+(+v),have);sfx('click');renderCraft();return}
   if(e.target.closest('#crMake')){const a=craftMake(c.sel,CRQ);if(a){sfx('buy');linSay(LIN.hi);CRQ=1;renderCraft();renderHeader()}return}
   if(e.target.closest('#crTry')){craftDoTry();return}
@@ -106,15 +107,28 @@ $('storyX').addEventListener('click',e=>{if(!e.target.closest('#crSellGo'))retur
 // 도감 창: 세공 기록
 function renderCraftRec(){const el=$('crRec');if(!el)return;
   setHTML(el,CRAFT_KINDS.map(K=>{const r=craftRec(K.k);return`<div class="cr-rec"><img src="${craftArt(K.k,r.best)}" alt=""><div><b>${K.n}</b>${r.ten?' <span class="gold-t">★ +10</span>':''}<div class="rcard"><span class="dim">제작</span><span>${r.made}</span><span class="dim">성공</span><span>${r.succ}</span><span class="dim">실패</span><span>${r.fail}</span><span class="dim">최고 단계</span><span>+${r.best}</span><span class="dim">최고 판매</span><span>${big(r.bestSale)}G</span></div></div></div>`}).join(''))}
-/* v31: 세공 작업대 — 세공기 아래 남는 세로 공간만큼 린 무대를 키움(138px → 최대 CR_STAGE_MAX). 스크롤이 새로 생기진 않게.
-   만들기 화면(세공품 없음)과 강화 화면은 높이가 조금 달라 무대가 들썩이지 않도록, 화면 크기마다 둘 중 작은 여유에 맞춤 */
+/* v32: 세공품 보기 — 옥 종류 단추나 세공기 속 세공품을 누르면: 큰 그림 · 몇 강 · 그 단계 이름 · 설명 · 6단계 모음(아직 못 간 단계는 그림자) · 판매가 · 최고 기록.
+   그림 6단계(+0~1 · 2~3 · 4~5 · 6~7 · 8~9 · 10)마다 이름과 한 줄 설명 */
+const CRAFT_LORE={silver:{head:'은괴로 다듬는 학 무늬 세공품',st:[['거친 은옥','막 떼어 낸 은빛 덩어리. 흐릿하게 학의 날개 자국이 보인다.'],['학이 깃든 은옥','린이 둥글게 다듬은 판 위에 날개를 편 학 한 마리가 새겨졌다.'],['구름 위의 학','은빛 광택이 돌고, 학 주위로 구름 무늬가 또렷해졌다.'],['달빛 학','빛을 받을 때마다 별가루가 흩어진다. 학이 금방이라도 날아오를 것 같다.'],['빛을 두른 학','푸른 빛무리가 테두리를 감쌌다. 마을 사람 누구나 한 번쯤 만져 보고 싶어 한다.'],['천년 학','구름 테를 두른 전설의 은옥. 학이 하늘로 오르는 순간을 그대로 붙잡았다.']]},gold:{head:'금괴로 다듬는 용 무늬 세공품',st:[['거친 금옥','울퉁불퉁한 금빛 덩어리 속에 무언가 꿈틀거리는 모양이 숨어 있다.'],['용이 깃든 금옥','둥글게 다듬은 판 위로 몸을 감은 용 한 마리가 드러났다.'],['비늘이 선 용','비늘 하나하나가 빛을 받아 반짝인다. 금 특유의 따뜻한 광택이 돈다.'],['여의주를 노리는 용','불티가 튀고, 용의 눈매가 한층 매서워졌다.'],['불꽃을 두른 용','붉은 금빛이 테두리를 따라 타오른다. 들고 있으면 손바닥이 따뜻해진다.'],['승천하는 황금룡','구름을 뚫고 오르는 황금룡. 별빛골 어디에도 이만한 금옥은 없었다.']]},plat:{head:'백금괴로 다듬는 호랑이 무늬 세공품',st:[['거친 백금옥','차갑고 단단한 백금 덩어리. 줄무늬 같은 결이 희미하게 보인다.'],['호랑이가 깃든 백금옥','둥근 판 위에 으르렁거리는 호랑이 얼굴이 새겨졌다.'],['줄무늬가 선 호랑이','줄무늬마다 은은한 광택이 돌아 털결이 살아 있는 것 같다.'],['눈을 뜬 호랑이','빛이 스칠 때마다 호랑이 눈이 번뜩인다. 쉽게 다가가기 어려운 기운이 감돈다.'],['서리를 두른 호랑이','푸른 서릿빛이 테두리를 감쌌다. 손에 쥐면 서늘한 기운이 전해진다.'],['산을 지키는 백호','구름 테 속에서 포효하는 백호. 이 메달 하나로 산 하나를 지킨다는 말이 있다.']]},star:{head:'별빛강으로 다듬는 별자리 무늬 세공품',st:[['거친 별빛옥','밤하늘 조각처럼 어두운 덩어리. 안쪽에서 작은 빛 하나가 깜빡인다.'],['별자리가 깃든 별빛옥','둥근 판 위로 별들이 이어져 별자리 하나가 나타났다.'],['빛나는 별자리','가운데 별이 또렷하게 빛나고, 별자리 선이 구름 사이로 이어진다.'],['별가루가 이는 별빛옥','돌릴 때마다 별가루가 흩날린다. 할아버지가 쫓던 별빛이 이런 색이었을까.'],['보랏빛을 두른 별자리','보랏빛 빛무리가 테두리를 감쌌다. 어두운 곳에서도 스스로 빛난다.'],['별의 심장','금빛 구름 테에 싸인 전설의 별빛옥. 떨어진 별의 조각이 여기 다시 모인 것 같다.']]}};
+function craftInfo(k){const K=craftKind(k),c=CR(),a=c.a&&c.a.k===k?c.a:null,r=craftRec(k),L=CRAFT_LORE[k],best=r.best|0,lv=a?a.lv:best,si=craftStage(lv),st=L.st[si];
+  const reach=Math.max(craftStage(best),a?craftStage(a.lv):0);
+  const strip=[0,1,2,3,4,5].map(i=>`<img class="${i===si?'on':''}${i>reach?' sil':''}" src="${ART['craft_'+k+i]||''}" alt="">`).join('');
+  const rows=a?`<span>지금 판매가</span><span>${big(craftPrice(a))}G</span>${a.lv<CRAFT_MAX?`<span>성공하면 +${a.lv+1}</span><span>${big(Math.floor(a.base*CRAFT_M[a.lv+1]))}G</span>`:''}`
+    :`<span>가진 재료</span><span><b>${ITEMS[K.mat].n}</b> ${big(cnt(K.mat))}</span>`;
+  sfx('click');story([{k:a?'지금 다듬는 세공품':r.made?'세공 기록':'세공품 미리 보기',t:K.n,b:st[1],
+    extra:`<div class="crp"><img class="crp-big" src="${craftArt(k,lv)}" alt=""><b class="crp-lv">+${lv}</b></div><p class="crp-nm">${st[0]}</p><div class="crp-strip">${strip}</div><div class="rcard">${rows}<span>최고 단계</span><span>+${best}</span></div><p class="dim small crp-head">${L.head}</p>`}])}
+/* v31 · v32: 세공 작업대 — 세공기 아래 남는 세로 공간만큼 린 무대를 키움(138px → 최대 CR_STAGE_MAX). 스크롤이 새로 생기진 않게.
+   v32: 크기는 화면 크기마다 한 번만 정해 고정(가장 긴 화면인 강화 화면을 몰래 그려 재고 그 기준으로) → 은옥 · 금옥을 바꾸거나 만들기 ↔ 강화를 오가도 린 크기가 그대로 */
 const CR_STAGE_MAX=230,CRFIT={};
+function crTallest(){const cb=$('crBody');if(!cb)return 0;const w=cb.getBoundingClientRect().width,g0=S.gold;let h=cb.offsetHeight;
+  // 강화 화면 몇 가지(보통 · 아주 큰 값 · 골드 모자람 · 최고 단계)를 같은 폭으로 몰래 그려 가장 긴 높이(id는 그대로 둬야 같은 스타일이 붙음 — 바로 지움)
+  for(const [lv,base,poor] of [[3,5000,0],[8,9.99e14,0],[5,123456789,1],[10,1e6,0]]){S.gold=poor?0:Math.max(g0,1e300);const html=craftShowHtml({k:'star',n:999999,base,lv,t:0},false);S.gold=g0;
+    const cl=cb.cloneNode(false);cl.removeAttribute('id');cl.style.cssText=`position:absolute;visibility:hidden;left:0;top:0;width:${w}px;pointer-events:none`;cl.innerHTML=html;cb.parentNode.appendChild(cl);h=Math.max(h,cl.offsetHeight);cl.remove()}
+  S.gold=g0;return h+8}   // 숫자 자릿수에 따라 한 줄 더 꺾일 수 있어 8px 여유
 function crFit(){const sc=$('sub-craft'),sb=$('sheetBody'),st=$('crStage'),npc=$('crNpc');if(!sc||sc.hidden||!st||!sb||$('sheet').hidden)return;
-  st.style.height='';st.style.backgroundSize='';if(npc)npc.style.height='';
-  const base=st.offsetHeight,cs=getComputedStyle(sb),avail=sb.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom),free=Math.floor(avail-sc.offsetHeight);
-  const key=sb.clientWidth+'x'+sb.clientHeight,k=CR().a||CRFX?'work':'pick',m=CRFIT[key]||(CRFIT[key]={});m[k]=free;
-  const est=m.work!=null&&m.pick!=null?Math.min(m.work,m.pick):k==='pick'?free-(sb.clientWidth<380?48:8):free;   // 아직 못 본 쪽 화면은 어림값(좁은 폭은 강화 화면이 더 길어짐)
-  const h=Math.max(base,Math.min(CR_STAGE_MAX,base+est));
-  if(h>base){st.style.height=h+'px';if(npc)npc.style.height=(h+6)+'px';if(h>194)st.style.backgroundSize=`${Math.round(h*2.24)}px ${h}px`}}
+  const key=sb.clientWidth+'x'+sb.clientHeight;let h=CRFIT[key];
+  if(h==null){st.style.height='';const base=st.offsetHeight,cs=getComputedStyle(sb),avail=sb.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+    const tall=sc.offsetHeight-$('crBody').offsetHeight+crTallest();h=CRFIT[key]=Math.round(Math.max(base,Math.min(CR_STAGE_MAX,base+avail-tall)))}
+  const px=h+'px';if(st.style.height!==px){st.style.height=px;if(npc)npc.style.height=(h+6)+'px';st.style.backgroundSize=h>194?`${Math.round(h*2.24)}px ${h}px`:''}}
 {const _rc=renderCraft;renderCraft=function(){const r=_rc.apply(this,arguments);crFit();return r}}
 addEventListener('resize',()=>{if(!$('sheet').hidden&&S.sub==='craft')crFit()});

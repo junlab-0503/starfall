@@ -18,7 +18,7 @@ ok(k4.m&&k4.sfx==='craft_fail,craft_ok,craft_ten'&&!k4.old,'세공기 · 세공�
 // 3) 작업대 열기 → 세공기 안 구멍에 세공품, 단추 그림
 await p.evaluate(()=>{setTab('mine');S.inv={platbar:20,silverbar:5};renderAll()});await p.mouse.click(180,300);await p.waitForTimeout(100);
 ok(await p.evaluate(()=>$('crBtnImg').src===ART.craft_icon),'채굴 화면 [세공] 단추 = 세공기 그림');
-await p.click('#crBtn');await p.waitForTimeout(300);await p.click('[data-crk="plat"]');await p.waitForTimeout(100);await p.click('#crMake');await p.waitForTimeout(200);
+await p.click('#crBtn');await p.waitForTimeout(300);await p.click('[data-crk="plat"]');await p.waitForTimeout(150);while(await p.isVisible('#storyNext'))await p.click('#storyNext');await p.click('#crMake');   // v32: 옥 종류를 누르면 보기 팝업 → 닫고 제작await p.waitForTimeout(200);
 const g=await p.evaluate(()=>{const m=$('crMedal').getBoundingClientRect(),s=document.querySelector('.cr-slot').getBoundingClientRect(),n=document.querySelector('.cr-ndw').getBoundingClientRect();
   const hx=m.left+m.width*49/103,hy=m.top+m.height*53.5/116;return{dx:Math.abs(s.left+s.width/2-hx),dy:Math.abs(s.top+s.height/2-hy),w:m.width,ar:m.height/m.width,nIn:n.bottom>s.top&&n.left>s.left&&n.right<s.right,a:CR().a&&CR().a.k,item:$('crItem').src===craftArt('plat',0)}});
 ok(g.a==='plat'&&g.item&&g.dx<2&&g.dy<2&&Math.abs(g.ar-116/103)<.02&&g.w>=160,`백금옥 제작 → 세공기(${Math.round(g.w)}px) 구멍 한가운데에 세공품 (어긋남 ${g.dx.toFixed(1)},${g.dy.toFixed(1)}px)`);

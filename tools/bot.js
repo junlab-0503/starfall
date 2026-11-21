@@ -57,8 +57,13 @@ function botRun(bal,snap,stop,maxSec,seed,opt){opt=opt||{};let passG=0,veinG=0,v
     // 장비
     for(let k=0;k<30;k++){let did=false;
       const av=S.gold-tf;
-      if(upOpen('pick')&&pickCost(S.pick)<av*.2){S.gold-=pickCost(S.pick);S.pick++;did=true}
-      else if(upOpen('auto')&&autoCost(S.auto)<av*.2){S.gold-=autoCost(S.auto);S.auto++;did=true}
+      // v32: 곡괭이 · 드릴 중 '늘어나는 초당 피해 ÷ 값'이 더 나은 쪽을 산다(사람처럼). 예전엔 곡괭이를 늘 먼저 샀음
+      const dmg=()=>tapPower()/boostMul()*TAPS*(1+2*critP())+(S.auto>0?drillPow()*BON.auto:0);
+      const gainOf=f=>{const d0=dmg();f(1);const d1=dmg();f(-1);return d1-d0};
+      const pc=pickCost(S.pick),ac=autoCost(S.auto),pOk=upOpen('pick')&&pc<av*.2,aOk=upOpen('auto')&&ac<av*(opt.drillFrac||.2);
+      const pv=pOk?gainOf(x=>{S.pick+=x})/pc:-1,avv=aOk?gainOf(x=>{S.auto+=x})/ac:-1;
+      if(pOk&&pv>=avv){S.gold-=pc;S.pick++;did=true}
+      else if(aOk){S.gold-=ac;S.auto++;did=true}
       else if(upOpen('furn')&&S.furnace<5&&furnCost(S.furnace)<av*.1){S.gold-=furnCost(S.furnace);S.furnace++;did=true}
       else if(cap()/Math.max(.01,(tapPower()*TAPS+autoDps())/layerHp(S.layer))<1200&&upOpen('wh')&&whCost(S.wh)<av*.4){S.gold-=whCost(S.wh);S.wh++;did=true}
       if(!did)for(const k of ['crit','haggle','metal','gem','bulk','refiner','great','autosell',...(opt.noVheat?[]:['vheat']),...(opt.pass?['intel']:[])])if(!upMax(k)&&upCost(k)<av*.12){buyUp(k);did=true;break}

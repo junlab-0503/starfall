@@ -102,10 +102,11 @@ const boostMul=()=>boostOn()?2:1;
 const tapPower=()=>pickPower(S.pick)*BON.tap*boostMul();
 const pickCost=l=>Math.round(BAL.pick[0]*Math.pow(BAL.pick[1],l-1));
 const autoCost=n=>Math.round(BAL.auto[0]*Math.pow(BAL.auto[1],n));
-// v30: 드릴 로봇 힘 = 레벨 × (1 + 레벨/autoQ) — 곡괭이처럼 높은 레벨일수록 한 단계가 더 크게(예전엔 레벨에 정비례라 50레벨쯤엔 몇 조를 써도 체감이 거의 없었음)
-const autoMul=n=>n*(1+Math.max(0,n-(BAL.autoK||0))/(BAL.autoQ||1e9));
-const autoDps=()=>autoMul(S.auto)*pickPower(S.pick)*BAL.autoEff*BON.auto*boostMul();
-const autoRate=(n=S.auto)=>autoMul(n)*pickPower(S.pick)*BAL.autoEff*BON.auto*boostMul()/layerHp(S.layer);   // 드릴이 지금 지층에서 1초에 캐는 개수
+/* v32: 드릴 파워 = 곡괭이 몫(1단계 = 예전 그대로, 할아버지 채굴기) + 드릴 자체 몫 D0 × (g^(단계−1) − 1).
+   단계마다 드릴 자체 몫 ×g(BAL.drill=[D0, g], g 1.3 = +30%). 예전엔 드릴 피해가 곡괭이 힘에 곱해져서, 곡괭이가 낮으면 드릴을 몇 조어치 올려도 깊은 지층에선 거의 0 */
+const drillPow=(n=S.auto,p=S.pick)=>n<=0?0:pickPower(p)*BAL.autoEff+BAL.drill[0]*(Math.pow(BAL.drill[1],n-1)-1);
+const autoDps=()=>drillPow()*BON.auto*boostMul();
+const autoRate=(n=S.auto)=>drillPow(n)*BON.auto*boostMul()/layerHp(S.layer);   // 드릴이 지금 지층에서 1초에 캐는 개수
 const rateTxt=x=>x<10?(Math.round(x*10)/10).toString():big(x);
 const furnCost=n=>Math.round(BAL.furn[0]*Math.pow(BAL.furn[1],n));
 const whCost=n=>Math.round(BAL.wh[0]*Math.pow(BAL.wh[1],n));
@@ -124,7 +125,7 @@ const boxUsed=()=>Object.values(S.box||{}).reduce((a,b)=>a+b,0);
 // 채굴 보관함: 꺼 둔 동안 캔 광석만 담는다 (한도는 오프라인 시간으로 정해짐)
 // 자리 비움 보상: 8시간에 걸쳐 천천히 차서 '켜 두고 1시간 플레이한 만큼'이 되면 멈춘다 (패키지는 2시간치). 밤샘 근무는 차는 속도만 올린다
 const OFF_FILL=8,offCapH=()=>S.noAds?2:1,offEquiv=sec=>Math.min(sec*offEff()/OFF_FILL,offCapH()*3600);
-const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+autoMul(S.auto)*pickPower(S.pick)*BAL.autoEff*BON.auto)/layerHp(S.layer);
+const playRate=()=>(pickPower(S.pick)*BON.tap*2.5+drillPow()*BON.auto)/layerHp(S.layer);
 const boxCap=()=>boxCapOf(ul('box'));
 function boxAdd(id,n){S.box=S.box||{};if(n>0)S.box[id]=(S.box[id]||0)+n;return n}
 const used=()=>Object.values(S.inv).reduce((a,b)=>a+b,0);

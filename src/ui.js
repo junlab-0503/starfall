@@ -21,7 +21,7 @@ function renderMineHud(){{const w=LANG==='en'?'Storage':LANG==='zh'?'倉庫':'�
   const f=used()>=cap(),ab=$('autoBtn'),bx=$('boxBtn'),bu=boxUsed();
   ab.hidden=!(S.auto>0);ab.classList.toggle('on',!!S.autoOn);ab.classList.toggle('full',!!S.autoOn&&f);ab.setAttribute('aria-checked',S.autoOn?'true':'false');
   // 스위치 하나가 켜 둔 동안과 자리 비운 동안 모두를 정함
-  $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';{const bf=f&&boxUsed()>=boxCap(),e=$('autoSub'),v=S.autoOn?(bf?'보관함도 가득 · 넘친 건 팔아요':f?'창고 가득 · 보관함에 모아요':`초당 ${rateTxt(autoRate())}개씩 캐요`):'자리 비워도 쉬어요';if(e.dataset.v!==v){e.dataset.v=v;e.textContent=v}}   // v30: 켜 둔 동안 실제로 초당 몇 개 캐는지
+  $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';{const bf=f&&boxUsed()>=boxCap(),e=$('autoSub'),v=S.autoOn?(bf?'보관함도 가득 · 넘친 건 팔아요':f?'창고 가득 · 보관함에 모아요':(r=>r>=1?`초당 ${rateTxt(r)}개씩 캐요`:`${Math.max(1,Math.round(1/Math.max(r,1e-9)))}초에 1개씩 캐요`)(autoRate())):'자리 비워도 쉬어요';if(e.dataset.v!==v){e.dataset.v=v;e.textContent=v}}   // v30: 켜 둔 동안 실제로 초당 몇 개 캐는지
   bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
   const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
   $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;

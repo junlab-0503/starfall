@@ -34,7 +34,7 @@ const g0=await p.evaluate(()=>({g:S.gold,bid:bid('silverbar')}));await p.click('
 const m=await p.evaluate(()=>({a:S.craft.a,inv:cnt('silverbar'),made:S.craft.rec.silver.made}));
 ok(m.a&&m.a.n===25&&m.a.lv===0&&m.inv===15&&Math.abs(m.a.base-g0.bid*25)<1e-6&&m.made===1,`제작: 은괴 25개 소모, +0 세공품 하나, 기준 가치 = 25 × 개당 판매가(${Math.round(g0.bid*25)}G)`);
 ok(await p.evaluate(()=>craftMake('silver',5)===null&&craftMake('gold',1)===null&&cnt('silverbar')===15),'세공품이 있으면 새로 못 만듦(중복 생성 없음)');
-ok(await p.evaluate(()=>[...document.querySelectorAll('#crSeg button')].filter(x=>x.disabled).length===3),'다른 종류 고르기 막힘(지금 세공품 유지)');
+ok(await p.evaluate(()=>{const offs=[...document.querySelectorAll('#crSeg button')].filter(x=>x.dataset.off).length,k0=S.craft.a.k;const o=[...document.querySelectorAll('#crSeg button')].find(x=>x.dataset.off);o.click();const kept=S.craft.a&&S.craft.a.k===k0,pop=!$('story').hidden;STQ.length=0;while(!$('story').hidden)nextStory();return offs===3&&kept&&pop}),'(v32) 다른 종류는 흐리게 · 누르면 보기 팝업만, 지금 세공품 유지');
 ok(await p.evaluate(()=>Math.abs(craftPrice(S.craft.a)-bid('silverbar')*25)<1),'+0으로 팔면 재료를 그냥 판 것과 같은 금액(더 많지 않음)');
 // 판매 보너스가 올라도 기준 가치는 그대로
 ok(await p.evaluate(()=>{const b0=craftPrice(S.craft.a);S.up.haggle=10;refreshBonus();const b1=craftPrice(S.craft.a);S.up.haggle=0;refreshBonus();return b0===b1}),'만든 뒤 판매 보너스가 올라도 세공품 값은 그대로');

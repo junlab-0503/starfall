@@ -7,7 +7,7 @@ for(const dev of ['Galaxy S9+','iPhone SE','Pixel 7']){
 const ctx=await b.newContext({...devices[dev],locale:'ko-KR'});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));const close=async()=>{for(let i=0;i<30&&await p.isVisible('#storyNext');i++)await p.click('#storyNext')};
 const start=async()=>{await p.waitForTimeout(800);if(await p.isVisible('#titleScr'))await p.click('#titleScr');await p.waitForTimeout(200);await close();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}await close()};
 await p.goto('file://'+process.cwd()+'/dbg36.html');await start();
-await p.evaluate(()=>{S.tutDone=true;S.whHint=1;S.unlocked=4;S.floors=8;S.auto=2;S.box={stone:5};refreshBonus();setTab('mine');renderAll()});await close();
+await p.evaluate(()=>{S.tutDone=true;S.whHint=1;S.unlocked=4;S.floors=8;S.auto=2;S.box={stone:5};S.seen=ORDER.slice();S.journal=[0,1,2,3];   /* v32: 드릴이 곡괭이와 따로 세져서 시험 중 새 광석 발견 · 일지 창이 끼어들지 않게 */refreshBonus();setTab('mine');renderAll()});await close();
 if(dev==='Galaxy S9+'){
   const nav=await p.evaluate(()=>[...document.querySelectorAll('.nb')].map(b=>b.dataset.tab).join());ok(nav==='forge,market,mine,tower,equip',`아래 탭 순서: ${nav}`);
   const mm=await p.evaluate(()=>{const m=document.querySelector('.nb-main .ni').getBoundingClientRect(),o=document.querySelector('[data-tab="forge"] .ni').getBoundingClientRect();return{m:m.width,o:o.width,r:getComputedStyle(document.querySelector('.nb-main .ni')).borderRadius}});

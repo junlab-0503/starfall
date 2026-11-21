@@ -614,3 +614,13 @@ html[lang="en"] .shopc .plate{font-family:var(--f11);font-size:12px;letter-spaci
 @media (max-width:360px){.ov-box .ic-tag br{display:inline}.ov-box .ic-tag{text-align:center}}
 /* v30: 단추 모서리 바깥에 걸친 빨간 알림 점 — 모양 · 자리는 그대로, 크기 0인 점의 그림자로 그려서 단추 넓이(scrollWidth)에 잡히지 않게 */
 .px-btn.ndot::after{top:0;right:0;width:0;height:0;background:none;box-shadow:1px -1px 0 4px var(--bad),1px -1px 0 6px rgba(0,0,0,.55)}
+/* v32: 세공품 보기 팝업 · 만드는 중 다른 종류 단추(누르면 보기만) */
+.cr-seg button[data-off]{opacity:.5;filter:grayscale(.5)}
+.cr-slot{cursor:pointer}
+.crp{position:relative;display:flex;justify-content:center;margin:2px 0 0}
+.crp-big{width:144px;height:144px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(255,220,150,.35))}
+.crp-lv{position:absolute;left:calc(50% + 46px);bottom:6px;font-family:var(--f14);font-size:15px;font-weight:400;color:var(--lamp);background:#1a0f08;padding:1px 6px;border:2px solid var(--line)}
+.crp-nm{text-align:center;color:var(--lamp);font-family:var(--f14);font-size:15px;margin:4px 0 6px}
+.crp-strip{display:flex;justify-content:center;gap:4px;margin:0 0 8px}.crp-strip img{width:40px;height:40px;image-rendering:pixelated;opacity:.7}
+.crp-strip img.on{opacity:1;outline:2px solid var(--lamp);outline-offset:1px}.crp-strip img.sil{filter:brightness(0);opacity:.4}
+.crp-head{text-align:center;margin:6px 0 0}
