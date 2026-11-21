@@ -80,4 +80,9 @@ ok(nv.bought&&nv.restored&&nv.rev&&nv.rv&&nv.rvHtml,'앱 결제 → 광고 제�
 const gh=await p.evaluate(()=>{S.noAds=false;S.ads.gift=0;delete window.starfallNative;openGift();$('adDone').disabled=false;$('adDone').click();const t=$('storyX').innerText;STQ.length=0;while(!$('story').hidden)nextStory();return t});
 ok(/톱니바퀴/.test(gh)&&!/관리/.test(gh),'숯 선물 안내: '+(gh.match(/광고 제거[^\n]*/)||[''])[0]);
 
+// 12) (v31) 세공 작업대: 큰 화면에선 세공기 아래 빈 곳만큼 린 무대가 커짐(최대 230px) · 스크롤은 생기지 않음 · 작은 화면은 그대로
+for(const [w,h] of [[412,915],[393,852],[360,640]]){const c2=await b.newContext({viewport:{width:w,height:h},isMobile:true,hasTouch:true,locale:'ko-KR'});const q=await c2.newPage();await q.goto('file://'+process.cwd()+'/dbg44.html');await q.waitForTimeout(800);
+  const r=await q.evaluate(async()=>{$('titleScr').hidden=true;$('entry').hidden=true;STQ.length=0;$('story').hidden=true;S.tutDone=true;S.prologue=true;S.unlocked=9;S.ntq=[];S.ntDone=['셈','핀','루카','미르','린'];CR().met=1;S.gold=1e9;renderAll();setTab('mine');
+    const o={};for(const st of ['pick','work']){CR().a=st==='work'?{k:'gold',n:5,base:5000,lv:3,t:0}:null;openSheet('craft');await new Promise(r=>setTimeout(r,250));const sb=$('sheetBody');o[st]={stage:$('crStage').offsetHeight,lin:$('crNpc').offsetHeight,scroll:sb.scrollHeight>sb.clientHeight+1};closeSheet()}CR().a=null;return o});
+  const big=w>=393;ok(big?(r.work.stage>138&&r.work.stage<=230&&!r.work.scroll&&!r.pick.scroll&&r.work.lin===r.work.stage+6):r.work.stage===138,`세공 작업대 ${w}×${h}: 린 무대 ${r.pick.stage}/${r.work.stage}px(린 ${r.work.lin}px) · 새 스크롤 ${r.work.scroll||r.pick.scroll?'있음':'없음'}`);await c2.close()}
 console.log('errors',errs);await b.close()})();

@@ -31,8 +31,9 @@ function startPrologue(){entryScene(true);story(PROLOGUE.map((c,i)=>Object.assig
 $('titleScr').hidden=false;$('titleScr').style.backgroundImage='';$('titleArt').style.backgroundImage=`url(${ART.scene_title})`;
 $('titleScr').addEventListener('click',()=>{$('titleScr').hidden=true;sfx('page');if(!S.prologue)startPrologue();renderAll()});
 $('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode').value.trim().toLowerCase(),msg=$('devMsg');
-  if(v==='jun'){S.gold=9.999e15;S.dev=1;   // v29: 골드 9,999조만(다른 건 그대로). 채굴 화면의 [DEV 광맥] · [DEV 리뷰] 단추는 시험용으로 남김
-    log('개발자 코드 적용: 골드 9,999조',true);msg.textContent='적용됨: 골드 9,999조';renderAll()}
+  // v31: 골드 9,999조 + 지층 전부 열기(일지도 조용히 채움) + 광물 도감 전부(발견 창 없이). 곡괭이 · 드릴 · 레시피 · 탑은 그대로. [DEV 광맥] · [DEV 리뷰] 단추는 시험용으로 남김
+  if(v==='jun'){S.gold=9.999e15;S.dev=1;S.unlocked=LAYERS.length;S.seen=ORDER.slice();S.journal=LAYERS.map((_,i)=>i);
+    log('개발자 코드 적용: 골드 9,999조 · 지층 · 광물 모두 열림',true);msg.textContent='적용됨: 골드 9,999조 · 지층 · 광물 모두 열림';save();renderAll()}
   else msg.textContent=v?'알 수 없는 코드예요.':'';$('devCode').value=''});
 // 개발자 코드 칸은 숨겨 둠: 채굴 화면 위 톱니바퀴(설정)를 10초 동안 누르고 있으면 나타남
 {let devT=0;const off=()=>{clearTimeout(devT);devT=0},b=$('setBtn');

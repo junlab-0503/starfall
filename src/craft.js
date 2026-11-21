@@ -27,7 +27,9 @@ function craftMake(k,n){const c=CR();if(c.a||!craftOpen())return null;const K=cr
   add(K.mat,-n);c.a={k:K.k,n,base,lv:0,t:Date.now()};const r=craftRec(K.k);r.made++;save();return c.a}
 // 강화: 결과를 먼저 정하고 저장. busy 동안엔 다시 못 누름(연타 방지)
 let CRAFT_BUSY=false;
-function craftTry(){const c=CR(),a=c.a;if(!a||a.lv>=CRAFT_MAX||CRAFT_BUSY)return null;const cost=craftCost(a);if(S.gold<cost)return null;S.gold-=cost;const to=a.lv+1,ok=Math.random()<CRAFT_P[to],r=craftRec(a.k),snap={...a};
+// v31: 개발자 코드를 넣은 저장(S.dev)에서만 세공 강화 성공 100%. 일반 플레이 확률은 그대로
+const craftP=to=>S.dev?1:CRAFT_P[to];
+function craftTry(){const c=CR(),a=c.a;if(!a||a.lv>=CRAFT_MAX||CRAFT_BUSY)return null;const cost=craftCost(a);if(S.gold<cost)return null;S.gold-=cost;const to=a.lv+1,ok=Math.random()<craftP(to),r=craftRec(a.k),snap={...a};
   if(ok){a.lv=to;r.succ++;r.best=Math.max(r.best,to);if(to===CRAFT_MAX)r.ten=true}
   else{r.fail++;c.a=null;log(`${craftKind(snap.k).n} +${to} 도전 실패: 부서졌어요`)}
   save();return{ok,to,snap,cost}}
@@ -60,7 +62,7 @@ function craftShowHtml(a,anim){const K=craftKind(a.k),to=a.lv+1,top=a.lv>=CRAFT_
   return`${crMachine(craftArt(a.k,a.lv),anim)}
     <div class="cr-info"><div><b class="cr-nm">${K.n} <b class="cr-lv">+${a.lv}</b></b><span><span class="dim">지금 판매가</span> <b class="gold-t">${big(pr)}G</b></span></div>
       ${top?`<div><span class="small">최고 단계에 이르렀어요.</span></div>`:`<div><span class="dim">성공하면 +${to}</span><b class="gold-t">${big(Math.floor(a.base*CRAFT_M[to]))}G</b></div>
-      <div><span class="dim">성공 확률</span><b>${Math.round(CRAFT_P[to]*100)}% <span class="bad cr-warn">실패하면 부서져요</span></b></div><div><span class="dim">강화 비용</span><b class="${poor?'bad':''}">${big(cost)}G${poor?' <span class="cr-warn">골드가 모자라요.</span>':''}</b></div>`}</div>
+      <div><span class="dim">성공 확률</span><b>${Math.round(craftP(to)*100)}%${craftP(to)<1?' <span class="bad cr-warn">실패하면 부서져요</span>':''}</b></div><div><span class="dim">강화 비용</span><b class="${poor?'bad':''}">${big(cost)}G${poor?' <span class="cr-warn">골드가 모자라요.</span>':''}</b></div>`}</div>
     <div class="row-btns">${top?'':`<button class="px-btn lamp grow" id="crTry" type="button" ${anim||poor?'disabled':''}>강화 도전</button>`}<button class="px-btn grow" id="crSell" type="button" ${anim?'disabled':''}>지금 판매</button></div>`}
 /* 강화 연출(효과 팩 안내 + v28 긴장 시간). 결과는 이미 저장됨
    긴장: 세공침이 반쯤 내려와 멈춘 채 떨리고, 째깍 소리가 점점 빨라지고, 세공품이 점점 빛남(0.9초 + 단계마다 0.09초: +1 약 1초 · +10 약 1.8초)
@@ -104,3 +106,15 @@ $('storyX').addEventListener('click',e=>{if(!e.target.closest('#crSellGo'))retur
 // 도감 창: 세공 기록
 function renderCraftRec(){const el=$('crRec');if(!el)return;
   setHTML(el,CRAFT_KINDS.map(K=>{const r=craftRec(K.k);return`<div class="cr-rec"><img src="${craftArt(K.k,r.best)}" alt=""><div><b>${K.n}</b>${r.ten?' <span class="gold-t">★ +10</span>':''}<div class="rcard"><span class="dim">제작</span><span>${r.made}</span><span class="dim">성공</span><span>${r.succ}</span><span class="dim">실패</span><span>${r.fail}</span><span class="dim">최고 단계</span><span>+${r.best}</span><span class="dim">최고 판매</span><span>${big(r.bestSale)}G</span></div></div></div>`}).join(''))}
+/* v31: 세공 작업대 — 세공기 아래 남는 세로 공간만큼 린 무대를 키움(138px → 최대 CR_STAGE_MAX). 스크롤이 새로 생기진 않게.
+   만들기 화면(세공품 없음)과 강화 화면은 높이가 조금 달라 무대가 들썩이지 않도록, 화면 크기마다 둘 중 작은 여유에 맞춤 */
+const CR_STAGE_MAX=230,CRFIT={};
+function crFit(){const sc=$('sub-craft'),sb=$('sheetBody'),st=$('crStage'),npc=$('crNpc');if(!sc||sc.hidden||!st||!sb||$('sheet').hidden)return;
+  st.style.height='';st.style.backgroundSize='';if(npc)npc.style.height='';
+  const base=st.offsetHeight,cs=getComputedStyle(sb),avail=sb.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom),free=Math.floor(avail-sc.offsetHeight);
+  const key=sb.clientWidth+'x'+sb.clientHeight,k=CR().a||CRFX?'work':'pick',m=CRFIT[key]||(CRFIT[key]={});m[k]=free;
+  const est=m.work!=null&&m.pick!=null?Math.min(m.work,m.pick):k==='pick'?free-(sb.clientWidth<380?48:8):free;   // 아직 못 본 쪽 화면은 어림값(좁은 폭은 강화 화면이 더 길어짐)
+  const h=Math.max(base,Math.min(CR_STAGE_MAX,base+est));
+  if(h>base){st.style.height=h+'px';if(npc)npc.style.height=(h+6)+'px';if(h>194)st.style.backgroundSize=`${Math.round(h*2.24)}px ${h}px`}}
+{const _rc=renderCraft;renderCraft=function(){const r=_rc.apply(this,arguments);crFit();return r}}
+addEventListener('resize',()=>{if(!$('sheet').hidden&&S.sub==='craft')crFit()});

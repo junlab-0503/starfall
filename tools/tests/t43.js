@@ -74,9 +74,11 @@ await p.click('#gold');await p.waitForTimeout(200);const tg=await p.evaluate(()=
 ok(/123,456,789,012,345/.test(tg),'골드 누르면 전체 값: '+tg.slice(0,60));
 
 // 7) 개발자 코드: 골드만 9,999조, 나머지 그대로
-const dv=await p.evaluate(()=>{S.gold=5;const b={un:S.unlocked,fl:S.floors,found:S.found.length,seen:S.seen.length,pick:S.pick,auto:S.auto,wh:S.wh};$('devForm').hidden=false;$('devCode').value='jun';$('devForm').requestSubmit?$('devForm').requestSubmit():$('devForm').querySelector('button').click();
-  return{gold:S.gold,same:b.un===S.unlocked&&b.fl===S.floors&&b.found===S.found.length&&b.seen===S.seen.length&&b.pick===S.pick&&b.auto===S.auto&&b.wh===S.wh,msg:$('devMsg').textContent}});
-ok(dv.gold===9.999e15&&dv.same&&/9,999조/.test(dv.msg),`개발자 코드: 골드 ${dv.gold} · 다른 값 그대로 ${dv.same} · "${dv.msg}"`);
+const dv=await p.evaluate(()=>{S.gold=5;S.dev=0;STQ.length=0;while(!$('story').hidden)nextStory();const b={fl:S.floors,found:S.found.length,pick:S.pick,auto:S.auto,wh:S.wh};$('devForm').hidden=false;$('devCode').value='jun';$('devForm').requestSubmit?$('devForm').requestSubmit():$('devForm').querySelector('button').click();
+  return{gold:S.gold,un:S.unlocked,seen:S.seen.length,all:ORDER.length,jr:S.journal.length,pop:!$('story').hidden,same:b.fl===S.floors&&b.found===S.found.length&&b.pick===S.pick&&b.auto===S.auto&&b.wh===S.wh,msg:$('devMsg').textContent}});
+ok(dv.gold===9.999e15&&dv.un===13&&dv.seen===dv.all&&dv.jr===13&&dv.same&&!dv.pop&&/지층 · 광물 모두 열림/.test(dv.msg),`개발자 코드(v31): 골드 9,999조 · 지층 ${dv.un}/13 · 광물 도감 ${dv.seen}/${dv.all} · 일지 ${dv.jr}/13 · 곡괭이 · 드릴 · 창고 · 레시피 · 탑 그대로 ${dv.same} · 발견 창 없음 ${!dv.pop} · "${dv.msg}"`);
+const cp=await p.evaluate(()=>{const o=[];for(let i=0;i<20;i++){CR().a={k:'gold',n:5,base:5000,lv:i%10,t:0};CRAFT_BUSY=false;const r=craftTry();o.push(!!(CR().a&&CR().a.lv===i%10+1))}CR().a={k:'gold',n:5,base:5000,lv:3,t:0};CR().met=1;openSheet('craft');renderCraft();const txt=$('crBody').innerText;closeSheet();S.dev=0;const p0=craftP(4);S.dev=1;CR().a=null;return{all:o.every(x=>x),p0,txt:/100%/.test(txt)&&!/실패하면 부서져요/.test(txt)}});
+ok(cp.all&&cp.p0<1&&cp.txt,`개발자 코드 세공: 화면 100% · 경고 없음 · 강화 20번 모두 성공 · 일반 저장은 원래 확률(+4 ${Math.round(cp.p0*100)}%)`);
 await p.waitForTimeout(1500);ok(await p.evaluate(()=>S.gold<=9.999e15),'골드가 저절로 다시 채워지지 않음(무한 골드 아님)');
 
 // 8) 새 게임(처음부터 다시 두 번 누르기): 탭 스크롤 기억도 비움 · 채굴 탭에서 시작

@@ -18,8 +18,8 @@ await p.evaluate(()=>{__d().S.tutDone=true;renderAll()});await p.waitForTimeout(
 const b0=await p.evaluate(()=>{const S=__d().S;return{fl:S.floors,un:S.unlocked,found:S.found.length}}),f0=b0.fl;
 await p.click('[data-tab="mine"]');await p.click('#setBtn');await p.evaluate(()=>{document.getElementById('devForm').hidden=false});await p.fill('#devCode','jun');await p.press('#devCode','Enter');await p.waitForTimeout(400);await closeStory();
 const d=await p.evaluate(()=>{const S=__d().S;return{fl:S.floors,un:S.unlocked,gold:S.gold,found:S.found.length,rec:RECIPES.length,inv:cnt('stone'),shops:SHOPS.map((s,i)=>shopOpen(i)?1:0).join(''),msg:$('devMsg').textContent}});
-ok(d.fl===f0&&d.un===b0.un&&d.gold===9.999e15&&d.found===b0.found,`개발자 코드(v29): 골드만 9,999조 · 탑 ${f0}층 그대로 · 지층 ${d.un}개 그대로 · 레시피 ${d.found}/${d.rec} 그대로`);
-ok(/골드 9,999조/.test(d.msg),'안내: '+d.msg.slice(0,60));
+ok(d.fl===f0&&d.un===13&&d.gold===9.999e15&&d.found===b0.found,`개발자 코드(v31): 골드 9,999조 · 지층 ${d.un}개 모두 열림 · 탑 ${f0}층 그대로 · 레시피 ${d.found}/${d.rec} 그대로`);
+ok(/골드 9,999조 · 지층 · 광물 모두 열림/.test(d.msg),'안내: '+d.msg.slice(0,60));
 ok(d.shops==='10000'||d.shops.split('').filter(x=>x==='1').length<=1,'가게는 탑을 쌓은 만큼만 열림: '+d.shops);
 // 직접 쌓기: 6층(석조 기단)까지 쌓으면 셈 입주 → 셈 가게 열림
 const before=await p.evaluate(()=>{const i=SHOPS.findIndex(s=>s.who==='셈');return{i,open:shopOpen(i)}});
