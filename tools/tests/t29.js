@@ -8,7 +8,7 @@ await p.goto('file://'+process.cwd()+'/dbg29.html');await p.waitForTimeout(800);
 await p.evaluate(()=>{S.tutDone=true;renderAll()});await close();
 ok(await p.evaluate(()=>!document.getElementById('bugText')&&!/버그 제보/.test(document.body.innerHTML)&&typeof BUG_MAIL==='undefined'),'버그 제보 칸 없음');
 const open=i=>p.evaluate(i=>{S.unlocked=i;const L=LAYERS[i];S.gold=L.req.g+1;Object.entries(L.req.items).forEach(([id,n])=>{S.inv[id]=n});unlockLayer(i)},i);
-const seen=async()=>{for(let k=0;k<10&&await p.isVisible('#storyNext');k++){const t=await p.evaluate(()=>$('storyT').textContent);if(/마음에 드나요/.test(t))return true;await p.click('#storyNext')}return false};
+const seen=async()=>{for(let k=0;k<10&&await p.isVisible('#storyNext');k++){const t=await p.evaluate(()=>$('storyT').textContent);if(/즐기고 있나요/.test(t))return true;await p.click('#storyNext')}return false};
 await open(1);ok(!(await seen()),'B2를 열 때는 리뷰 부탁 없음');await open(2);ok(!(await seen()),'B3을 열 때도 없음');
 await open(3);const r1=await seen();ok(r1&&await p.evaluate(()=>$('storyNext').textContent==='나중에'&&!!$('revGo')),'B4를 열 때(B1~B3을 다 캤을 때) 리뷰 부탁 + [리뷰 남기기] · [나중에]');
 await p.click('#storyNext');await close();ok(await p.evaluate(()=>S.review==='later'),'[나중에] → 나중에 한 번 더');

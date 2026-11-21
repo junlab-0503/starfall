@@ -2,40 +2,40 @@
 // t·sel은 함수일 수도 있다(상황에 따라 바뀜). next:true → 저절로 넘어가지 않고 [다음]을 눌러야 넘어가는 설명 단계
 const slotsFull=()=>!!(S.slots[0]&&S.slots[1]);
 const TUT=[
-  {t:'여기가 영감이 평생 판 광맥이란다. 화면을 탭해서 바위를 캐 보렴.',sel:'#sceneWrap',done:()=>S.mined>=1},
-  {t:'처음 보는 광석은 도감에 남는단다. 계속 캐서 돌을 넉넉히 모아 보렴.',sel:'#sceneWrap',done:()=>cnt('stone')+cnt('brick')*2>=10,hint:()=>`(돌 ${Math.min(cnt('stone')+cnt('brick')*2,10)}/10)`},
-  {t:'돌 두 개를 녹이면 다듬은 돌이 된단다. 아래 [제련]으로 가 보렴.',sel:'.nb[data-tab="forge"]',done:()=>S.tab==='forge'||cnt('brick')>=2},
-  {t:()=>slotsFull()?'좋아, 이제 [제련]을 눌러 보렴.':'[돌]을 두 번 눌러 재료 칸 두 개에 넣어 보렴.',sel:()=>slotsFull()?'#smelt':'#pickGrid [data-pk="stone"]',done:()=>cnt('brick')>=2,
-   hint:()=>`(다듬은 돌 ${Math.min(cnt('brick'),2)}/2)`+(!slotsFull()&&cnt('stone')<2?' 돌이 모자라면 채굴 화면에서 조금 더 캐 오렴.':'')},
-  {t:'잘했다! 이제 [탑]으로 가 보자. 떠난 마을 사람들이 돌아올 집이란다.',sel:'.nb[data-tab="tower"]',done:()=>S.tab==='tower'||S.floors>=1},
-  {t:'[한 층 쌓기]를 눌러 1층을 지어 보렴. 대장장이 무쇠가 돌아올 게다.',sel:'#buildBtn',done:()=>S.floors>=1},
-  {t:'무쇠가 돌아왔구나! 아래 [장비]로 가서 대장간을 열어 보렴.',sel:'.nb[data-tab="equip"]',done:()=>S.tab==='equip'||S.pick>=2},
-  {t:'무쇠에게 [곡괭이 벼리기]를 맡겨 보렴. 바위가 훨씬 쉽게 갈라질 게다.',sel:'[data-up="pick"]',done:()=>S.pick>=2},
-  {t:'광석은 채굴 화면 아래 [창고]에서 팔거나 [장터]에서 정해진 값에 사고팔 수 있단다. 골드가 모자라면 팔아서 마련하렴.',sel:()=>S.tab==='mine'?'#whBtn':'.nb[data-tab="mine"]',next:true},
-  {t:'채굴 화면 왼쪽 위 [개척]에는 다음 지층을 여는 데 필요한 것이 나온단다. 다 모으면 눌러서 더 깊이 내려가렴. 오른쪽 위 책에는 할아버지의 일지와 도감이 있단다.',sel:()=>S.tab==='mine'?'#nextL':'.nb[data-tab="mine"]',next:true},
-  {t:'탑을 높이 쌓을수록 떠났던 사람들이 하나둘 돌아와 가게를 연단다. 6층까지 쌓으면 창고지기 셈이 돌아와 창고를 넓혀 줄 게다. 누가 오면 그 사람이 직접 알려 줄 게야.',sel:'.nb[data-tab="tower"]',next:true},
-  {t:'이제 할아버지의 일지를 따라 천천히 내려가 보렴. 할미는 그저… 활기찼던 그 시절 마을을 다시 한번 보고 싶구나. 늘 여기 있으마.',sel:null,last:true}
+  {t:'여기가 영감이 평생 파고들던 광맥이란다. 자, 화면을 눌러 바위를 캐 보렴.',sel:'#sceneWrap',done:()=>S.mined>=1},
+  {t:'처음 발견한 광석은 도감에 기록된단다. 우선 돌을 넉넉히 모아 보자.',sel:'#sceneWrap',done:()=>cnt('stone')+cnt('brick')*2>=10,hint:()=>`(돌 ${Math.min(cnt('stone')+cnt('brick')*2,10)}/10)`},
+  {t:'돌 두 개를 녹이면 다듬은 돌을 만들 수 있단다. 아래 [제련]으로 가 보렴.',sel:'.nb[data-tab="forge"]',done:()=>S.tab==='forge'||cnt('brick')>=2},
+  {t:()=>slotsFull()?'그래, 이제 [제련]을 눌러 보자.':'[돌]을 두 번 눌러서 재료 칸 두 곳에 하나씩 넣어 보렴.',sel:()=>slotsFull()?'#smelt':'#pickGrid [data-pk="stone"]',done:()=>cnt('brick')>=2,
+   hint:()=>`(다듬은 돌 ${Math.min(cnt('brick'),2)}/2)`+(!slotsFull()&&cnt('stone')<2?' 돌이 부족하다면 채굴 화면으로 돌아가 조금만 더 캐 오렴.':'')},
+  {t:'잘했어! 이번엔 [탑]으로 가 보자꾸나. 떠난 사람들이 돌아와 머물 곳을 만드는 거란다.',sel:'.nb[data-tab="tower"]',done:()=>S.tab==='tower'||S.floors>=1},
+  {t:'[한 층 쌓기]를 눌러 1층을 지어 보렴. 그러면 대장장이 무쇠가 돌아올 게야.',sel:'#buildBtn',done:()=>S.floors>=1},
+  {t:'무쇠가 돌아왔구나! 아래 [장비]에서 대장간에 들러 보렴.',sel:'.nb[data-tab="equip"]',done:()=>S.tab==='equip'||S.pick>=2},
+  {t:'무쇠에게 [곡괭이 벼리기]를 부탁해 보렴. 훨씬 수월하게 바위를 깰 수 있을 게다.',sel:'[data-up="pick"]',done:()=>S.pick>=2},
+  {t:'캔 광석은 채굴 화면 아래 [창고]에서 팔 수 있고, [장터]에서는 정해진 값에 사고팔 수 있단다. 골드가 부족하면 광석부터 팔아 보렴.',sel:()=>S.tab==='mine'?'#whBtn':'.nb[data-tab="mine"]',next:true},
+  {t:'채굴 화면 왼쪽 위 [개척]을 누르면 다음 지층에 필요한 재료가 나온단다. 다 모았으면 눌러서 더 깊이 내려가렴. 오른쪽 위 책에서는 할아버지의 일지와 도감을 볼 수 있어.',sel:()=>S.tab==='mine'?'#nextL':'.nb[data-tab="mine"]',next:true},
+  {t:'탑을 높이 쌓으면 떠났던 사람들이 돌아와 가게를 연단다. 6층까지 지으면 창고지기 셈이 돌아와 창고를 넓혀 줄 거야. 새 사람이 오면 직접 인사하러 올 테니 걱정 말고.',sel:'.nb[data-tab="tower"]',next:true},
+  {t:'이제 할아버지의 일지를 따라 천천히 내려가 보렴. 할미는 그저… 이 마을에 다시 사람 사는 소리가 들렸으면 좋겠구나.',sel:null,last:true}
 ];
 /* 주민 안내(단계 튜토리얼): 일을 맡은 주민이 들어오면(셈 6층 · 핀 10층 · 루카 21층 · 미르 28층 · 린 B4) 그 사람이 직접 자기 일을 짧게 알려 준다.
    이장 할머니 튜토리얼과 같은 말풍선을 쓰고, 이름 · 초상화만 바뀐다. 줄(S.ntq)에 쌓아 두고 이야기 창이 닫힌 뒤 하나씩. 다 본 사람은 S.ntDone */
 const goShop=i=>()=>S.tab==='equip'?`[data-shop="${i}"]`:'.nb[data-tab="equip"]',atShop=i=>()=>S.tab==='equip'&&(S.shop|0)===i;
 const NPC_TUT={
   '셈':[{t:'내 가게는 [장비]에 있어. [창고] 칸을 눌러 봐.',sel:goShop(1),done:atShop(1)},
-       {t:'[창고 늘리기]. 칸이 모자라면 여기서 늘려. 꽉 차면 로봇이 캔 건 보관함으로 가고, 거기도 차면 헐값에 팔려 나가.',sel:'[data-up="wh"]',next:true},
-       {t:'[알뜰 정리]를 들이면 꽉 찼을 때 싼 원석부터 내가 알아서 판다. [월세 금고]는 월세를 더 오래 쌓아 두는 거고. 끝.',sel:'[data-up="autosell"]',next:true}],
-  '핀':[{t:'제 공방은 [장비]에 있어요! 얼른 와 보세요!',sel:goShop(2),done:atShop(2)},
-       {t:'[드릴 로봇]을 키우면 손 안 대도 알아서 캐요. 한 단계마다 드릴 파워가 확 올라가요! 스위치만 켜 두면 자리를 비워도 일하고요.',sel:'[data-up="auto"]',next:true},
-       {t:'로봇이 캔 건 창고로 가요. 창고가 차면 오른쪽 아래 [로봇 보관함]에 쌓이고요. [채굴 보관함]은 그 상자를 키우고, [자동 판매 장치]는 넘친 걸 제값에 가깝게 팔아 줘요!',sel:'[data-up="box"]',next:true}],
-  '루카':[{t:'아래 [장터]로 와 보세요~ 보여 드릴 게 있거든요.',sel:'.nb[data-tab="market"]',done:()=>S.tab==='market'},
-       {t:'이게 [지층 출입권]이에요. 가지고만 있어도 그 지층 광석이 조금씩 로봇 보관함으로 들어와요.',sel:()=>S.mkSub==='pass'?'#passes':'[data-mks="pass"]',next:true},
-       {t:'그리고 소문 게시판! 10분쯤마다 소문이 돌고 몇 분 뒤에 발표가 나요. 사실이면 그 지층 출입권 값이 뛰고, 헛소문이면 떨어져요. 막 산 출입권은 1분 동안 +1%까지만 오르니까 미리 사 두세요~',sel:'#rumors',next:true},
-       {t:'누구 말을 믿어야 할지 모르겠으면 [장비] 제 [정보소]에서 [소문 감정]을 키워 보세요. 진짜인지 귀띔해 드릴게요. 처음엔 반반이지만 90%까지 맞혀요.',sel:'.nb[data-tab="equip"]',next:true}],
-  '미르':[{t:'…[장비]에서 [용광로]를 골라 주세요.',sel:goShop(4),done:atShop(4)},
-       {t:'[풀무]를 키우면 제련이 잘 돼요. [별빛 불씨]는… 대성공을 불러요. 대성공이면 두 개가 나오고요.',sel:'[data-up="furn"]',next:true},
-       {t:'[별빛 여운]은 황금 광맥을 조금 더 붙잡아 둬요. 반짝이면… 힘껏 두드려 주세요.',sel:'[data-up="vheat"]',next:true}],
-  '린':[{t:'내 작업대는 채굴 화면 아래 [세공]이야. 눌러 봐!',sel:()=>S.tab==='mine'?'#crBtn':'.nb[data-tab="mine"]',done:()=>!$('sheet').hidden&&S.sub==='craft'},
-       {t:'은괴 · 금괴 · 백금괴 · 별빛강 중에 하나 고르고, 개수를 정해서 [제작]. 넣은 재료값이 세공품의 기본값이 돼.',sel:'#crSeg',next:true},
-       {t:'[강화 도전]에 성공하면 값이 확 뛰어. 대신 실패하면 깨져서 없어져! 욕심은 적당히, 팔 때를 잘 골라.',sel:'#crBody',next:true}]};
+       {t:'[창고 늘리기]로 보관 공간을 늘릴 수 있어. 창고가 꽉 차면 로봇이 캔 건 보관함에 쌓이고, 거기까지 차면 헐값에 팔려 나가니까 조심해.',sel:'[data-up="wh"]',next:true},
+       {t:'[알뜰 정리]를 사 두면 창고가 찼을 때 싼 원석부터 알아서 팔아 줄게. [월세 금고]는 월세를 더 오래 모아 두는 거고. 알아들었지?',sel:'[data-up="autosell"]',next:true}],
+  '핀':[{t:'제 공방은 [장비]에 있어요! 한번 들러 보세요!',sel:goShop(2),done:atShop(2)},
+       {t:'[드릴 로봇]을 강화하면 가만히 있어도 바위를 캐 줘요. 강화할 때마다 드릴 파워가 확 올라가요! 켜 두면 자리를 비운 동안에도 일해요.',sel:'[data-up="auto"]',next:true},
+       {t:'로봇이 캔 광석은 먼저 창고로 가요. 창고가 차면 오른쪽 아래 [로봇 보관함]에 쌓이고요! [채굴 보관함]으로 공간을 늘리고, [자동 판매 장치]를 달면 넘치는 광석도 제값에 가깝게 팔 수 있어요.',sel:'[data-up="box"]',next:true}],
+  '루카':[{t:'아래 [장터]에 한번 와 보세요~ 재미있는 걸 보여 드릴게요.',sel:'.nb[data-tab="market"]',done:()=>S.tab==='market'},
+       {t:'이게 [지층 출입권]이에요. 갖고만 있어도 그 지층 광석이 조금씩 로봇 보관함에 들어온답니다.',sel:()=>S.mkSub==='pass'?'#passes':'[data-mks="pass"]',next:true},
+       {t:'소문 게시판도 구경해 보세요! 10분쯤마다 새 소문이 돌고, 몇 분 뒤에 진짜인지 발표가 나요. 사실이면 출입권 값이 오르고, 헛소문이면 떨어지죠. 미리 사 두는 편이 좋을 거에요~',sel:'#rumors',next:true},
+       {t:'어느 소문을 믿을지 고민되시죠? [장비]에 있는 제 [정보소]에서 [소문 감정]을 강화해 보세요. 처음엔 반반이지만, 나중엔 최대 90%까지 진짜인지 맞힐 수 있거든요.',sel:'.nb[data-tab="equip"]',next:true}],
+  '미르':[{t:'…[장비]에서 [용광로]를 선택해 주세요.',sel:goShop(4),done:atShop(4)},
+       {t:'[풀무]를 강화하면 제련이 더 잘돼요. [별빛 불씨]는… 대성공 확률을 높여 줘요. 대성공이면 결과물이 두 개 나오고요.',sel:'[data-up="furn"]',next:true},
+       {t:'[별빛 여운]은 황금 광맥이 사라지는 걸 조금 늦춰 줘요. 나타나면… 놓치지 말고 캐 보세요.',sel:'[data-up="vheat"]',next:true}],
+  '린':[{t:'내 작업대는 채굴 화면 아래 [세공]에 있어. 한번 눌러 봐!',sel:()=>S.tab==='mine'?'#crBtn':'.nb[data-tab="mine"]',done:()=>!$('sheet').hidden&&S.sub==='craft'},
+       {t:'은괴 · 금괴 · 백금괴 · 별빛강 중에서 재료를 고르고, 개수를 정한 뒤 [제작]을 누르면 돼. 쓴 재료의 값이 세공품 기본값이 되지.',sel:'#crSeg',next:true},
+       {t:'[강화 도전]에 성공하면 값이 확 올라. 대신 실패하면 깨져서 사라진다는 거, 잊지 마! 언제 팔지도 잘 생각하고.',sel:'#crBody',next:true}]};
 const NPC_P={'린':{name:'린',art:'lin'}},TUT_GRANNY={name:'이장 할머니',art:'granny',hair:'#d8d4cc',hat:'scarf',coat:'#6a5a4a'};
 function npcTutQueue(who){if(!NPC_TUT[who]||S.ntDone.includes(who)||S.ntq.includes(who))return;S.ntq.push(who)}
 const ntOn=()=>S.tutDone&&S.ntq.length>0&&$('story').hidden&&$('titleScr').hidden&&$('entry').hidden;
@@ -65,12 +65,12 @@ function tutGlow(){const st=tutOn()?TUT[S.tut||0]:ntStep(),sel=st?tv(st.sel):nul
   if(el&&!el.closest('.nb')&&!tb.hidden){const r=el.getBoundingClientRect(),nav=document.querySelector('nav'),lim=(nav?nav.getBoundingClientRect().top:innerHeight)-10-tb.offsetHeight-6;
     if(r.bottom>lim&&r.height<200){if(r.top-tb.offsetHeight-8>110)above=Math.round(innerHeight-r.top+8)+'px';else top=true}}
   tb.style.bottom=above;tb.classList.toggle('top',top)}
-function tutHide(){const b=$('tut');if(b)b.hidden=true;document.querySelectorAll('.tut-glow').forEach(e=>e.classList.remove('tut-glow'))}
+function tutHide(){const b=$('tut');setHid(b,true);document.querySelectorAll('.tut-glow').forEach(e=>e.classList.remove('tut-glow'))}
 {const g=name=>{const o=window[name];window[name]=function(...a){const r=o.apply(this,a);tutGlow();return r}};['renderTab','renderForge','renderInv','renderMarket','renderTower'].forEach(g)}
 $('tutGo').onclick=()=>{if(!tutOn()&&ntOn()){S.nts=(S.nts|0)+1;sfx('page');if(S.nts>=NPC_TUT[S.ntq[0]].length)ntEnd();if(!ntTick())tutHide();return}
   const st=TUT[S.tut||0];if(!st)return;if(st.last){S.tutDone=true;tutHide();return}S.tut++;sfx('page');tutTick()};
 $('tutNext').onclick=()=>{if(!tutOn()&&ntOn()){ntEnd();if(!ntTick())tutHide();return}
-  S.tutDone=true;tutHide();toast('튜토리얼을 건너뛰었어요. 채굴 화면 위 톱니바퀴(설정)에서 다시 볼 수 있어요.')};
+  S.tutDone=true;tutHide();toast('튜토리얼을 건너뛰었어요. 채굴 화면 위쪽 톱니바퀴(설정)에서 다시 시작할 수 있어요.')};
 /* 광맥 입구 장면: 마을 뒤 광산 입구 그림(art/scene/entry) 위로 주인공 도트가 걸어가 입구 안으로 들어가고, 어두워지며 "B1 표토층"이 뜬 뒤 채굴 화면으로.
    그림 좌표(원본 2000×667): 땅 높이 y 503, 입구 문턱 x 1560, 입구 안 x 1665, 등불 (1645, 318). 탭하면 건너뜀 */
 const ENTRY={ground:503,start:300,door:1560,inside:1665,lamp:[1645,318],W:2000,H:667,speed:330};

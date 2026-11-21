@@ -14,33 +14,33 @@ if(had)resume();else clockCheck();
 function welcome(r){const ores=Object.entries(r.ores).sort((a,b)=>b[1]-a[1]),tot=ores.reduce((s,o)=>s+o[1],0);
   const rows=[];if(r.rent>0)rows.push(`<span>${ico('coin','sm')} 입주자 월세</span><span>+${big(r.rent)}G</span>`);
   ores.slice(0,6).forEach(([id,n])=>rows.push(`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(n)}</span>`));if(ores.length>6)rows.push(`<span>그 밖의 광석</span><span>×${big(ores.slice(6).reduce((s,o)=>s+o[1],0))}</span>`);
-  if(r.sold&&r.sold.n>0)rows.push(`<span>${ico(ul('refiner')?'crysteel':'brick','sm')} 넘친 광석 ${big(r.sold.n)}개 판매</span><span>+${big(r.sold.g)}G</span>`);
-  if(r.drillOff)rows.push(`<span class="dim">드릴 로봇</span><span class="dim">스위치가 꺼져 있어 쉬었어요</span>`);
+  if(r.sold&&r.sold.n>0)rows.push(`<span>${ico(ul('refiner')?'crysteel':'brick','sm')} 넘친 광석 ${big(r.sold.n)}개를 판매했어요</span><span>+${big(r.sold.g)}G</span>`);
+  if(r.drillOff)rows.push(`<span class="dim">드릴 로봇</span><span class="dim">드릴이 꺼져 있어서 채굴하지 않았어요</span>`);
   if(!rows.length)return;
-  story([{k:'다시 왔구나',t:'자리를 비운 사이 모인 것',b:`${r.drillOff?'탑의 입주자들이 일했어요. 드릴 로봇은 꺼 둔 채라 쉬었어요.':'탑의 입주자들과 드릴 로봇이 쉬지 않고 일했어요.'}${r.full?' 보상이 가득 찼어요. 더 오래 비워도 늘지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0?'월세는 탑 탭에서, ':''}${tot?'광석은 채굴 화면의 채굴 보관함에서 받을 수 있어요.':''}</p>`}])}
+  story([{k:'돌아왔구나!',t:'자리를 비운 동안 모인 보상',b:`${r.drillOff?'탑에서는 월세가 쌓였지만, 드릴 로봇은 꺼져 있어 쉬었어요.':'탑에서는 월세가 쌓이고, 드릴 로봇도 광석을 모았어요.'}${r.full?' 보상이 최대치까지 쌓였어요. 더 오래 비워 둬도 늘어나지 않아요.':''}`,extra:`<div class="rcard">${rows.join('')}</div><p class="dim small" style="margin:6px 0 0">${r.rent>0&&tot?'월세는 [탑]에서, 광석은 채굴 화면의 [채굴 보관함]에서 받을 수 있어요.':r.rent>0?'월세는 [탑]에서 받을 수 있어요.':tot?'광석은 채굴 화면의 [채굴 보관함]에서 받을 수 있어요.':''}</p>`}])}
 document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');
 tutWho('이장 할머니');   // 튜토리얼 말풍선: 이장 할머니 초상화(주민 안내 때는 그 주민으로 바뀜)
 setTab(S.tab);sceneResize();newWall();renderAll();
 addEventListener('resize',()=>{document.documentElement.style.setProperty('--navH',document.querySelector('.bnav').getBoundingClientRect().height+'px');fitScene()});
 // 프롤로그: 편지 → 할아버지의 제련소(유산: 골드 · 낡은 곡괭이 · 느린 채굴 기계) → 일지 → 광맥 입구 → 주인공이 입구로 걸어 들어가는 장면 → B1
 function startPrologue(){entryScene(true);story(PROLOGUE.map((c,i)=>Object.assign({gold:1,k:'프롤로그',ill:'p'+(i+1),mode:'full'},c,
-  c.legacy?{extra:`<div class="rcard"><span>할아버지의 유산</span><span>+${big(LEGACY.gold)}G</span><span>낡은 곡괭이</span><span>손에 익은 녹슨 곡괭이</span><span>채굴 기계</span><span>느리게 도는 자동 드릴</span></div>`,
+  c.legacy?{extra:`<div class="rcard"><span>할아버지의 유산</span><span>+${big(LEGACY.gold)}G</span><span>낡은 곡괭이</span><span>손때 묻은 녹슨 곡괭이</span><span>채굴 기계</span><span>느릿느릿 돌아가는 자동 드릴</span></div>`,
     done:()=>{if(!S.legacy){S.legacy=1;S.gold+=LEGACY.gold;S.auto=Math.max(S.auto,LEGACY.auto);S.autoOn=true;sfx('coin');renderAll()}}}:{},
   i===PROLOGUE.length-1?{done:()=>{S.prologue=true;save()},after:()=>entryScene()}:{})))}
 // 시작 화면: 터치하면 닫히고, 처음이면 프롤로그
 $('titleScr').hidden=false;$('titleScr').style.backgroundImage='';$('titleArt').style.backgroundImage=`url(${ART.scene_title})`;
 $('titleScr').addEventListener('click',()=>{$('titleScr').hidden=true;sfx('page');if(!S.prologue)startPrologue();renderAll()});
-$('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode').value.trim().toLowerCase(),msg=$('devMsg');
+/*DEV{*/$('devForm').addEventListener('submit',e=>{e.preventDefault();const v=$('devCode').value.trim().toLowerCase(),msg=$('devMsg');
   // v31: 골드 9,999조 + 지층 전부 열기(일지도 조용히 채움) + 광물 도감 전부(발견 창 없이). 곡괭이 · 드릴 · 레시피 · 탑은 그대로. [DEV 광맥] · [DEV 리뷰] 단추는 시험용으로 남김
   if(v==='jun'){S.gold=9.999e15;S.dev=1;S.unlocked=LAYERS.length;S.seen=ORDER.slice();S.journal=LAYERS.map((_,i)=>i);
     log('개발자 코드 적용: 골드 9,999조 · 지층 · 광물 모두 열림',true);msg.textContent='적용됨: 골드 9,999조 · 지층 · 광물 모두 열림';save();renderAll()}
-  else msg.textContent=v?'알 수 없는 코드예요.':'';$('devCode').value=''});
+  else msg.textContent=v?'등록되지 않은 코드예요.':'';$('devCode').value=''});
 // 개발자 코드 칸은 숨겨 둠: 채굴 화면 위 톱니바퀴(설정)를 10초 동안 누르고 있으면 나타남
 {let devT=0;const off=()=>{clearTimeout(devT);devT=0},b=$('setBtn');
   b.addEventListener('pointerdown',()=>{off();devT=setTimeout(()=>{$('devForm').hidden=false;openSheet('set');toast('개발자 코드 칸이 열렸어요.')},10000)});
-  ['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,off,true));b.addEventListener('contextmenu',e=>e.preventDefault())}   // 손을 떼면(어디서든) 취소
-let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시'},3000);return}
-  try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시';for(const k in TAB_Y)delete TAB_Y[k];setTab('mine');startPrologue();save()};   // v29: 새 게임은 탭 스크롤 기억도 비움
+  ['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,off,true));b.addEventListener('contextmenu',e=>e.preventDefault())}   // 손을 떼면(어디서든) 취소/*}DEV*/
+let armed=false;$('reset').onclick=()=>{if(!armed){armed=true;$('reset').textContent='정말 초기화할까요? 한 번 더';setTimeout(()=>{armed=false;$('reset').textContent='처음부터 다시 시작'},3000);return}
+  try{localStorage.removeItem(SAVE_KEY)}catch(e){}S=fresh();refreshBonus();for(let i=0;i<180;i++)tickMarket(2,true);S.next=rollDrop(0);S.hp=layerHp(0);S.digs={};camInit=false;newWall();armed=false;$('reset').textContent='처음부터 다시 시작';for(const k in TAB_Y)delete TAB_Y[k];setTab('mine');startPrologue();save()};   // v29: 새 게임은 탭 스크롤 기억도 비움
 let lastT=0,lastDraw=0,secAcc=0,saveAcc=0,hudAcc=0,invDirtyT=0;
 function frame(now){const dt=Math.min(.1,(now-(lastT||now))/1000);lastT=now;if(!document.hidden){clockWatch();S.playT=(S.playT||0)+dt}   // 플레이 시간: 화면이 켜져 있는 동안만
   if(S.tab==='mine'&&!IW)sceneResize();
@@ -59,12 +59,12 @@ document.addEventListener('visibilitychange',()=>{clockRebase();if(document.hidd
    플러그인이 없는 앱(WebView)이나 홈 화면에 설치한 웹앱에서는 뒤로가기를 기록 한 칸으로 붙잡아 같은 창을 띄운다(일반 브라우저 탭은 건드리지 않음) */
 const CAPP=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
 function exitAsk(){if(!$('exitModal').hidden){$('exitModal').hidden=true;return}
-  const open=['qtyModal','adModal','shopModal'].find(id=>!$(id).hidden);if(open){$(open).querySelector('#qtyCancel,#adCancel,#shopCancel').click();return}
+  const open=['qtyModal','adModal','shopModal'].find(id=>{const m=$(id);return m&&!m.hidden});if(open){$(open).querySelector('#qtyCancel,#adCancel,#shopCancel').click();return}
   if(!$('sheet').hidden){closeSheet();return}
   $('exitModal').hidden=false}
 function exitNow(){save();audioHold('exit',true);$('exitModal').hidden=true;
   try{if(CAPP&&CAPP.exitApp){CAPP.exitApp();return}if(navigator.app&&navigator.app.exitApp){navigator.app.exitApp();return}}catch(e){}
-  window.close();setTimeout(()=>{audioHold('exit',false);toast('브라우저에서는 이 탭을 닫으면 종료돼요.')},400)}
+  window.close();setTimeout(()=>{audioHold('exit',false);toast('브라우저에서는 이 탭을 닫으면 게임이 종료돼요.')},400)}
 $('exitNo').onclick=()=>{$('exitModal').hidden=true};$('exitYes').onclick=exitNow;
 window.starfallBack=()=>{exitAsk();return true};   // 앱 쪽에서 뒤로가기를 직접 넘겨줄 때
 if(CAPP&&CAPP.addListener){try{CAPP.addListener('backButton',exitAsk);CAPP.addListener('pause',()=>{audioHold('app',true);clockRebase();save()});CAPP.addListener('resume',()=>{audioHold('app',false);resume()})}catch(e){}}

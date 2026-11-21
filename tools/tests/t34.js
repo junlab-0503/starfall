@@ -29,7 +29,7 @@ ok(cp.every((c,i)=>i===0||c[0]>cp[i-1][0]),'단계가 오를수록 늘기만 함
 // 첫 가득 참 안내
 await p.evaluate(()=>{story=window._story});await close();
 await p.evaluate(()=>{S.whHint=0;S.floors=3;S.wh=0;S.inv={stone:cap()};renderAll()});await p.waitForTimeout(1500);
-const t1=await p.evaluate(()=>!$('story').hidden&&/탑 6층을 완공하면 창고지기 셈이 돌아와/.test($('storyB').textContent)&&!!$('whGo'));ok(t1,'셈 전 창고가 처음 가득 차면 안내 + [탑으로 가기]');
+const t1=await p.evaluate(()=>!$('story').hidden&&/탑을 6층까지 지으면 창고지기 셈이 돌아와/.test($('storyB').textContent)&&!!$('whGo'));ok(t1,'셈 전 창고가 처음 가득 차면 안내 + [탑으로 가기]');
 await p.click('#whGo');await p.waitForTimeout(200);ok(await p.evaluate(()=>S.tab==='tower'&&$('story').hidden&&S.whHint===1),'[탑으로 가기] → 탑 화면, 기록됨');
 await p.evaluate(()=>{setTab('mine')});await p.waitForTimeout(1500);ok(await p.evaluate(()=>$('story').hidden),'다시 가득 차도 안 나옴');
 await p.evaluate(()=>save());await p.reload();await start();await p.waitForTimeout(1500);ok(await p.evaluate(()=>S.whHint===1&&$('story').hidden),'다시 켜도 안 나옴(저장)');

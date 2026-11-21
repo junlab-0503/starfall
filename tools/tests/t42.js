@@ -24,7 +24,7 @@ const g=await p.evaluate(()=>{const m=$('crMedal').getBoundingClientRect(),s=doc
 ok(g.a==='plat'&&g.item&&g.dx<2&&g.dy<2&&Math.abs(g.ar-116/103)<.02&&g.w>=160,`백금옥 제작 → 세공기(${Math.round(g.w)}px) 구멍 한가운데에 세공품 (어긋남 ${g.dx.toFixed(1)},${g.dy.toFixed(1)}px)`);
 ok(g.nIn,'세공침 자리가 세공품 위쪽(구멍 안)으로 내려옴');
 // 4) 강화 성공 연출: 세공침 내려옴 → 멈칫 + 흔들림 + 소리 → 효과 프레임 → 끝나면 단계 오름
-await p.evaluate(()=>{window.__R=Math.random;Math.random=()=>0;window.__snd=[];const o=window.sample;window.sample=(k,...a)=>{__snd.push(k);return o(k,...a)}});
+await p.evaluate(()=>{window.__R=Math.random;Math.random=()=>1e-9;window.__snd=[];const o=window.sample;window.sample=(k,...a)=>{__snd.push(k);return o(k,...a)}});
 const g0=await p.evaluate(()=>({g:S.gold,c:craftCost(CR().a),p:craftPrice(CR().a)}));
 await p.click('#crTry');await p.evaluate(()=>{Math.random=window.__R});
 const t1=await p.evaluate(()=>({drop:$('crMedal').classList.contains('aim'),busy:CRAFT_BUSY,try:!!$('crTry')&&$('crTry').disabled,spent:Math.round(S.gold)}));
@@ -46,12 +46,12 @@ await p.waitForTimeout(500);ok(f1.gone&&f1.fail&&f1.a===null&&f1.snd==='craft_fa
 await p.evaluate(()=>{closeSheet();openSheet('set')});await p.waitForTimeout(100);await p.click('#lowFx');
 const lf=await p.evaluate(()=>({on:S.lowFx,saved:JSON.parse(localStorage.getItem(SAVE_KEY)).lowFx}));ok(lf.on===true&&lf.saved===true,'설정 [흔들림 · 번쩍임 줄이기] 켜짐 · 저장');
 await p.evaluate(()=>{closeSheet();S.inv.platbar=5;openSheet('craft');CR().sel='plat';renderCraft()});await p.click('#crMake');await p.waitForTimeout(150);
-await p.evaluate(()=>{window.__R=Math.random;Math.random=()=>0;window.__shk=0;const el=document.querySelector('#sheet .sheet-card');new MutationObserver(()=>{if(el.classList.contains('shk'))__shk++}).observe(el,{attributes:true});window.__fxs=0;new MutationObserver(()=>{if($('crFx')&&$('crFx').style.display==='block')__fxs++}).observe($('crBody'),{attributes:true,subtree:true})});
+await p.evaluate(()=>{window.__R=Math.random;Math.random=()=>1e-9;window.__shk=0;const el=document.querySelector('#sheet .sheet-card');new MutationObserver(()=>{if(el.classList.contains('shk'))__shk++}).observe(el,{attributes:true});window.__fxs=0;new MutationObserver(()=>{if($('crFx')&&$('crFx').style.display==='block')__fxs++}).observe($('crBody'),{attributes:true,subtree:true})});
 await p.click('#crTry');await p.evaluate(()=>{Math.random=window.__R});await p.waitForTimeout(1800);
 const lo=await p.evaluate(()=>({busy:CRAFT_BUSY,lv:CR().a&&CR().a.lv,shk:__shk,fxs:__fxs,snd:__snd.slice(-1)[0]}));
 ok(!lo.busy&&lo.lv===1&&lo.shk===0&&lo.fxs===0&&lo.snd==='craft_ok','줄이기 켜면: 흔들림 · 효과 프레임 없이 소리와 결과만');
 // 6-2) 골드가 모자라면 강화 단추 잠김 · 안내
-const pr=await p.evaluate(()=>{S.gold=0;renderCraft();const b=$('crTry');return{dis:b&&b.disabled,msg:/골드가 모자라요/.test($('crBody').textContent),r:craftTry()}});
+const pr=await p.evaluate(()=>{S.gold=0;renderCraft();const b=$('crTry');return{dis:b&&b.disabled,msg:/골드가 (모자라|부족해)요/.test($('crBody').textContent),r:craftTry()}});
 ok(pr.dis&&pr.msg&&pr.r===null,'골드가 모자라면 강화 도전 잠김 + "골드가 모자라요."');
 await p.evaluate(()=>{S.gold=1e7;renderCraft()});
 // 6-3) 확률표 없음 · 말풍선엔 이름만
@@ -67,7 +67,7 @@ const od=await p.evaluate(()=>{openSheet('craft');const bad=[];const num=t=>{con
   for(let lv=0;lv<10;lv++){CR().a={k:'gold',n:10,base:10000,lv,t:0};S.gold=1e15;CRAFT_BUSY=false;CRFX=null;renderCraft();const cells=[...document.querySelectorAll('.cr-info>div')].map(d=>d.textContent);
     const sp=+(cells.find(t=>/성공 확률/.test(t))||'').match(/(\d+)%/)[1],sv=num((cells.find(t=>/성공하면/.test(t))||'').split('+'+(lv+1))[1]),sc=num((cells.find(t=>/강화 비용/.test(t))||'').replace('강화 비용',''));
     let s=0;for(let i=0;i<5000;i++){CR().a={k:'gold',n:10,base:10000,lv,t:0};CRAFT_BUSY=false;const x=craftTry();if(x&&x.ok)s++}
-    CR().a={k:'gold',n:10,base:10000,lv,t:0};CRAFT_BUSY=false;const g0=S.gold,R=Math.random;Math.random=()=>0;craftTry();Math.random=R;
+    CR().a={k:'gold',n:10,base:10000,lv,t:0};CRAFT_BUSY=false;const g0=S.gold,R=Math.random;Math.random=()=>1e-9;craftTry();Math.random=R;
     if(sp!==Math.round(CRAFT_P[lv+1]*100)||Math.abs(s/50-sp)>2.5||sv!==craftPrice(CR().a)||sc!==g0-S.gold)bad.push(lv)}
   CR().a=null;renderCraft();return bad});
 ok(!od.length,'단계 +1~+10 모두: 화면 성공 확률 = 실제(5천 번) · 성공하면 값 = 실제 판매가 · 강화 비용 = 실제 차감'+(od.length?' 어긋남 '+od:''));
@@ -75,12 +75,12 @@ ok(!od.length,'단계 +1~+10 모두: 화면 성공 확률 = 실제(5천 번) · 
 ok(await p.evaluate(()=>{closeSheet();setTab('mine');renderAll();const a=getComputedStyle($('crBtnImg')).animationName,b=getComputedStyle($('whBtn').querySelector('img')).animationName;return a==='icb'&&a===b}),'[세공] 단추가 창고 단추와 같은 둥둥 애니메이션');
 // 11) 진동: 내려가기 시작 톡 → 째깍마다 짧게 → 내리꽂힐 때 → 닿는 순간(성공 45ms). 설정을 끄면 안 울림. 앱 진동 플러그인이 있으면 그걸로
 await p.evaluate(()=>{window.__vib=[];Object.defineProperty(navigator,'vibrate',{configurable:true,value:x=>{__vib.push(x);return true}});S.lowFx=false;S.vib=true;S.gold=1e9;S.inv.platbar=5;CR().a=null;openSheet('craft');CR().sel='plat';renderCraft()});
-await p.click('#crMake');await p.waitForTimeout(150);await p.evaluate(()=>{window.__R=Math.random;Math.random=()=>0});await p.click('#crTry');await p.evaluate(()=>{Math.random=window.__R});await p.waitForTimeout(1300);
+await p.click('#crMake');await p.waitForTimeout(150);await p.evaluate(()=>{window.__R=Math.random;Math.random=()=>1e-9});await p.click('#crTry');await p.evaluate(()=>{Math.random=window.__R});await p.waitForTimeout(1300);
 const vb=await p.evaluate(()=>[...__vib]);const ticks=vb.filter(x=>x===8).length;
 ok(vb[0]===12&&ticks>=4&&vb.includes(20)&&vb[vb.length-1]===45&&vb.indexOf(20)<vb.indexOf(45),`진동 순서: 시작 12ms → 째깍 ${ticks}번(8ms) → 내리꽂기 20ms → 성공 45ms`);
 await p.waitForTimeout(1200);await p.evaluate(()=>{__vib.length=0;closeSheet();openSheet('set')});await p.click('#vibOn');
 const off=await p.evaluate(()=>({vib:S.vib,saved:JSON.parse(localStorage.getItem(SAVE_KEY)).vib}));
-await p.evaluate(()=>{closeSheet();openSheet('craft');renderCraft();window.__R=Math.random;Math.random=()=>0;craftDoTry();Math.random=window.__R});await p.waitForTimeout(1500);
+await p.evaluate(()=>{closeSheet();openSheet('craft');renderCraft();window.__R=Math.random;Math.random=()=>1e-9;craftDoTry();Math.random=window.__R});await p.waitForTimeout(1500);
 ok(off.vib===false&&off.saved===false&&(await p.evaluate(()=>__vib.length))===0,'설정 [진동] 끄면 저장되고 진동 없음');
 const hp=await p.evaluate(()=>{S.vib=true;const L=[];window.Capacitor={Plugins:{Haptics:{impact:o=>L.push('impact:'+o.style),vibrate:o=>L.push('vibrate:'+o.duration)}}};buzz(8);buzz(45);buzz([70,50,90]);delete window.Capacitor;return L.join(',')});
 ok(hp==='impact:LIGHT,impact:MEDIUM,vibrate:160','앱 진동 플러그인(@capacitor/haptics)이 있으면 그걸로: '+hp);

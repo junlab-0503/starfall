@@ -9,21 +9,21 @@ const rentPerSec=()=>SECTIONS.reduce((s,x)=>s+(S.floors>=x.to?x.g*BAL.rent/3600:
 // v30: 예전엔 그 사이에 '새로 열렸어요' 카드(TENANT_INTRO)가 한 장 더 있어 같은 소개 · 설명이 세 번 반복됐음 → 뺌
 function buildFloor(quiet){if(towerBlocked())return false;const f=S.floors+1,c=floorCost(f);if(!canBuild(c))return false;
   S.gold-=c.gold;c.mats.forEach(([id,q])=>add(id,-q));S.floors=f;
-  if(f%5===0){const gift=c.gold*3;S.gold+=gift;log(`${f}층 완공 기념! 마을 사람들이 축하금을 보냈어요: +${big(gift)}G`,!quiet)}
+  if(f%5===0){const gift=c.gold*3;S.gold+=gift;log(`탑 ${f}층 완공 축하금! 마을 사람들이 +${big(gift)}G를 보내 줬어요.`,!quiet)}
   const sec=SECTIONS.findIndex(s=>s.to===f);
-  if(sec>=0){refreshBonus();const t=SECTIONS[sec].t;log(`${SECTIONS[sec].n} 완공! ${t.role} ${J(t.name,'이가')} 탑에 들어왔어요.`);
-    story([{gold:1,k:`${SECTIONS[sec].n} 완공 · 새 입주자`,t:`${t.role} ${t.name}`,b:`"${t.line}"`,portrait:t,extra:`<div class="say"><span class="who">입주 효과</span> ${t.bonus}<br><span class="dim">월세 시간당 ${big(SECTIONS[sec].g*BAL.rent)}G</span></div>`}]);
+  if(sec>=0){refreshBonus();const t=SECTIONS[sec].t;log(`${SECTIONS[sec].n} 완공! ${t.role} ${J(t.name,'이가')} 탑으로 돌아왔어요.`);
+    story([{gold:1,k:`${SECTIONS[sec].n} 완공 · 새 주민 입주`,t:`${t.role} ${t.name}`,b:`"${t.line}"`,portrait:t,extra:`<div class="say"><span class="who">입주 효과</span> ${t.bonus}<br><span class="dim">월세 시간당 ${big(SECTIONS[sec].g*BAL.rent)}G</span></div>`}]);
     npcTutQueue(t.name)}
-  if(f===99)story([{k:'99층',t:'하늘에 닿았다',b:'탑 꼭대기에 천공의 용광로를 놓을 자리가 생겼다. 현자의 원석과 별의 파편이 있으면, 별을 돌려보낼 수 있다.'}]);
+  if(f===99)story([{k:'99층',t:'하늘에 닿았다',b:'탑 꼭대기에 천공의 용광로를 놓을 자리가 마련됐다. 현자의 원석과 별의 파편만 있으면, 이제 별을 하늘로 돌려보낼 수 있다.'}]);
   return true}
-function buildMax(){let n=0;while(n<200&&buildFloor(true))n++;if(n)toast(`${n}층을 쌓았어요!`);renderAll()}
+function buildMax(){let n=0;while(n<200&&buildFloor(true))n++;if(n)toast(`탑을 ${S.floors}층까지 지었어요!`);renderAll()}
 function buyMissing(){const c=floorCost(S.floors+1);let spent=0,got=0;c.mats.forEach(([id,q])=>{const m=q-cnt(id);if(m>0){const r=buy(id,m);spent+=r.t;got+=r.k}});
-  toast(got?`부족한 재료 ${got}개를 ${big(spent)}G에 샀어요.`:'살 수 있는 재료가 없어요. 골드나 창고, 장터 물량을 확인해 보세요.');renderAll()}
-function collectRent(){if(S.rentAcc<1)return;S.gold+=S.rentAcc;log(`입주자들이 월세 ${big(S.rentAcc)}G를 냈어요.`,true);S.rentAcc=0;renderAll()}
-function finale(){if(S.floors<99||S.ended)return;if(cnt('philo')<1||cnt('starshard')<10){toast('현자의 원석 1개와 별의 파편 10개가 필요해요.');return}
+  toast(got?`부족한 재료 ${got}개 구매 완료: −${big(spent)}G`:'구매할 수 있는 재료가 없어요. 골드와 창고 공간, 장터 물량을 확인해 주세요.');renderAll()}
+function collectRent(){if(S.rentAcc<1)return;S.gold+=S.rentAcc;log(`월세 ${big(S.rentAcc)}G를 받았어요.`,true);S.rentAcc=0;renderAll()}
+function finale(){if(S.floors<99||S.ended)return;if(cnt('philo')<1||cnt('starshard')<10){toast('현자의 원석 1개와 별의 파편 10개가 있어야 해요.');return}
   add('philo',-1);add('starshard',-10);S.ended=true;refreshBonus();
   const mins=Math.round((S.playT||0)/60);
-  story([{gold:1,k:'에필로그',t:'',b:'',ill:'end',mode:'end',btn:'계속',extra:`<div class="ep-narr">${ENDING.map(c=>`<p>${c.b}</p>`).join('')}</div>`}].concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>제련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
+  story([{gold:1,k:'에필로그',t:'',b:'',ill:'end',mode:'end',btn:'계속',extra:`<div class="ep-narr">${ENDING.map(c=>`<p>${c.b}</p>`).join('')}</div>`}].concat([{k:'기록',t:'별빛골의 기록',b:'등불별이 다시 하늘에 걸렸다. 탑은 앞으로도 계속 쌓을 수 있다.',extra:`<div class="rcard"><span>플레이 시간</span><span>${Math.floor(mins/60)}시간 ${mins%60}분</span><span>캔 광석</span><span>${big(S.mined)}개</span><span>제련</span><span>${big(S.crafts)}번</span><span>발견한 레시피</span><span>${S.found.length}/${RECIPES.length}</span><span>탑</span><span>${S.floors}층</span><span>입주자</span><span>13명</span><span>번 골드</span><span>${big(S.earned)}G</span></div>`}]));
   renderAll()}
 // 탑 그림(사용자 그림 art/scene/tower.png): 쌓은 층만큼 아래부터 색이 들어오고, 위는 어두운 실루엣. 하늘 · 오로라 · 별은 깊이 내려갈수록 짙어짐
 let towerKey='',TOWER_IMG=null;
@@ -52,16 +52,16 @@ function renderTower(){
     <div class="row-btns" style="margin-top:2px"><button class="px-btn ${S.rentAcc>=1?'lamp':''}${badges().rent?' ndot':''}" id="rentBtn" type="button" ${S.rentAcc<1?'disabled':''}>월세 받기 ${S.rentAcc>=1?big(S.rentAcc)+'G':''}</button></div>`);
   let card='';
   if(towerBlocked()){const ok=cnt('philo')>=1&&cnt('starshard')>=10;
-    card=`<h2>천공의 용광로</h2><p class="dim">하늘에 가장 가까운 용광로. 마지막 제련으로 별을 하늘로 돌려보낼 수 있어요.</p>
+    card=`<h2>천공의 용광로</h2><p class="dim">하늘에 가장 가까운 용광로예요. 마지막 제련을 통해 별을 하늘로 돌려보낼 수 있어요.</p>
     <div class="matl">${ico('philo')}<span>현자의 원석</span><span class="${cnt('philo')>=1?'ok':'no'}">${cnt('philo')}/1</span></div><div class="matl">${ico('starshard')}<span>별의 파편</span><span class="${cnt('starshard')>=10?'ok':'no'}">${cnt('starshard')}/10</span></div>
     <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="finaleBtn" type="button" ${ok?'':'disabled'}>별을 돌려보내기</button></div>`}
   else{const c=floorCost(f+1),ok=canBuild(c);
     card=`<h2>${f+1}층 짓기 <small>${i>=0?SECTIONS[i].n:'하늘 너머'}</small></h2>`+c.mats.map(([id,q])=>{const lack=cnt(id)<q,cr=ITEMS[id].cr,tag=cr?(lack?'<span class="mtag go">제련 →</span>':'<span class="mtag">제련품</span>'):'<span class="mtag raw">원석</span>',nm=`<span>${S.seen.includes(id)?ITEMS[id].n:'???'}</span>`;
       return cr&&lack?`<button class="matl mgo" data-gof="${id}" type="button">${ico(id)}<span class="mn">${nm}${tag}</span><span class="no">${big(cnt(id))}/${big(q)}</span></button>`:`<div class="matl">${ico(id)}<span class="mn">${nm}${tag}</span><span class="${lack?'no':'ok'}">${big(cnt(id))}/${big(q)}</span></div>`}).join('')+
     `<div class="matl gold-row"><i class="ico ic-coin"></i><span>골드</span><span class="${S.gold>=c.gold?'ok':'no'}">${big(c.gold)}G</span></div>
-    <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="buildBtn" type="button" ${ok?'':'disabled'}>한 층 쌓기</button><button class="px-btn" id="buildMaxBtn" type="button" ${ok?'':'disabled'}>가능한 만큼</button></div>
-    <div class="row-btns"><button class="px-btn grow" id="buyMissBtn" type="button">부족한 재료 장터에서 구매</button></div>
-    <p class="dim small" style="margin:8px 0 0">5층마다 축하금 · 구간을 완공하면 새 입주자가 들어와요</p>`}
+    <div class="row-btns"><button class="px-btn lamp grow${ok?' ndot':''}" id="buildBtn" type="button" ${ok?'':'disabled'}>한 층 쌓기</button><button class="px-btn" id="buildMaxBtn" type="button" ${ok?'':'disabled'}>지을 수 있는 만큼</button></div>
+    <div class="row-btns"><button class="px-btn grow" id="buyMissBtn" type="button">부족한 재료 장터에서 사기</button></div>
+    <p class="dim small" style="margin:8px 0 0">5층마다 축하금을 받고, 구간을 완공하면 새 입주자가 찾아와요</p>`}
   if(TH.card!==card){$('floorCard').innerHTML=card;TH.card=card}
   const sh=SECTIONS.map((s,k)=>{const dn=f>=s.to,cur=!dn&&f>=s.from-1,pct=clamp((f-s.from+1)/(s.to-s.from+1),0,1);
     return`<div class="sect ${dn?'done':cur?'cur':'lock'}" data-sec="${k}" role="button" tabindex="0" aria-label="${s.n} ${dn?s.t.name:'빈 구간'} 자세히 보기"><canvas data-por="${k}" width="48" height="48"></canvas><div><div class="tn">${s.n} <span class="dim">${s.from}~${s.to}층</span></div>
@@ -71,7 +71,7 @@ function renderTower(){
 /* 입주자 칸을 누르면: 초상화 · 이름 · 소개 · 그 사람 말투의 한마디 */
 const lastSay={};
 function tenantCard(k){const s=SECTIONS[k],t=s.t,f=S.floors,dn=f>=s.to,pct=Math.round(clamp((f-s.from+1)/(s.to-s.from+1),0,1)*100);
-  if(!dn){story([{k:`${s.n} · ${s.from}~${s.to}층`,t:'아직 비어 있는 구간',b:f>=s.from-1?`지금 쌓는 중이에요 (${pct}%). ${s.to}층까지 다 쌓으면 누군가 이곳에 들어올 거예요.`:`${s.to}층까지 쌓으면 누군가 이곳에 들어올 거예요.`,portrait:t,hide:true}]);return}
+  if(!dn){story([{k:`${s.n} · ${s.from}~${s.to}층`,t:'아직 비어 있는 구간',b:f>=s.from-1?`지금 건설 중이에요 (${pct}%). ${s.to}층까지 완성하면 새로운 주민이 들어올 거예요.`:`${s.to}층까지 완성하면 새로운 주민이 들어올 거예요.`,portrait:t,hide:true}]);return}
   const L=t.says||[t.line];let i=Math.floor(Math.random()*L.length);if(L.length>1&&i===lastSay[k])i=(i+1)%L.length;lastSay[k]=i;
   story([{k:`${s.n} · ${s.from}~${s.to}층`,t:`${t.role} ${t.name}`,b:t.d||'',portrait:t,art:t.art,
     extra:`<div class="say"><span class="who">${t.name}</span> "${L[i]}"</div><div class="say"><span class="who">입주 효과</span> ${t.bonus}<br><span class="dim">월세 시간당 ${big(s.g*BAL.rent)}G</span></div>`}])}

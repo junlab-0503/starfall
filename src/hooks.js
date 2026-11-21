@@ -17,4 +17,4 @@ $('vibOn').addEventListener('change',e=>{S.vib=e.target.checked;save();if(S.vib)
 $('lowFx').addEventListener('change',e=>{S.lowFx=e.target.checked;save()});
 $('volSfx').addEventListener('input',e=>{S.sound.sfx=e.target.value/100;applyVol();sfx('coin')});
 $('volBgm').addEventListener('input',e=>{S.sound.bgm=e.target.value/100;applyVol()});
-$('tutAgain').onclick=()=>{S.tut=0;S.tutDone=false;setTab('mine');toast('튜토리얼을 다시 시작해요.')};
+$('tutAgain').onclick=()=>{S.tut=0;S.tutDone=false;setTab('mine');toast('튜토리얼을 처음부터 다시 시작할게요.')};

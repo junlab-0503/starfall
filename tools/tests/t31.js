@@ -30,7 +30,7 @@ const rc=await p.evaluate(()=>{const R=Math.random,i=RMAP[key('copper','tin')],j
   S.tutDone=true;S.inv.copper=20;S.inv.tin=20;S.inv.iron=20;S.inv.coal=40;
   fresh_(i);S.slots=['copper','tin'];Math.random=()=>.999;o.fail=[smeltOnce().kind,S.found.includes(i)];
   Math.random=()=>.5;o.ok=[smeltOnce().kind,S.found.includes(i)];
-  fresh_(j);S.slots=['iron','coal'];Math.random=()=>0;o.great=[smeltOnce().kind,S.found.includes(j)];
+  fresh_(j);S.slots=['iron','coal'];Math.random=()=>1e-9;o.great=[smeltOnce().kind,S.found.includes(j)];
   // 튜토리얼 동안(처음 6번)은 꼭 성공
   fresh_(k);S.tutDone=false;S.crafts=2;S.slots=['coal','coal'];Math.random=()=>.999;o.tut=[smeltOnce().kind,S.found.includes(k)];S.tutDone=true;
   // 빠른 제작(v24.1, 자동 제련소 대신): 모르는 레시피는 못 하고, 실패가 섞여도 도감이 바뀌지 않음
@@ -46,7 +46,7 @@ await p.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('v
 ok(t1-t0>1.6&&t1-t0<2.5,`켜 둔 2초 → +${(t1-t0).toFixed(2)}초`);ok(t2-t1<.3,`앱이 백그라운드(화면 그리기 멈춤) 3초 → +${(t2-t1).toFixed(2)}초`);ok(t3-t2<.2,`화면 잠금(숨김) 1.5초 → +${(t3-t2).toFixed(2)}초`);ok(t4-t3>.6,`다시 켜면 다시 셈 → +${(t4-t3).toFixed(2)}초`);
 // 8) 황금 광맥: 드릴이 캔 골드도 떠오름
 await p.evaluate(()=>{ORDER.forEach(id=>S.seen.includes(id)||S.seen.push(id));S.auto=5;S.autoOn=true;STQ.length=0;$('story').hidden=true;setTab('mine');S.vein={left:20,pot:1e6,got:0}});await p.waitForTimeout(2300);
-const fl=await p.evaluate(()=>[...document.querySelectorAll('.ftxt')].map(e=>e.textContent));ok(fl.some(t=>/^드릴 \+.+G$/.test(t)),'황금 광맥 동안 드릴 골드 표시: '+fl.join(' / '));
+const fl=await p.evaluate(()=>[...document.querySelectorAll('.ftxt')].map(e=>e.textContent));ok(fl.some(t=>/^드릴 채굴 보상 \+.+G$/.test(t)),'황금 광맥 동안 드릴 골드 표시: '+fl.join(' / '));
 // 7) 소문: 10분쯤마다, 6~8분 뒤 발표
 const rm=await p.evaluate(()=>{S.rum=[];S.rumT=0;const t0=S.clock;let first=null,ann=null,gaps=[],last=null;for(let t=0;t<3*3600;t++){const n=S.rumN;tickMarket(1,false);if(S.rumN!==n){if(last!=null)gaps.push(t-last);last=t;if(first==null)first=S.rum[S.rum.length-1].dur}}return{first:Math.round(first),gap:Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length),n:gaps.length+1}});
 ok(rm.first>=360&&rm.first<=480&&rm.gap>=500&&rm.gap<=700,`소문 ${rm.n}개/3시간, 평균 ${Math.round(rm.gap/60)}분마다, 발표까지 ${Math.round(rm.first/60)}분`);

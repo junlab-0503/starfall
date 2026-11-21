@@ -6,7 +6,7 @@ const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);const errs=[];
 const open=async locale=>{const ctx=await b.newContext({...devices['iPhone 13'],locale});const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));await p.goto(url);await p.waitForTimeout(700);return p};
 const HAN=/[ㄱ-ㆎ가-힣]/;
 // 1) 기기 언어 → 기본 언어
-for(const[loc,want,title,tap]of[['ko-KR','ko','별빛광맥','터치하여 시작하기'],['en-US','en','Starlight Vein','Tap to start'],['zh-TW','zh','星光礦脈','點擊開始'],['zh-HK','zh','星光礦脈','點擊開始'],['ja-JP','en','Starlight Vein','Tap to start']]){
+for(const[loc,want,title,tap]of[['ko-KR','ko','별빛광맥','화면을 눌러 시작하기'],['en-US','en','Starlight Vein','Tap the screen to start'],['zh-TW','zh','星光礦脈','點擊畫面開始'],['zh-HK','zh','星光礦脈','點擊畫面開始'],['ja-JP','en','Starlight Vein','Tap the screen to start']]){
   const p=await open(loc);const r=await p.evaluate(()=>({l:LANG,t:document.querySelector('.t-name').textContent,tap:document.querySelector('.t-tap').textContent,dt:document.title,hl:document.documentElement.lang}));
   ok(r.l===want&&r.t===title&&r.tap===tap&&r.dt===title,`기기 언어 ${loc} → ${r.l}: "${r.t}" / "${r.tap}" (html lang=${r.hl})`);await p.context().close()}
 // 2) 영어로 시작 → 화면에 한글이 남지 않음, 숫자 단위 K/M

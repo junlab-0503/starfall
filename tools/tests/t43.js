@@ -14,7 +14,7 @@ const lk=await p.evaluate(()=>{renderMineHud();const cb=$('crBtn'),img=$('crBtnI
 ok(lk.vis&&lk.locked&&/grayscale/.test(lk.gray),`B4 전 세공 단추: 보임 ${lk.vis} · 잠김 ${lk.locked} · ${lk.gray}`);
 await p.click('#crBtn');await p.waitForTimeout(300);
 const lp=await p.evaluate(()=>({story:!$('story').hidden,txt:$('story').innerText,sheet:!$('sheet').hidden&&S.sub==='craft'}));
-ok(lp.story&&/지층 4층에서 누군가가 돌아올지도 몰라요!/.test(lp.txt)&&!lp.sheet,'누르면 안내 팝업: '+lp.txt.replace(/\s+/g,' ').slice(0,60));
+ok(lp.story&&/4번째 지층에 도착하면 누군가 찾아올지도 몰라요!/.test(lp.txt)&&!lp.sheet,'누르면 안내 팝업: '+lp.txt.replace(/\s+/g,' ').slice(0,60));
 await close();
 // B4를 열면 컬러 단추 → 작업대가 열림
 const un=await p.evaluate(()=>{S.unlocked=4;CR().met=1;renderMineHud();return{locked:$('crBtn').classList.contains('locked'),gray:getComputedStyle($('crBtnImg')).filter}});
@@ -34,14 +34,14 @@ await close();
 const mk=await p.evaluate(()=>{const i=RECIPES.findIndex(r=>!S.seen.includes(r.out)&&r.a!==r.b);const R=RECIPES[i];S.inv[R.a]=(S.inv[R.a]||0)+10;S.inv[R.b]=(S.inv[R.b]||0)+10;setTab('forge');
   const rnd=Math.random;Math.random=()=>0.5;S.slots=[R.a,R.b];const before=S.seen.includes(R.out);const r1=smeltOnce();const st1=!$('story').hidden,txt=$('story').innerText,cat=$('story').dataset.cat,hasIco=!!$('story').querySelector('.ic.xl,.halo');
   STQ.length=0;while(!$('story').hidden)nextStory();S.slots=[R.a,R.b];const r2=smeltOnce();const st2=!$('story').hidden;Math.random=rnd;return{out:R.out,name:ITEMS[R.out].n,before,r1:r1&&r1.kind,st1,txt,cat,hasIco,r2:r2&&r2.kind,st2,seen:S.seen.includes(R.out)}});
-ok(!mk.before&&mk.seen&&mk.st1&&/새 제련품을 만들었다!/.test(mk.txt)&&mk.txt.includes(mk.name)&&/처음 만들었어요/.test(mk.txt),`첫 제작 팝업: ${mk.name} (${mk.r1}) "${mk.txt.replace(/\s+/g,' ').slice(0,70)}"`);
+ok(!mk.before&&mk.seen&&mk.st1&&/새 제련품 제작 성공!/.test(mk.txt)&&mk.txt.includes(mk.name)&&/처음 만들었어요/.test(mk.txt),`첫 제작 팝업: ${mk.name} (${mk.r1}) "${mk.txt.replace(/\s+/g,' ').slice(0,70)}"`);
 ok(mk.hasIco&&/평소 가격/.test(mk.txt)&&/도감/.test(mk.txt),'팝업 형식: 광물 발견과 같은 그림 · 분류 · 평소 가격 · 도감 칸');
 ok(!mk.st2,`두 번째 제작(${mk.r2})에는 팝업 없음`);
 await close();
 // 옛 저장(이미 본 제련품)은 팝업 없음 · 영어/중국어 문구
 const tr=await p.evaluate(async()=>{const R=RECIPES.find(r=>S.seen.includes(r.out));const o=[];for(const L of['en','zh']){applyLang(L);STQ.length=0;discoverMade(R.out,R.a,R.b);await new Promise(r=>setTimeout(r,80));o.push($('story').innerText.replace(/\s+/g,' ').slice(0,90));STQ.length=0;while(!$('story').hidden)nextStory()}applyLang('ko');return o});
-ok(/New refined good made!/.test(tr[0])&&/First made from/.test(tr[0]),'영어: '+tr[0]);
-ok(/做出新的精煉品了！/.test(tr[1])&&/第一次用/.test(tr[1]),'중국어: '+tr[1]);
+ok(/New refined good crafted!/.test(tr[0])&&/First crafted/.test(tr[0]),'영어: '+tr[0]);
+ok(/新精煉品製作成功！/.test(tr[1])&&/第一次用/.test(tr[1]),'중국어: '+tr[1]);
 await close();
 
 // 3) 시트(창고 · 설정 등)를 열어도 지금 탭 그대로, 닫으면 같은 탭 · 같은 스크롤

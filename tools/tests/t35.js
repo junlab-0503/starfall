@@ -20,7 +20,7 @@ if(L==='ko'){
   const st=await p.evaluate(i=>{const r=RECIPES[i];let g=0,s=0,f=0;const real=Math.random;let k=0;const seq=[greatRate()/2,(greatRate()+successRate())/2,0.999];Math.random=()=>seq[k++%3];for(let n=0;n<3;n++){S.inv[r.a]=5;S.inv[r.b]=5;const x=quickSmelt(i);x.kind==='great'?g++:x.kind==='ok'?s++:f++}Math.random=real;return{g,s,f,gr:greatRate(),sr:successRate()}},i0);
   ok(st.g===1&&st.s===1&&st.f===1,`용광로와 같은 확률 규칙(대성공 ${Math.round(st.gr*100)}% · 성공 ${Math.round(st.sr*100)}%): 같은 난수에 같은 결과`);
   await p.evaluate(i=>{const r=RECIPES[i];S.inv[r.a]=0;S.inv[r.b]=1;delete S.inv[r.a];renderForge()},i0);
-  ok(await p.evaluate(()=>$('qcGo').disabled&&/재료가 모자라요/.test($('qcSel').textContent)),'재료가 모자라면 버튼 꺼짐 + 부족한 재료 표시');
+  ok(await p.evaluate(()=>$('qcGo').disabled&&/재료가 부족해요/.test($('qcSel').textContent)),'재료가 모자라면 버튼 꺼짐 + 부족한 재료 표시');
   const b1=await p.evaluate(()=>{$('slotA').click();$('slotB').click();return !!$('smelt')&&!!$('smeltMax')&&!!$('book')});ok(b1,'두 재료 직접 넣기 · 제련 · 가능한 만큼 · 레시피 도감 그대로');
   // 탑 재료 바로가기
   const tw=await p.evaluate(i=>{S.floors=0;const c=floorCost(1);const ref=c.mats.find(([id])=>ITEMS[id].cr);S.inv={};S.found=[RECIPES.findIndex(r=>r.out===ref[0])];setTab('tower');renderTower();return{id:ref[0],n:document.querySelectorAll('[data-gof]').length,raw:document.querySelectorAll('#floorCard .mtag.raw').length,raws:c.mats.filter(([id])=>!ITEMS[id].cr).length}},i0);

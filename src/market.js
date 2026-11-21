@@ -66,23 +66,23 @@ function newRumor(){if(S.unlocked<1)return;const w=[];for(let i=0;i<S.unlocked;i
   const src=SRC_N[Math.random()*SRC_N.length|0],good=Math.random()<clamp(.37-.35*Math.log(PM(L).a||1),.12,.9),truth=Math.random()<SOURCES[src].rel,R=RUM_SIZE[size],rnd=a=>a[0]+Math.random()*(a[1]-a[0]);
   const r={id:(S.rumN=(S.rumN||0)+1),L,size,good,truth,src,v:Math.random()*6|0,t:0,dur:360+Math.random()*120,echo:[],clue:0,up:rnd(R.up),dn:rnd(R.dn),m0:PM(L).m};
   const acc=intelAcc(S.intel);r.hint=acc?(Math.random()<acc?r.truth:!r.truth):null;
-  S.rum.push(r);log(`소문: ${r.src} "${rumorSay(r)}"`,true);const nd=$('newsDot');if(nd&&S.tab!=='market')nd.hidden=false}
+  S.rum.push(r);log(`새 소문: ${r.src} "${rumorSay(r)}"`,true);const nd=$('newsDot');if(nd&&S.tab!=='market')nd.hidden=false}
 // 진짜·가짜일 때 발표 순간의 값 변화(분위기 배율)
 const rumMove=r=>r.good?(r.truth?1+r.up:1-r.dn*.5):(r.truth?1-r.dn*1.1:1+r.dn*.4);
 function rumorTick(dt){S.rum.forEach(r=>{r.t+=dt;const f=Math.min(1,r.t/r.dur),P=PM(r.L);
     // 발표 전: 사람들 기대만큼 조금, 진짜면 누군가 미리 사들여서 조금 더 움직인다
     const mv=r.good?r.up:r.dn,exp=(r.good?1:-1)*.12*mv+(r.truth?1:-.6)*(r.good?1:-1)*.1*mv;P.m+=(r.m0*(1+exp*f)-P.m)*Math.min(1,dt*.05);
     // 다른 사람의 같은 말: 진짜면 1분에 8%, 가짜면 2%
-    if(Math.random()<dt/60*(r.truth?.18:.045)){const o=SRC_N.filter(n=>n!==r.src&&!r.echo.includes(n));if(o.length){const n=o[Math.random()*o.length|0];r.echo.push(n);log(`${n}도 같은 소문을 들었대요: B${r.L+1} 이야기`)}}
+    if(Math.random()<dt/60*(r.truth?.18:.045)){const o=SRC_N.filter(n=>n!==r.src&&!r.echo.includes(n));if(o.length){const n=o[Math.random()*o.length|0];r.echo.push(n);log(`${n}도 같은 얘기를 들었대요. B${r.L+1} 지층 소문이에요.`)}}
     if(r.t>=r.dur)announce(r)});
   S.rum=S.rum.filter(r=>!r.done)}
 function announce(r){const P=PM(r.L),before=passPrice(r.L);P.m=clamp(r.m0*rumMove(r),.15,8);P.a=P.m;r.done=1;const ch=passPrice(r.L)/before-1;
   const rec=S.srcRec[r.src]||(S.srcRec[r.src]={h:0,n:0});rec.n++;if(r.truth)rec.h++;
-  const h=passHeld(r.L),msg=`조사단 발표: "${rumorText(r)}다" — ${r.truth?'사실이었어요!':'헛소문이었어요.'} B${r.L+1} 출입권 ${ch>=0?'+':''}${Math.round(ch*100)}%`;
+  const h=passHeld(r.L),msg=`조사단 발표: "${rumorText(r)}다" — ${r.truth?'사실로 확인됐어요!':'헛소문으로 밝혀졌어요.'} B${r.L+1} 출입권 ${ch>=0?'+':''}${Math.round(ch*100)}%`;
   S.rumDone.unshift({id:r.id,L:r.L,src:r.src,txt:rumorSay(r),truth:r.truth,ch,held:h,at:S.clock});S.rumDone=S.rumDone.slice(0,4);log(msg,true);const nd=$('newsDot');if(nd&&S.tab!=='market')nd.hidden=false}
 // 채굴 단서: 소문이 도는 지층을 캐면 가끔 흔적이 나온다 (진짜면 훨씬 자주)
-function rumorClue(L){for(const r of S.rum){if(r.L!==L)continue;r.brk=(r.brk||0)+1;if(Math.random()<(r.truth?.03:.0075)){r.clue++;const t=r.good?`B${L+1} 벽에서 ${short(layerGem(L))} 부스러기가 반짝였어요`:`B${L+1} 바닥이 유난히 축축해요`;
-    log(`단서: ${t} (소문과 관련 있을지도)`);if(typeof floatText==='function'&&S.tab==='mine')floatText('단서 발견!','#ffd36a')}}}
+function rumorClue(L){for(const r of S.rum){if(r.L!==L)continue;r.brk=(r.brk||0)+1;if(Math.random()<(r.truth?.03:.0075)){r.clue++;const t=r.good?`B${L+1} 바위틈에서 ${short(layerGem(L))} 부스러기가 반짝였어요`:`B${L+1} 바닥이 평소보다 축축해요`;
+    log(`발견한 단서: ${t} (소문과 관련 있을지도 몰라요)`);if(typeof floatText==='function'&&S.tab==='mine')floatText('단서 발견!','#ffd36a')}}}
 
 /* 매초: 날짜, 출입권 분위기(작은 흔들림 → 1로 돌아옴), 매수 압력 풀림, 소문, 출입권 수입. offline=true면 새 소문 · 출입권 수입 없이 시간만 */
 function tickMarket(dt,offline){S.clock+=dt;S.day+=dt/DAY;

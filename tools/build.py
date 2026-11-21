@@ -1,4 +1,7 @@
-"""별빛광맥 빌드: src/ 의 파일을 합치고 글꼴을 필요한 글자만 남겨 dist/starfall.html 한 파일로 만든다.
+"""별빛광맥 빌드: src/ 의 파일을 합치고 글꼴을 필요한 글자만 남겨 한 파일로 만든다.
+  dist/starfall.html     출시용(플레이 스토어): 개발자 코드 · DEV 단추 · 모의 광고/결제 창 없음
+  dist/starfall_dev.html 개발용: 개발자 코드(jun) · [DEV 광맥] · [DEV 리뷰] · 모의 광고/결제 창 포함 (테스트는 이 파일로)
+  소스 표시: /*DEV{*/ … /*}DEV*/ · <!--DEV{--> … <!--}DEV--> 는 개발용에만, /*REL{ … }REL*/ 는 출시용에만 들어간다.
 필요: pip install fonttools brotli
 사용: python3 tools/build.py"""
 import base64,subprocess,os
@@ -53,4 +56,17 @@ FONTS=[('Galmuri14','Galmuri14.woff2',(107,13)),('Galmuri11','Galmuri11.woff2',(
 fonts='\n'.join(f'@font-face{{font-family:"{n}";src:url(data:font/woff2;base64,{sub(f,n+".woff2",kc)}) format("woff2");font-display:swap;ascent-override:{a}%;descent-override:{d}%;line-gap-override:0%}}' for n,f,(a,d) in FONTS)
 fonts+=f'\n@font-face{{font-family:"StarTC";src:url(data:font/woff2;base64,{sub("Cubic_11.ttf","StarTC.woff2",tc,"Starfall TC Pixel")}) format("woff2");font-display:swap;ascent-override:87.5%;descent-override:28.5%;line-gap-override:0%}}'
 html=f'<meta charset="utf-8">\n<title>별빛광맥</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<style>\n/* 글꼴: Galmuri (갈무리) — SIL Open Font License 1.1 / 번체: 俐方體 Cubic 11 (ACh-K, M+ BITMAP FONTS 기반)을 줄여 이름을 바꾼 것 — SIL Open Font License 1.1 (fonts/OFL.txt · fonts/Cubic_11-OFL.txt) */\n{fonts}\n{css}</style>\n{body}\n<script>\n{js}</script>\n'
-open(OUT,'w',encoding='utf-8').write(html);print('dist/starfall.html',len(html)//1024,'KB')
+import re
+def variant(t,dev):
+    if dev:return re.sub(r'/\*REL\{.*?\}REL\*/','',t,flags=re.S)
+    t=re.sub(r'/\*DEV\{\*/.*?/\*\}DEV\*/','',t,flags=re.S);t=re.sub(r'<!--DEV\{-->.*?<!--\}DEV-->','',t,flags=re.S)
+    return re.sub(r'/\*REL\{(.*?)\}REL\*/',r'\1',t,flags=re.S)
+for dev,name in ((False,'starfall.html'),(True,'starfall_dev.html')):
+    out=variant(html,dev)
+    if not dev:
+        left=[m for m in ('id="devForm"','id="devVein"','id="devReview"','id="adModal"','id="shopModal"','테스트 버전','테스트 구매','개발자 코드','S.dev','DEV{','REL{') if m in out]
+        if left:raise SystemExit('출시용에 개발용 흔적이 남음: '+', '.join(left))
+    jsf=os.path.join(TMP,name+'.js');open(jsf,'w',encoding='utf-8').write(out[out.index('<script>')+8:out.rindex('</script>')])
+    r=subprocess.run(['node','--check',jsf],capture_output=True,text=True)
+    if r.returncode:raise SystemExit('문법 오류('+name+')\n'+r.stderr[-600:])
+    open(os.path.join(R,'dist',name),'w',encoding='utf-8').write(out);print('dist/'+name,len(out)//1024,'KB')

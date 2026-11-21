@@ -10,7 +10,7 @@ await p.click('#titleScr');await p.waitForTimeout(300);
 let leg=false;for(let i=0;i<10&&await p.isVisible('#storyNext');i++){const t=await p.textContent('#storyT');if(/제련소/.test(t)){leg=true;await p.screenshot({path:'v13_legacy.png'})}await p.click('#storyNext');await p.waitForTimeout(150)}
 await p.waitForTimeout(1500);ok(await p.isVisible('#entry'),'광맥 입구 장면');await p.screenshot({path:'v13_entry.png'});await p.click('#entry');await p.waitForTimeout(700);ok(!(await p.isVisible('#entry')),'탭하면 건너뜀');
 const g=await S(()=>({gold:__d().S.gold,auto:__d().S.auto,pro:__d().S.prologue}));ok(leg&&g.gold===1000&&g.auto===1&&g.pro,`유산: ${g.gold}G, 채굴 기계 ${g.auto}단계`);
-await p.waitForTimeout(500);ok(/탭해서/.test(await tut()),'1단계: '+(await tut()).slice(0,24));
+await p.waitForTimeout(500);ok(/화면을 눌러/.test(await tut()),'1단계: '+(await tut()).slice(0,24));
 const box=await (await p.$('#scene')).boundingBox();let pops=[];
 for(let i=0;i<120;i++){if(await p.isVisible('#storyNext')){const k=await p.textContent('#storyKick');if(/발견/.test(k)){pops.push(await p.textContent('#storyT'));if(pops.length===1)await p.screenshot({path:'v13_discover.png'})}await p.click('#storyNext');continue}
   const st=await S(()=>{const S=__d().S;return S.inv.stone||0});if(st>=10)break;await p.mouse.click(box.x+box.width/2,box.y+box.height/2);await p.waitForTimeout(60)}

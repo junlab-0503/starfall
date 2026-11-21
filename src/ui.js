@@ -8,7 +8,7 @@ function renderHeader(){
   fitText($('gold'),(S.gold<1e4?fmt(S.gold):cbig(S.gold))+'G');fitText($('depth'),`−${fmt(LAYERS[S.layer].d)}m`);
   const u=used(),c=cap(),st=$('store');fitText(st,`${hudN(u)}/${hudN(c)}`);st.style.color=u>=c?'var(--bad)':u>=c*.85?'var(--lamp)':'';
   fitText($('towerStat'),hudFloors());
-  const B=badges();$('towerDot').hidden=!B.tower;$('equipDot').hidden=!B.equip;
+  const B=badges();setHid($('towerDot'),!B.tower);setHid($('equipDot'),!B.equip);
 }
 document.querySelector('.stats').addEventListener('click',e=>{const s=e.target.closest('.stat');if(!s)return;const id=s.querySelector('.v').id;
   toast(id==='gold'?`${T('골드')} ${fmt(S.gold)}G`:id==='store'?`${T('창고')} ${fmt(used())} / ${fmt(cap())}`:id==='depth'?`${T('깊이')} ${fmt(LAYERS[S.layer].d)}m`:`${T('탑')} ${hudFloors()}`)});
@@ -19,61 +19,64 @@ function badges(){const equip=SHOPS.some(sh=>sh.ups.some(upCan)),shaft=S.unlocke
 function renderMineHud(){{const w=LANG==='en'?'Storage':LANG==='zh'?'倉庫':'창고';if($('whTag').textContent!==w)$('whTag').textContent=w;const bt=$('boxTag'),bw=LANG==='en'?'Robot <br>Stash':LANG==='zh'?'機器人<br>保管箱':'로봇 <br>보관함';if(bt.dataset.l!==LANG){bt.dataset.l=LANG;bt.innerHTML=bw}}   // v29: 창고 단추 이름표는 짧게(영어 Storage)
 
   const f=used()>=cap(),ab=$('autoBtn'),bx=$('boxBtn'),bu=boxUsed();
-  ab.hidden=!(S.auto>0);ab.classList.toggle('on',!!S.autoOn);ab.classList.toggle('full',!!S.autoOn&&f);ab.setAttribute('aria-checked',S.autoOn?'true':'false');
+  setHid(ab,!(S.auto>0));ab.classList.toggle('on',!!S.autoOn);ab.classList.toggle('full',!!S.autoOn&&f);setAttr(ab,'aria-checked',S.autoOn?'true':'false');
   // 스위치 하나가 켜 둔 동안과 자리 비운 동안 모두를 정함
-  $('autoSt').textContent=S.autoOn?'드릴 ON':'드릴 OFF';{const bf=f&&boxUsed()>=boxCap(),e=$('autoSub'),v=S.autoOn?(bf?'보관함도 가득 · 넘친 건 팔아요':f?'창고 가득 · 보관함에 모아요':(r=>r>=1?`초당 ${rateTxt(r)}개씩 캐요`:`${Math.max(1,Math.round(1/Math.max(r,1e-9)))}초에 1개씩 캐요`)(autoRate())):'자리 비워도 쉬어요';if(e.dataset.v!==v){e.dataset.v=v;e.textContent=v}}   // v30: 켜 둔 동안 실제로 초당 몇 개 캐는지
-  bx.hidden=!(S.auto>0||bu>0);bx.classList.toggle('has',bu>0);$('boxN').textContent=bu>0?cbig(bu):'';
-  const vb=$('veinBn'),vo=veinOn();vb.hidden=!vo;if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
-  $('devVein').hidden=!S.dev;$('devReview').hidden=!S.dev;
-  {const cb=$('crBtn'),op=craftOpen(),a=CR().a,was=cb.classList.contains('locked')||cb.hidden;cb.hidden=false;cb.classList.toggle('locked',!op);if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;if(!op)$('crBtnLv').textContent='';if(op&&was)requestAnimationFrame(syncBob);if(op){if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;$('crBtnLv').textContent=a?'+'+a.lv:'';cb.classList.toggle('ready',!CR().met)}}
+  setTxt($('autoSt'),S.autoOn?'드릴 ON':'드릴 OFF');{const bf=f&&boxUsed()>=boxCap(),e=$('autoSub'),v=S.autoOn?(bf?'보관함도 가득 · 넘친 광석은 판매돼요':f?'창고 가득 · 로봇 보관함에 쌓이는 중':(r=>r>=1?`초당 약 ${rateTxt(r)}개 채굴 중`:`약 ${Math.max(1,Math.round(1/Math.max(r,1e-9)))}초에 1개 채굴 중`)(autoRate())):'드릴이 꺼져 있어요';if(e.dataset.v!==v){e.dataset.v=v;e.textContent=v}}   // v30: 켜 둔 동안 실제로 초당 몇 개 캐는지
+  setHid(bx,!(S.auto>0||bu>0));bx.classList.toggle('has',bu>0);setTxt($('boxN'),bu>0?cbig(bu):'');
+  const vb=$('veinBn'),vo=veinOn();setHid(vb,!vo);if(vo)$('veinBar').style.width=Math.round(clamp(S.vein.left/(S.vein.len||VEIN_SEC),0,1)*100)+'%';
+  /*DEV{*/setHid($('devVein'),!S.dev);setHid($('devReview'),!S.dev);/*}DEV*/
+  {const cb=$('crBtn'),op=craftOpen(),a=CR().a;setHid(cb,false);cb.classList.toggle('locked',!op);if(!$('crBtnImg').src)$('crBtnImg').src=ART.craft_icon;setTxt($('crBtnLv'),op&&a?'+'+a.lv:'');if(op)cb.classList.toggle('ready',!CR().met)}
   renderAdBtns();renderNextL();
   setHTML($('layerChips'),LAYERS.map((l,i)=>i<S.unlocked?`<button class="chip${i===S.layer?' on':''}" data-chip="${i}" type="button">B${i+1} ${l.n}</button>`:i===S.unlocked?`<button class="chip lock" data-chiplock="1" type="button">B${i+1} 개척하기 →</button>`:'').join(''));
 }
 // 다음 지층까지: 개척에 필요한 골드 · 재료가 얼마나 모였는지 (다 모이면 누르면 바로 개척)
 // v24: 채굴 화면 왼쪽 위 작은 [개척] 버튼 — 다음 지층 이름 · 준비 정도(골드와 재료를 모은 비율의 평균). 누르면 갱도 개척 창(세부 정보 · 개척 버튼)
 // 채굴 화면 아래 단추들이 같은 박자로 둥둥: 나중에 나타난 세공 단추를 창고 단추 애니메이션 시각에 맞춤
-function syncBob(){try{const a=$('whBtn').querySelector('img').getAnimations()[0],b=$('crBtnImg').getAnimations()[0];if(a&&b)b.currentTime=a.currentTime}catch(e){}}
-function renderNextL(){const el=$('nextL'),i=S.unlocked,ic=`<img class="dg-ic" src="${ART.ui_dig}" alt="">`;
-  if(i>=LAYERS.length){setHTML(el,`${ic}<span class="dg-t"><b>갱도</b><small>모두 개척</small></span>`);el.classList.remove('ready');return}
-  const L=LAYERS[i],ok=reqMet(L),parts=[[S.gold,L.req.g]].concat(Object.entries(L.req.items).map(([id,n])=>[cnt(id),n])),pc=Math.floor(parts.reduce((s,[h,n])=>s+clamp(h/n,0,1),0)/parts.length*100);
-  setHTML(el,`${ic}<span class="dg-t"><b>B${i+1} 개척</b><small>${ok?'준비 완료!':pc+'%'}</small><i class="dg-bar"><i style="width:${ok?100:pc}%"></i></i></span>`);
+/* 둥둥 뜨는 아이콘(창고 · 세공 · 선물 · 보관함 · 갱도)은 모두 같은 시계에 맞춰 함께 움직인다 */
+const bobSync=list=>{for(const a of list)if(a.animationName==='icb')a.startTime=0};
+document.addEventListener('animationstart',e=>{if(e.animationName==='icb')bobSync(e.target.getAnimations())});requestAnimationFrame(()=>bobSync(document.getAnimations()));
+function renderNextL(){const el=$('nextL'),i=S.unlocked,done=i>=LAYERS.length;
+  if(!el.firstChild)el.innerHTML=`<img class="dg-ic" src="${ART.ui_dig}" alt=""><span class="dg-t"><b></b><small></small><i class="dg-bar"><i></i></i></span>`; // 그림은 한 번만 넣어 둥둥 박자가 끊기지 않게
+  const [tb,ts]=el.querySelectorAll('b,small'),bar=el.querySelector('.dg-bar');let ok=false,pc=0;
+  if(!done){const L=LAYERS[i],parts=[[S.gold,L.req.g]].concat(Object.entries(L.req.items).map(([id,n])=>[cnt(id),n]));ok=reqMet(L);pc=ok?100:Math.floor(parts.reduce((s,[h,n])=>s+clamp(h/n,0,1),0)/parts.length*100)}
+  setHTML(tb,done?'갱도':`B${i+1} 개척`);setHTML(ts,done?'모든 지층 개척 완료':ok?'개척할 준비가 됐어요!':pc+'%');bar.hidden=done;bar.firstChild.style.width=pc+'%';
   el.classList.toggle('ready',ok)}
 $('nextL').onclick=()=>openSheet('shaft');
 ['autoBtn','boxBtn'].forEach(k=>$(k).addEventListener('pointerdown',e=>e.stopPropagation()));
 $('boxBtn').onclick=e=>{e.stopPropagation();openBox()};
 /* 채굴 보관함 창: 종류별로 골라 [저장](창고로) 또는 [판매](지금 파는 값으로 골드). 맨 아래 [모두 저장] */
 function boxHtml(){const ids=ORDER.filter(id=>(S.box||{})[id]>0),sp=space();
-  return(ids.length?`<div class="boxl">${ids.map(id=>`<div class="boxr">${ico(id,'sm')}<span class="bn">${ITEMS[id].n}</span><span class="dim">×${big(S.box[id])}</span><button class="px-btn sm" data-boxget="${id}" type="button" ${sp>0?'':'disabled'}>저장</button><button class="px-btn sm" data-boxsell="${id}" type="button">판매</button></div>`).join('')}</div>`:'<p class="dim" style="margin:0 0 8px">보관함이 비어 있어요. 드릴 로봇과 출입권이 모은 광석이 여기에 쌓여요.</p>')
-    +`<div class="row-btns" style="margin-top:8px"><span class="dim grow small" style="text-align:left">창고 빈칸 ${big(sp)}칸</span><button class="px-btn lamp" data-boxget="all" type="button" ${ids.length&&sp>0?'':'disabled'}>모두 저장</button></div>`}
-const boxCard=()=>({box:1,btn:'닫기',k:'로봇 채굴 보관함',t:`${big(boxUsed())} / ${big(boxCap())}칸`,b:'종류별로 골라서 창고에 저장하거나 바로 팔 수 있어요.',extra:boxHtml()});
+  return(ids.length?`<div class="boxl">${ids.map(id=>`<div class="boxr">${ico(id,'sm')}<span class="bn">${ITEMS[id].n}</span><span class="dim">×${big(S.box[id])}</span><button class="px-btn sm" data-boxget="${id}" type="button" ${sp>0?'':'disabled'}>저장</button><button class="px-btn sm" data-boxsell="${id}" type="button">판매</button></div>`).join('')}</div>`:'<p class="dim" style="margin:0 0 8px">보관함이 비어 있어요. 드릴 로봇과 출입권으로 얻은 광석은 여기에 모여요.</p>')
+    +`<div class="row-btns" style="margin-top:8px"><span class="dim grow small" style="text-align:left">창고 여유 공간 ${big(sp)}칸</span><button class="px-btn lamp" data-boxget="all" type="button" ${ids.length&&sp>0?'':'disabled'}>모두 저장</button></div>`}
+const boxCard=()=>({box:1,btn:'닫기',k:'로봇 채굴 보관함',t:`${big(boxUsed())} / ${big(boxCap())}칸`,b:'광석을 골라 창고로 옮기거나 바로 판매할 수 있어요.',extra:boxHtml()});
 function openBox(){story([boxCard()])}
 function boxRefresh(){if(STC&&STC.box&&!$('story').hidden){$('storyT').textContent=`${big(boxUsed())} / ${big(boxCap())}칸`;$('storyX').innerHTML=boxHtml()}renderAll()}
 $('storyX').addEventListener('click',e=>{const b=e.target.closest('[data-boxget]'),sl=e.target.closest('[data-boxsell]');
   if(b){if(b.dataset.boxget==='all'){collectBox();boxRefresh();return}
-    const id=b.dataset.boxget,k=Math.min(S.box[id]||0,space());if(k>0){add(id,k);S.box[id]-=k;if(S.box[id]<=0)delete S.box[id];sfx('gain')}else toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 제련해 보세요.');boxRefresh()}
-  if(sl){const id=sl.dataset.boxsell,n=S.box[id]||0;if(n>0){const t=bid(id)*n;delete S.box[id];S.gold+=t;S.earned+=t;S.bestSale=Math.max(S.bestSale,t);sfx('coin');log(`채굴 보관함의 ${ITEMS[id].n} ${big(n)}개 판매: +${big(t)}G`)}boxRefresh()}});
+    const id=b.dataset.boxget,k=Math.min(S.box[id]||0,space());if(k>0){add(id,k);S.box[id]-=k;if(S.box[id]<=0)delete S.box[id];sfx('gain')}else toast('창고에 빈칸이 없어 옮길 수 없어요. 광석을 팔거나 제련해 공간을 만들어 주세요.');boxRefresh()}
+  if(sl){const id=sl.dataset.boxsell,n=S.box[id]||0;if(n>0){const t=bid(id)*n;delete S.box[id];S.gold+=t;S.earned+=t;S.bestSale=Math.max(S.bestSale,t);sfx('coin');log(`보관함의 ${ITEMS[id].n} ${big(n)}개 판매 완료: +${big(t)}G`)}boxRefresh()}});
 function collectBox(){let moved=0,left=0;for(const id of Object.keys(S.box||{})){const k=Math.min(S.box[id],space());if(k>0){add(id,k);S.box[id]-=k;moved+=k}if(S.box[id]<=0)delete S.box[id];else left+=S.box[id]}
-  if(moved)toast(`채굴 보관함의 광석 ${big(moved)}개를 창고에 옮겼어요.${left?` (창고가 차서 ${big(left)}개는 보관함에 남았어요)`:''}`);else if(left)toast('창고가 가득 차서 옮길 수 없어요. 먼저 팔거나 제련해 보세요.');else toast('채굴 보관함이 비어 있어요.');renderAll()}
-$('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;sfx('click');toast(S.autoOn?'드릴 로봇을 켰어요. 켜 두면 자리를 비운 동안에도 캐요.':'드릴 로봇을 껐어요. 자리를 비운 동안에도 쉬어요.');renderMineHud()};
+  if(moved)toast(`보관함의 광석 ${big(moved)}개를 창고로 옮겼어요.${left?` (창고가 가득 차 ${big(left)}개는 보관함에 남겨 뒀어요)`:''}`);else if(left)toast('창고에 빈칸이 없어 옮길 수 없어요. 광석을 팔거나 제련해 공간을 만들어 주세요.');else toast('보관함이 비어 있어요.');renderAll()}
+$('autoBtn').onclick=e=>{e.stopPropagation();S.autoOn=!S.autoOn;sfx('click');toast(S.autoOn?'드릴 로봇을 켰어요. 게임을 나가 있는 동안에도 채굴해요.':'드릴 로봇을 껐어요. 게임을 나가 있는 동안에는 채굴하지 않아요.');renderMineHud()};
 // 개발자: 황금 광맥 바로 부르기
 $('veinPop').onclick=()=>setTab('mine');
 /* 리뷰 부탁: B4를 열 때(B1~B3을 다 캤을 때) 한 번, [나중에]를 누르면 B7을 열 때 한 번 더. 출시 땐 [리뷰 남기기]에 스토어 리뷰 창을 연결 */
 function askReview(force){if(!force&&(S.review==='done'||S.review==='no'))return;
-  story([{gold:1,review:1,btn:'나중에',k:'숯의 부탁',t:'별빛광맥이 마음에 드나요?',b:'여기까지 와 줘서 고마워요. 재미있게 하고 있다면 별점과 리뷰를 남겨 주세요.\n짧은 한마디도 마을을 다시 일으키는 데 큰 힘이 돼요.',
+  story([{gold:1,review:1,btn:'나중에',k:'숯의 부탁',t:'별빛광맥, 재미있게 즐기고 있나요?',b:'여기까지 함께해 줘서 고마워요. 게임이 마음에 들었다면 별점이나 짧은 리뷰를 남겨 주세요.\n네가 남겨 준 한마디가 별빛골에 큰 힘이 돼요.',
     extra:'<div class="row-btns" style="justify-content:center;margin:2px 0 4px"><button class="px-btn lamp" id="revGo" type="button">★ 리뷰 남기기</button></div>',done:()=>{if(!force)S.review=S.review==='later'?'no':'later'}}])}
-$('storyX').addEventListener('click',e=>{if(!e.target.closest('#revGo'))return;S.review='done';save();nextStory();const N=NATIVE();if(N&&typeof N.requestReview==='function'){Promise.resolve().then(()=>N.requestReview()).catch(()=>{})}else toast('고마워요! 출시 후에는 여기서 스토어 리뷰 화면이 열려요.')});
+$('storyX').addEventListener('click',e=>{if(!e.target.closest('#revGo'))return;S.review='done';save();nextStory();const N=NATIVE();if(N&&typeof N.requestReview==='function'){Promise.resolve().then(()=>N.requestReview()).catch(()=>{})}else toast('고마워요! 정식 출시 후에는 스토어 리뷰 화면으로 이동해요.')});
 $('storyX').addEventListener('click',e=>{if(!e.target.closest('#whGo'))return;nextStory();setTab('tower')});
-$('devReview').onclick=()=>{if(S.dev)askReview(true)};
-$('devVein').onclick=()=>{if(!S.dev)return;if(S.vein)endVein();startVein()};
+/*DEV{*/$('devReview').onclick=()=>{if(S.dev)askReview(true)};
+$('devVein').onclick=()=>{if(!S.dev)return;if(S.vein)endVein();startVein()};/*}DEV*/
 // 확률 보기: 지금 지층에서 광석이 나올 확률
 $('oddsBtn').onclick=()=>{const L=LAYERS[S.layer],dw=dropW(S.layer),tot=dw.reduce((s,d)=>s+d[1],0),rows=dw.slice().sort((a,b)=>(ITEMS[b[0]].L===S.layer+1)-(ITEMS[a[0]].L===S.layer+1)||b[1]-a[1]).map(([id,w])=>`<span>${ico(id,'sm')} ${S.seen.includes(id)?ITEMS[id].n:'???'}${ITEMS[id].L!==S.layer+1?` <span class="dim">B${ITEMS[id].L}</span>`:''}</span><span>${pctTxt(w/tot)}</span>`).join('');
-  story([{k:'확률 보기',t:`B${S.layer+1} ${L.n}`,b:'바위를 하나 깰 때 나오는 광석이에요. 이 지층 광석이 주로 나오고, 지금 필요한 위 지층 광석도 조금 섞여 나와요.',extra:`<div class="rcard odds-list">${rows}</div>`}])};
+  story([{k:'확률 보기',t:`B${S.layer+1} ${L.n}`,b:'바위 하나를 깰 때 얻을 수 있는 광석들이에요. 현재 지층 광석이 주로 나오지만, 위쪽 지층 광석도 조금 섞여 나와요.',extra:`<div class="rcard odds-list">${rows}</div>`}])};
 const pctTxt=p=>p>=.1?Math.round(p*100)+'%':p>=.01?(p*100).toFixed(1)+'%':(p*100).toFixed(2)+'%';
 $('layerChips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(c){setLayer(+c.dataset.chip);return}if(e.target.closest('[data-chiplock]'))openSheet('shaft')});
 /* 갱도 */
 const reqMet=L=>!L.req||(S.gold>=L.req.g&&Object.entries(L.req.items).every(([id,n])=>cnt(id)>=n));
 function unlockLayer(i){const L=LAYERS[i];if(!reqMet(L)||i!==S.unlocked)return;S.gold-=L.req.g;Object.entries(L.req.items).forEach(([id,n])=>add(id,-n));S.unlocked=i+1;setLayer(i);
-  log(`${L.n} 개척! (−${fmt(L.d)}m)`,true);revealJournal(i);if(i===3&&!CR().met)linIntro(false);if(i===3||(i===6&&S.review==='later'))askReview();setTab('mine');renderAll()}
+  log(`${L.n} 개척 완료! (−${fmt(L.d)}m)`,true);revealJournal(i);if(i===3&&!CR().met)linIntro(false);if(i===3||(i===6&&S.review==='later'))askReview();setTab('mine');renderAll()}
 function renderLayers(){
   setHTML($('layers'),LAYERS.map((L,i)=>{const d=`<span class="d">B${i+1}<br>${fmt(L.d)}m</span>`;
     if(i<S.unlocked)return`<button class="layer${i===S.layer?' on':''}" data-go="${i}" type="button">${d}<span><span class="nm">${L.n}</span><br><span class="dim">${RAW.filter(id=>ITEMS[id].L===i+1).map(id=>S.seen.includes(id)?ITEMS[id].n:'???').join(' · ')}</span></span><span class="dim">${i===S.layer?'채굴 중':'가기'}</span></button>`;
@@ -86,20 +89,20 @@ $('layers').addEventListener('click',e=>{const g2_=e.target.closest('[data-go]')
 // 창고 나눠 보기: 원석 · 광재(제련으로 만들지 않는 것 — 원석과 광재 같은 부산물) / 제련품. 어떤 품목도 둘 중 하나에 들어감
 let INVF='raw';const isRef=id=>!!ITEMS[id].cr;
 const invGroup=g=>ORDER.filter(id=>cnt(id)>0&&(g==='ref')===isRef(id));
-function renderInv(){const ids=invGroup(INVF);$('invCap').textContent=`${big(used())}/${big(cap())}칸`;
+function renderInv(){const ids=invGroup(INVF);$('invCap').textContent=`${big(used())}/${big(cap())}칸 사용 중`;
   const nr=invGroup('raw').length,nf=invGroup('ref').length;$('invNRaw').textContent=nr||'';$('invNRef').textContent=nf||'';
   document.querySelectorAll('#invSeg [data-invf]').forEach(b=>b.classList.toggle('on',b.dataset.invf===INVF));$('sellRaw').disabled=!nr;$('sellRef').disabled=!nf;
   patchList($('inv'),ids,ids.map(id=>[`×${big(cnt(id))}`,`${pf(bid(id))}G`]),(id,P)=>`<div class="irow"><button class="nmb" data-mk="${id}" type="button">${ico(id,'sm')}<span>${ITEMS[id].n}</span></button><span class="dim">${P[0]}</span><span>${P[1]}</span><span class="acts"><button class="px-btn sm" data-sellq="${id}" type="button">판매</button></span></div>`,INVF==='ref'?'<p class="dim">제련품이 없어요.</p>':'<p class="dim">원석이 없어요.</p>',[1,2])}
-function doSell(id,n){const k=n==='all'?cnt(id):+n;const t=sell(id,k);if(t){log(`${ITEMS[id].n} ${k}개 판매: +${big(t)}G`);S.slots=S.slots.map(x=>x&&cnt(x)?x:null)}renderAll()}
+function doSell(id,n){const k=n==='all'?cnt(id):+n;const t=sell(id,k);if(t){log(`${ITEMS[id].n} ${k}개 판매 완료: +${big(t)}G`);S.slots=S.slots.map(x=>x&&cnt(x)?x:null)}renderAll()}
 $('inv').addEventListener('click',e=>{const s=e.target.closest('[data-sellq]');if(s){openQty(s.dataset.sellq);return}const m=e.target.closest('[data-mk]');if(m){S.mkSub='ore';setTab('market')}});
 $('invSeg').addEventListener('click',e=>{const b=e.target.closest('[data-invf]');if(!b)return;INVF=b.dataset.invf;sfx('click');renderInv()});
 // 전체 판매: 먼저 대상 · 예상 금액을 보여 주고, [판매하기]를 눌러야 판다(취소하면 아무것도 안 바뀜). 값은 장터 파는 값(bid: 판매 보너스 포함) 그대로
 let SELLG=null;
 function askSellAll(g){const ids=invGroup(g);if(!ids.length)return;const tot=ids.reduce((s,id)=>s+bid(id)*cnt(id),0),n=ids.reduce((s,id)=>s+cnt(id),0);SELLG=g;
-  story([{k:'창고',t:g==='ref'?'제련품 전체 판매':'원석 전체 판매',b:'아래 품목을 모두 팔까요? 취소하면 아무것도 바뀌지 않아요.',btn:'취소',
+  story([{k:'창고',t:g==='ref'?'제련품 전체 판매':'원석 전체 판매',b:'아래 광석을 모두 판매할까요? 취소하면 아무것도 바뀌지 않아요.',btn:'취소',
     extra:`<div class="rcard sell-list">${ids.map(id=>`<span>${ico(id,'sm')} ${ITEMS[id].n}</span><span>×${big(cnt(id))}</span>`).join('')}<span><b>예상 판매 금액</b></span><span class="gold-t">+${big(tot)}G</span></div>
       <div class="row-btns" style="justify-content:center;margin:6px 0 2px"><button class="px-btn lamp" id="sellGo" type="button">판매하기</button></div>`,after:()=>{SELLG=null}}])}
-function sellAll(g){const ids=invGroup(g);let t=0,n=0;ids.forEach(id=>{n+=cnt(id);t+=sell(id,cnt(id))});if(t)log(`${g==='ref'?'제련품':'원석'} 전체 판매: +${big(t)}G`,true);S.slots=S.slots.map(x=>x&&cnt(x)?x:null);renderAll();return t}
+function sellAll(g){const ids=invGroup(g);let t=0,n=0;ids.forEach(id=>{n+=cnt(id);t+=sell(id,cnt(id))});if(t)log(`${g==='ref'?'제련품':'원석'} 모두 판매했어요: +${big(t)}G`,true);S.slots=S.slots.map(x=>x&&cnt(x)?x:null);renderAll();return t}
 $('sellRaw').onclick=()=>askSellAll('raw');$('sellRef').onclick=()=>askSellAll('ref');
 $('storyX').addEventListener('click',e=>{if(!e.target.closest('#sellGo')||!SELLG)return;const g=SELLG;SELLG=null;sellAll(g);sfx('coin');nextStory()});
 function renderLog(){const el=$('log');if(el)setHTML(el,S.log.slice(0,40).map(l=>`<div>${l}</div>`).join(''))}
@@ -108,42 +111,42 @@ const journalCard=(i,k)=>{const ev=LAYER_EVENT[i+1];return{gold:1,k,t:`B${i+1} $
 function revealJournal(i){if(S.journal.includes(i))return;S.journal.push(i);story([journalCard(i,`할아버지의 일지 · ${S.journal.length}/13`)])}
 function renderBookTab(){
   $('jCount').textContent=`${S.journal.length}/13`;
-  setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp${storyArt('b'+(i+1))?' has-ill':''}" data-jp="${i}" type="button">${storyArt('b'+(i+1))?`<img class="jp-th" src="${storyArt('b'+(i+1))}" alt="" onload="this.classList.toggle('hi',this.naturalWidth>400)">`:''}<span><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</span></button>`:`<div class="jp unk">B${i+1} · 아직 찾지 못한 장</div>`).join(''));
+  setHTML($('journal'),LAYERS.map((L,i)=>S.journal.includes(i)?`<button class="jp${storyArt('b'+(i+1))?' has-ill':''}" data-jp="${i}" type="button">${storyArt('b'+(i+1))?`<img class="jp-th" src="${storyArt('b'+(i+1))}" alt="" onload="this.classList.toggle('hi',this.naturalWidth>400)">`:''}<span><span class="dim">B${i+1} ${L.n}</span><br>"${JOURNAL[i].slice(0,34)}…"</span></button>`:`<div class="jp unk">B${i+1} · 아직 발견하지 못한 일지</div>`).join(''));
   $('dexCount').textContent=`${S.seen.length}/${ORDER.length}`;
-  setHTML($('dex'),ORDER.map(id=>`<button class="dx${S.seen.includes(id)?'':' unk'}" data-dx="${id}" type="button" aria-label="${S.seen.includes(id)?ITEMS[id].n:'아직 모르는 광물'}">${ico(id)}</button>`).join(''));
+  setHTML($('dex'),ORDER.map(id=>`<button class="dx${S.seen.includes(id)?'':' unk'}" data-dx="${id}" type="button" aria-label="${S.seen.includes(id)?ITEMS[id].n:'아직 발견하지 못한 광물'}">${ico(id)}</button>`).join(''));
   const mins=Math.round((S.playT||0)/60);   // 게임을 켜 두고 있던 시간만(자리 비운 시간 · 앱이 뒤로 간 시간은 빼고)
-  setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['캔 광석',big(S.mined)+'개'],['제련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
+  setHTML($('records'),[['플레이 시간',`${Math.floor(mins/60)}시간 ${mins%60}분`],['채굴한 광석',big(S.mined)+'개'],['제련',big(S.crafts)+'번'],['레시피',`${S.found.length}/${RECIPES.length}`],['번 골드',big(S.earned)+'G'],['가장 큰 거래',big(S.bestSale)+'G'],['탑',S.floors+'층'],['입주자',BON.done+'/13']].map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join(''))}
 $('journal').addEventListener('click',e=>{const b=e.target.closest('[data-jp]');if(!b)return;const i=+b.dataset.jp;story([journalCard(i,'할아버지의 일지')])});   // 다시 보기: 개척할 때와 같은 삽화 · 글
 /* 장터: [지층 출입권] 소문을 읽고 사고팔기 · [광물 거래] 정해진 값 */
 // 수익률 글자: 10% 아래는 소수 한 자리(+0.8%), 그 위는 정수. 출입권 줄과 판매 알림이 같은 함수를 써서 숫자가 똑같다
 const retPct=r=>{const a=Math.abs(r)<.1?Math.round(r*1000)/10:Math.round(r*100);return a===0?'0%':(a>0?'+':'-')+Math.abs(a)+'%'};
 const pctHtml=v=>{const p=Math.round((v-1)*100);if(p===0)return'<span class="pct dim">평소</span>';return`<span class="pct ${p>0?'good':'bad'}">${p>0?'▲':'▼'}${Math.abs(p)}%</span>`};
 const mm=s=>{s=Math.max(0,Math.ceil(s/60));return s>=60?`${Math.floor(s/60)}시간 ${s%60}분`:`${s}분`};
-function srcRecTxt(n){const r=S.srcRec[n];return r&&r.n?`지금까지 ${r.n}번 중 ${r.h}번 맞음`:'아직 기록 없음'}
+function srcRecTxt(n){const r=S.srcRec[n];return r&&r.n?`${r.n}번 중 ${r.h}번 적중`:'아직 적중 기록이 없어요'}
 function renderMarket(){if(S.tab!=='market')return;const luka=tenantIn('루카');if(!luka)S.mkSub='ore';$('mkSeg').hidden=!luka;const sub=S.mkSub==='ore'?'ore':'pass';document.querySelectorAll('#mkSeg button').forEach(b=>b.classList.toggle('on',b.dataset.mks===sub));$('mkPass').hidden=sub!=='pass';$('mkOre').hidden=sub!=='ore';
   if(sub==='pass'){
     // 소문 게시판
     let h=S.rum.map(r=>{const left=r.dur-r.t,f=r.t/r.dur;
       return`<div class="rum"><div class="rh"><b>${r.src}</b> <span class="dim">· ${srcRecTxt(r.src)}</span></div><p>"${rumorSay(r)}"</p>
-        <div class="rtags">${r.echo.length?`<span class="tg">같은 말: ${r.echo.join(', ')}</span>`:''}${r.clue?`<span class="tg good">B${r.L+1} 단서 ${r.clue}개</span>`:''}${r.hint!=null?`<span class="tg ${r.hint?'good':'bad'}">정보원: ${r.hint?'믿을 만해요':'수상해요'}</span>`:''}<span class="tg">B${r.L+1} 출입권 ${pctHtml(passPrice(r.L)/passBase(r.L))}</span></div>
-        <div class="bar"><i style="width:${f*100}%"></i></div><div class="dim small">조사단 발표까지 약 ${mm(left)}</div></div>`}).join('');
+        <div class="rtags">${r.echo.length?`<span class="tg">같은 소문을 낸 사람: ${r.echo.join(', ')}</span>`:''}${r.clue?`<span class="tg good">B${r.L+1} 단서 ${r.clue}개</span>`:''}${r.hint!=null?`<span class="tg ${r.hint?'good':'bad'}">정보 제공자: ${r.hint?'믿을 만한 정보예요':'신뢰하기 어려워요'}</span>`:''}<span class="tg">B${r.L+1} 출입권 ${pctHtml(passPrice(r.L)/passBase(r.L))}</span></div>
+        <div class="bar"><i style="width:${f*100}%"></i></div><div class="dim small">조사단 발표까지 약 ${mm(left)} 남았어요</div></div>`}).join('');
     // 지난 발표는 가장 최근 것 하나만 한 줄로(여러 장이 쌓이면 게시판이 어수선해서)
-    h+=S.rumDone.slice(0,1).map(d=>`<div class="rum done slim"><span class="dim small">지난 발표</span> <b>${d.src}</b> <span class="${d.truth?'good':'bad'}">${d.truth?'사실이었어요':'헛소문이었어요'}</span> <span class="small">B${d.L+1} 출입권 <span class="${d.ch>=0?'good':'bad'}">${d.ch>=0?'+':''}${Math.round(d.ch*100)}%</span></span></div>`).join('');
-    if(!h)h=`<p class="dim small" style="margin:0">아직 도는 소문이 없어요. 장터에 있다 보면 소문이 들려와요.</p>`;
-    setHTML($('rumors'),h);$('rumInfo').textContent=S.rum.length<2?`다음 소문 약 ${mm(S.rumT)} 뒤`:'';
+    h+=S.rumDone.slice(0,1).map(d=>`<div class="rum done slim"><span class="dim small">지난 발표</span> <b>${d.src}</b> <span class="${d.truth?'good':'bad'}">${d.truth?'사실로 확인됐어요':'사실이 아닌 것으로 밝혀졌어요'}</span> <span class="small">B${d.L+1} 출입권 <span class="${d.ch>=0?'good':'bad'}">${d.ch>=0?'+':''}${Math.round(d.ch*100)}%</span></span></div>`).join('');
+    if(!h)h=`<p class="dim small" style="margin:0">아직 새 소문이 없어요. 소문이 돌면 여기에 표시돼요.</p>`;
+    setHTML($('rumors'),h);$('rumInfo').textContent=S.rum.length<2?`다음 소문까지 약 ${mm(S.rumT)}`:'';
     // 출입권 목록
-    const L=[...Array(S.unlocked).keys()],mx=passMax(),pv=passValue();$('passInfo').textContent=pv?`가진 출입권 ${big(pv)}G`:`지층마다 ${mx}장까지`;
+    const L=[...Array(S.unlocked).keys()],mx=passMax(),pv=passValue();$('passInfo').textContent=pv?`보유 출입권 가치 ${big(pv)}G`:`지층마다 최대 ${mx}장`;
     patchList($('passes'),L,L.map(i=>{const v=passPrice(i),n=passHeld(i),q=n?passQuote(i,n):null,ret=q?q.gain/q.cost:0,ch=v/passBase(i);
-      return[`${pf(v)}G ${pctHtml(ch)}`,n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${retPct(ret)}</span>${q.lock>0?`<span class="dim small"> · ${Math.ceil(q.lock)}초 동안 이익 최대 +1%</span>`:''}`:`0/${mx}장`,
-        `1장마다 시간당 약 ${pf(passDiv(i)*3600)}G어치 광석이 들어와요`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>판매</button>`]}),
+      return[`${pf(v)}G ${pctHtml(ch)}`,n?`${n}/${mx}장 · 수익률 <span class="${ret>=0?'good':'bad'}">${retPct(ret)}</span>${q.lock>0?`<span class="dim small">  · 구매 후 ${Math.ceil(q.lock)}초간 수익 최대 +1%</span>`:''}`:`0/${mx}장`,
+        `출입권 1장당 시간마다 약 ${pf(passDiv(i)*3600)}G어치 광석을 받아요`,`<button class="px-btn sm" data-pb="${i}" data-n="1" type="button" ${S.gold<v||n>=mx?'disabled':''}>1장</button><button class="px-btn sm" data-pb="${i}" data-n="max" type="button" ${S.gold<v||n>=mx?'disabled':''}>최대</button><button class="px-btn sm" data-ps="${i}" type="button" ${n?'':'disabled'}>판매</button>`]}),
       (i,P)=>`<div class="prow"><span class="pn"><b>B${i+1}</b> ${LAYERS[i].n}</span><span class="pv">${P[0]}</span><span class="ph">${P[1]}</span><span class="pd dim">${P[2]}</span><span class="pbtn">${P[3]}</span></div>`,'',[1,2,3,4])}
   else{const ids=ORDER.filter(id=>S.seen.includes(id));
     patchList($('oreList'),ids,ids.map(id=>[`×${big(cnt(id))}`,`<span class="good">${pf(bid(id))}</span> / <span class="lamp">${pf(ask(id))}</span>G`]),
-      (id,P)=>`<div class="orow">${ico(id,'sm')}<span class="onm">${ITEMS[id].n}</span><span class="ocnt dim">${P[0]}</span><span class="opr small">${P[1]}</span><span class="acts"><button class="px-btn" data-osell="${id}" type="button">판매</button><button class="px-btn" data-obuy="${id}" type="button">구매</button></span></div>`,'<p class="dim">광물을 캐면 여기에 나와요.</p>',[2,3])}}
+      (id,P)=>`<div class="orow">${ico(id,'sm')}<span class="onm">${ITEMS[id].n}</span><span class="ocnt dim">${P[0]}</span><span class="opr small">${P[1]}</span><span class="acts"><button class="px-btn" data-osell="${id}" type="button">판매</button><button class="px-btn" data-obuy="${id}" type="button">구매</button></span></div>`,'<p class="dim">광물을 캐면 이곳에 표시돼요.</p>',[2,3])}}
 $('mkSeg').addEventListener('click',e=>{const b=e.target.closest('[data-mks]');if(b){S.mkSub=b.dataset.mks;renderMarket()}});
 $('passes').addEventListener('click',e=>{const b=e.target.closest('[data-pb]'),s_=e.target.closest('[data-ps]');
-  if(b){const i=+b.dataset.pb,r=passBuy(i,b.dataset.n==='max'?999:1);if(r.k){sfx('buy');toast(`B${i+1} 출입권 ${r.k}장을 ${big(r.t)}G에 샀어요.`)}renderAll()}
-  if(s_){const i=+s_.dataset.ps,r=passSell(i,999);if(r.k){sfx('coin');toast(`B${i+1} 출입권 ${r.k}장을 ${big(r.t)}G에 팔았어요 (${r.gain>=0?'+':''}${big(r.gain)}G, ${retPct(r.gain/r.cost)}).`)}renderAll()}});
+  if(b){const i=+b.dataset.pb,r=passBuy(i,b.dataset.n==='max'?999:1);if(r.k){sfx('buy');toast(`B${i+1} 출입권 ${r.k}장 구매 완료: −${big(r.t)}G`)}renderAll()}
+  if(s_){const i=+s_.dataset.ps,r=passSell(i,999);if(r.k){sfx('coin');toast(`B${i+1} 출입권 ${r.k}장 판매 완료: +${big(r.t)}G (${r.gain>=0?'+':''}${big(r.gain)}G, ${retPct(r.gain/r.cost)})`)}renderAll()}});
 $('oreList').addEventListener('click',e=>{const s_=e.target.closest('[data-osell]'),b=e.target.closest('[data-obuy]');if(s_)openQty(s_.dataset.osell,'sell');if(b)openQty(b.dataset.obuy,'buy')});
 /* 이야기 창 */
 const STQ=[];
@@ -190,20 +193,22 @@ function navIcons(){const st=document.createElement('style');st.textContent=['mi
 
 /* 광고 두 가지 + 광고 제거 패키지 (프로토타입: 가짜 광고 화면, 결제 없음) */
 const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
-function renderAdBtns(){const now=gtime(),gl=giftLeft(),gb=$('giftBtn');gb.disabled=gl<=0;gb.classList.toggle('ready',gl>0);$('giftTag').textContent=gl>0?`${gl}/${GIFT_MAX}`:'내일';
-  const bb=$('boostBtn'),bl=boostLeft(),on=boostOn();bb.disabled=on||bl<=0;bb.classList.toggle('live',on);bb.classList.toggle('ready',!on&&bl>0);$('boostTag').textContent=on?mmss(S.ads.boostUntil-now):bl>0?`${bl}/${BOOST_MAX}`:'내일'}
-let AD_CB=null,AD_T=null;
+function renderAdBtns(){const now=gtime(),gl=giftLeft(),gb=$('giftBtn');if(gb.disabled!==(gl<=0))gb.disabled=gl<=0;gb.classList.toggle('ready',gl>0);setTxt($('giftTag'),gl>0?`${gl}/${GIFT_MAX}`:'내일');
+  const bb=$('boostBtn'),bl=boostLeft(),on=boostOn();{const d=on||bl<=0;if(bb.disabled!==d)bb.disabled=d}bb.classList.toggle('live',on);bb.classList.toggle('ready',!on&&bl>0);setTxt($('boostTag'),on?mmss(S.ads.boostUntil-now):bl>0?`${bl}/${BOOST_MAX}`:'내일')}
+/*DEV{*/let AD_CB=null,AD_T=null;/*}DEV*/
 /* v30: 앱(안드로이드) 연동 자리 — 앱이 window.starfallNative 를 넣어 주면 진짜 광고 · 결제 · 복원 · 리뷰를 쓰고, 없으면(HTML 미리보기) 예전 모의 화면 그대로.
    showRewarded(이름) → Promise<true면 끝까지 봄>, purchase('no_ads') → Promise<true면 결제 확인됨>, restore() → Promise<true면 이미 산 것 있음>, requestReview() → Promise
    보상은 true를 받았을 때 한 번만(진행 중엔 다시 못 누름 · 취소 · 실패 · 오프라인이면 보상 없음) */
 const NATIVE=()=>(window.starfallNative&&typeof window.starfallNative==='object')?window.starfallNative:null;
 let AD_BUSY=false,BUY_BUSY=false;
 function nativeAd(N,title,cb){if(AD_BUSY)return;AD_BUSY=true;
-  Promise.resolve().then(()=>N.showRewarded(title)).then(ok=>{AD_BUSY=false;if(ok===true){cb();save()}else toast('광고를 끝까지 보지 않아서 보상은 없어요.')},()=>{AD_BUSY=false;toast('지금은 광고를 불러올 수 없어요. 잠시 뒤에 다시 해 주세요.')})}
-function showAd(title,cb){if(S.noAds){cb();return}{const N=NATIVE();if(N&&typeof N.showRewarded==='function'){nativeAd(N,title,cb);return}}AD_CB=cb;$('adT').textContent=title;let n=5;$('adCnt').textContent=n;$('adDone').disabled=true;$('adModal').hidden=false;clearInterval(AD_T);
-  AD_T=setInterval(()=>{n--;$('adCnt').textContent=n>0?n:'끝!';if(n<=0){clearInterval(AD_T);$('adDone').disabled=false}},1000)}
-$('adDone').onclick=()=>{$('adModal').hidden=true;const cb=AD_CB;AD_CB=null;if(cb)cb()};
-$('adCancel').onclick=()=>{clearInterval(AD_T);$('adModal').hidden=true;AD_CB=null};
+  Promise.resolve().then(()=>N.showRewarded(title)).then(ok=>{AD_BUSY=false;if(ok===true){cb();save()}else toast('광고를 끝까지 시청하지 않아 보상을 받지 못했어요.')},()=>{AD_BUSY=false;toast('광고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')})}
+function showAd(title,cb){if(S.noAds){cb();return}{const N=NATIVE();if(N&&typeof N.showRewarded==='function'){nativeAd(N,title,cb);return}}
+  /*REL{cb();save();return;}REL*/   // 출시용: 앱 연결(광고 SDK)이 없을 때는 모의 광고 창 없이 바로 보상
+  /*DEV{*/AD_CB=cb;$('adT').textContent=title;let n=5;$('adCnt').textContent=n;$('adDone').disabled=true;$('adModal').hidden=false;clearInterval(AD_T);
+  AD_T=setInterval(()=>{n--;$('adCnt').textContent=n>0?n:'시청 완료!';if(n<=0){clearInterval(AD_T);$('adDone').disabled=false}},1000)/*}DEV*/}
+/*DEV{*/$('adDone').onclick=()=>{$('adModal').hidden=true;const cb=AD_CB;AD_CB=null;if(cb)cb()};
+$('adCancel').onclick=()=>{clearInterval(AD_T);$('adModal').hidden=true;AD_CB=null};/*}DEV*/
 // 켜 두고 직접 캘 때(탭 + 자동 드릴) 초당 버는 골드
 // 보통 플레이(탭 2.5번/초 + 드릴) 수입. L을 주면 그 지층 기준
 function playIncomeAt(L){const d=LAYERS[L].drops,tot=d.reduce((s,x)=>s+x[1],0),avg=d.reduce((s,x)=>s+bid(x[0])*x[1],0)/tot;return playRate()*layerHp(S.layer)/layerHp(L)*avg}
@@ -214,20 +219,20 @@ const GIFT_MIN=15;
 const giftGold=()=>Math.max(50,Math.round(Math.max(playIncomeAt(S.unlocked-1),S.mr||0)*GIFT_MIN*60));
 function openGift(){if(!giftReady())return;showAd('숯의 선물 상자',()=>{if(!giftReady())return;adsDay().gift++;
   const gold=giftGold();S.gold+=gold;
-  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 상자를 물어 왔어요',b:'숯이 꼬리를 흔들며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 남은 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>${S.noAds?'':'<p class="dim small ad-hint">광고 제거 패키지로 광고 없이 받아 보세요! (채굴 화면 톱니바퀴 → 설정)</p>'}`}]);renderAll()})}
+  A.joy=1;story([{k:'숯의 선물 상자',t:'숯이 선물 상자를 물어 왔어요!',b:'숯이 꼬리를 살랑거리며 상자를 내려놓았다.',extra:`<div class="rcard"><span>골드</span><span>+${big(gold)}G</span><span>오늘 받을 수 있는 상자</span><span>${giftLeft()}/${GIFT_MAX}</span></div>${S.noAds?'':'<p class="dim small ad-hint">광고 제거 패키지가 있으면 광고 없이 받을 수 있어요. (채굴 화면 톱니바퀴 → 설정)</p>'}`}]);renderAll()})}
 // 10분 동안 채굴 2배 (하루 10번, 켜져 있는 동안은 다시 못 씀)
-function startBoost(){if(boostOn()||boostLeft()<=0)return;showAd('10분 동안 채굴 2배',()=>{if(boostOn()||boostLeft()<=0)return;adsDay().boost++;S.ads.boostUntil=gtime()+10*60000;A.joy=1;toast(`10분 동안 곡괭이와 자동 드릴이 2배로 강해져요! (오늘 ${boostLeft()}번 남음)`);renderAll()})}
+function startBoost(){if(boostOn()||boostLeft()<=0)return;showAd('10분간 채굴력 2배',()=>{if(boostOn()||boostLeft()<=0)return;adsDay().boost++;S.ads.boostUntil=gtime()+10*60000;A.joy=1;toast(`10분 동안 곡괭이와 자동 드릴의 위력이 2배가 돼요! (오늘 ${boostLeft()}번 남음)`);renderAll()})}
 $('giftBtn').onclick=openGift;$('boostBtn').onclick=startBoost;
 function grantNoAds(msg){if(S.noAds)return;S.noAds=true;save();log(msg,true);renderAll()}
 $('buyPkg').onclick=()=>{if(S.noAds)return;const N=NATIVE();
-  if(N&&typeof N.purchase==='function'){if(BUY_BUSY)return;BUY_BUSY=true;Promise.resolve().then(()=>N.purchase('no_ads')).then(ok=>{BUY_BUSY=false;if(ok===true)grantNoAds('광고 제거 패키지가 적용됐어요. 고마워요!')},()=>{BUY_BUSY=false;toast('결제를 마치지 못했어요. 결제되지 않았으니 다시 시도해 주세요.')});return}
-  $('shopModal').hidden=false};
+  if(N&&typeof N.purchase==='function'){if(BUY_BUSY)return;BUY_BUSY=true;Promise.resolve().then(()=>N.purchase('no_ads')).then(ok=>{BUY_BUSY=false;if(ok===true)grantNoAds('광고 제거 패키지가 적용됐어요. 감사합니다!')},()=>{BUY_BUSY=false;toast('결제가 완료되지 않았어요. 실제로 청구되지 않았으니 다시 시도해 주세요.')});return}
+  /*DEV{*/$('shopModal').hidden=false/*}DEV*//*REL{toast('지금은 스토어에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.')}REL*/};
 // 구매 복원(앱에서만 보임): 다른 기기 · 다시 설치한 뒤 이미 산 광고 제거를 되살림
-function restorePkg(){const N=NATIVE();if(!N||typeof N.restore!=='function'||BUY_BUSY)return;BUY_BUSY=true;Promise.resolve().then(()=>N.restore()).then(ok=>{BUY_BUSY=false;if(ok===true)grantNoAds('구매한 광고 제거 패키지를 되살렸어요.');else toast('되살릴 구매 기록이 없어요.')},()=>{BUY_BUSY=false;toast('지금은 구매 기록을 확인할 수 없어요.')})}
-$('shopCancel').onclick=()=>$('shopModal').hidden=true;
-$('shopOk').onclick=()=>{$('shopModal').hidden=true;grantNoAds('광고 제거 패키지가 적용됐어요. 고마워요!')};   // HTML 미리보기 전용 모의 결제(앱에선 위 purchase를 씀)
+function restorePkg(){const N=NATIVE();if(!N||typeof N.restore!=='function'||BUY_BUSY)return;BUY_BUSY=true;Promise.resolve().then(()=>N.restore()).then(ok=>{BUY_BUSY=false;if(ok===true)grantNoAds('구매한 광고 제거 패키지를 복원했어요.');else toast('복원할 구매 내역이 없어요.')},()=>{BUY_BUSY=false;toast('지금은 구매 내역을 확인할 수 없어요.')})}
+/*DEV{*/$('shopCancel').onclick=()=>$('shopModal').hidden=true;
+$('shopOk').onclick=()=>{$('shopModal').hidden=true;grantNoAds('광고 제거 패키지가 적용됐어요. 감사합니다!')};/*}DEV*/   // 개발용 HTML 미리보기 전용 모의 결제(앱에선 위 purchase를 씀)
 $('restorePkg').onclick=restorePkg;
-function renderPkg(){{const r=$('restorePkg'),N=NATIVE();if(r)r.hidden=!(N&&typeof N.restore==='function')||S.noAds}const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAds?'구매 완료':'구매하기';$('pkgState').textContent=S.noAds?'적용 중':'';const pr=pkgPrice();$('pkgPrice').textContent=pr;$('pkgPrice2').textContent=pr}
+function renderPkg(){{const r=$('restorePkg'),N=NATIVE();if(r)r.hidden=!(N&&typeof N.restore==='function')||S.noAds}const b=$('buyPkg');b.disabled=S.noAds;b.textContent=S.noAds?'구매 완료':'구매하기';$('pkgState').textContent=S.noAds?'적용 중':'';const pr=pkgPrice();$('pkgPrice').textContent=pr;/*DEV{*/$('pkgPrice2').textContent=pr/*}DEV*/}
 // 광고 제거 패키지 값: 나라별(기기 지역) 한국 5,900원 · 대만 NT$149 · 그 밖(미국 기준) US$4.99. 출시 땐 스토어가 알려 주는 현지 가격으로 바꿀 자리
 function pkgRegion(){const L=[].concat(navigator.languages||[],navigator.language||[]);for(const l of L){const m=String(l).match(/^([a-z]{2,3})(?:-([A-Za-z]{4}))?(?:-([A-Za-z]{2}))?/i);if(!m)continue;const lg=m[1].toLowerCase(),sc=(m[2]||'').toLowerCase(),rg=(m[3]||'').toUpperCase();
   if(rg)return rg==='KR'||rg==='TW'?rg:'US';if(lg==='ko')return'KR';if(lg==='zh'&&sc==='hant')return'TW'}return'US'}
@@ -235,16 +240,16 @@ const pkgPrice=()=>({KR:'5,900원',TW:'NT$149'})[pkgRegion()]||'US$4.99';
 /* 수량 입력 판매 */
 let QTY=null,QM='sell';
 const qtyMax=()=>QM==='sell'?cnt(QTY):Math.max(0,Math.min(Math.floor(S.gold/ask(QTY)),space()));
-function openQty(id,mode){QM=mode||'sell';QTY=id;const mx=qtyMax();if(!mx){toast(QM==='sell'?'가진 게 없어요.':'골드나 창고 자리가 모자라요.');QTY=null;return}
+function openQty(id,mode){QM=mode||'sell';QTY=id;const mx=qtyMax();if(!mx){toast(QM==='sell'?'보유 수량이 없어요.':'골드가 부족하거나 창고에 빈칸이 없어요.');QTY=null;return}
   $('qtyT').innerHTML=`${ico(id)} ${ITEMS[id].n}`;$('qtyKick').textContent=QM==='sell'?'판매':'구매';$('qtyOk').textContent=QM==='sell'?'판매하기':'구매하기';$('qtyIn').max=mx;$('qtyIn').value=QM==='sell'?mx:Math.min(mx,10);updQty();$('qtyModal').hidden=false}
 function qtyVal(){return clamp(Math.floor(+$('qtyIn').value||0),0,qtyMax())}
-function updQty(){const n=qtyVal();$('qtySum').textContent=n?(QM==='sell'?`${big(n)}개 판매 · ${big(quote(QTY,n,-1))}G (보유 ${big(cnt(QTY))}개)`:`${big(n)}개 구매 · ${big(quote(QTY,n,1))}G (최대 ${big(qtyMax())}개)`):'수량을 입력해 주세요';$('qtyOk').disabled=!n}
+function updQty(){const n=qtyVal();$('qtySum').textContent=n?(QM==='sell'?`${big(n)}개 판매 · ${big(quote(QTY,n,-1))}G (보유 ${big(cnt(QTY))}개)`:`${big(n)}개 구매 · ${big(quote(QTY,n,1))}G (최대 ${big(qtyMax())}개)`):'수량을 입력해 주세요.';$('qtyOk').disabled=!n}
 $('qtyIn').addEventListener('input',updQty);
 $('qtyModal').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const v=b.dataset.q,c=qtyMax();$('qtyIn').value=v==='all'?c:v==='half'?Math.max(1,Math.floor(c/2)):clamp(qtyVal()+(+v),1,c);updQty()});
 $('qtyCancel').onclick=()=>{$('qtyModal').hidden=true;QTY=null};
-$('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){if(QM==='sell')doSell(QTY,n);else{const r=buy(QTY,n);if(r.k){sfx('buy');toast(`${ITEMS[QTY].n} ${r.k}개를 ${big(r.t)}G에 샀어요.`)}renderAll()}}$('qtyModal').hidden=true;QTY=null};
+$('qtyOk').onclick=()=>{const n=qtyVal();if(n&&QTY){if(QM==='sell')doSell(QTY,n);else{const r=buy(QTY,n);if(r.k){sfx('buy');toast(`${ITEMS[QTY].n} ${r.k}개 구매 완료: −${big(r.t)}G`)}renderAll()}}$('qtyModal').hidden=true;QTY=null};
 /* 도감: 광물 설명 */
-const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'반점이 박힌 돌이에요.',clay:'손으로 빚을 수 있는 말랑한 흙이에요.',ore:'모암 속에 금속 알갱이가 박혀 있어요. 불에 녹이면 쓸 수 있어요.',coal:'잘 타는 검은 돌이에요. 대장간과 용광로의 연료예요.',shard:'날카롭게 깨지는 돌이에요.',cube:'반듯한 정육면체로 자라는 결정이에요.',cluster:'바위 위로 결정 기둥이 솟아 있어요. 갈아 내면 빛이 살아나요.',lump:'동글동글하게 뭉친 덩어리예요.',void:'들여다보면 빛을 빨아들이는 것 같은 돌이에요.',pearl:'깊은 물속에서 자란 진주예요.',fossil:'아주 오래전 바다의 흔적이에요.',meteor:'하늘에서 떨어진 쇳덩이예요.',opal:'보는 각도마다 색이 바뀌는 보석이에요.',star:'등불별이 떨어지며 남긴 조각이에요. 아직 따뜻해요.',dust:'손가락 사이로 반짝이며 흘러내리는 가루예요.',ember:'꺼지지 않고 타는 작은 불씨예요.',slag:'제련에 실패하면 남는 찌꺼기예요. 값은 거의 없어요.',block:'단단하게 굳힌 건축 재료예요.',wire:'길게 뽑아 감은 금속 줄이에요.',ingot:'녹여서 굳힌 금속 덩어리예요.',vase:'정성껏 구운 그릇이에요.',slab:'날을 세우는 데 쓰는 납작한 돌이에요.',gear:'기계를 움직이는 부품이에요.',pillar:'탑을 받치는 기둥이에요.',jar:'유리병에 담아 둔 재료예요.',lens:'빛을 모으는 렌즈예요.',cut:'정성껏 깎아 빛이 살아난 보석이에요.',powder:'곱게 간 가루예요.',glass:'빛이 통과하는 판이에요.',drillbit:'무엇이든 뚫는 드릴 끝이에요.',charge:'바위를 한 번에 무너뜨리는 폭약이에요.',engine:'정밀하게 맞물려 돌아가는 기관이에요.',lantern:'어둠 속에서도 꺼지지 않는 등불이에요.',orb:'안에서 빛이 일렁이는 구슬이에요.',crown:'왕실에 바칠 만한 보석 장식이에요.'};
+const SHAPE_TXT={chunk:'단단한 바위 덩어리예요.',speck:'작은 반점이 박혀 있는 돌이에요.',clay:'손으로도 모양을 만들 수 있는 부드러운 흙이에요.',ore:'바위 속에 금속 성분이 들어 있어요. 녹여서 금속을 뽑아낼 수 있죠.',coal:'불이 잘 붙는 검은 돌이에요. 대장간과 용광로의 연료로 써요.',shard:'날카로운 조각으로 잘 깨지는 돌이에요.',cube:'정육면체 모양으로 자라는 결정이에요.',cluster:'바위 위로 결정이 뾰족하게 솟아 있어요. 갈아 내면 더 환하게 빛나요.',lump:'작고 둥근 덩어리로 뭉쳐 있어요.',void:'가만히 들여다보면 주변의 빛을 빨아들이는 것 같아요.',pearl:'깊은 물속에서 만들어진 진주예요.',fossil:'아주 오래전 이곳에 바다가 있었다는 흔적이에요.',meteor:'하늘에서 떨어져 내려온 금속 덩어리예요.',opal:'보는 방향에 따라 색이 달라지는 보석이에요.',star:'등불별이 떨어질 때 남긴 조각이에요. 만지면 아직 따뜻해요.',dust:'손가락 사이로 흘러내릴 때마다 반짝이는 가루예요.',ember:'아직 꺼지지 않은 작은 불씨예요.',slag:'제련에 실패하면 남는 찌꺼기예요. 값은 거의 나가지 않아요.',block:'단단하게 만들어 탑을 쌓을 때 쓰는 재료예요.',wire:'금속을 가늘고 길게 뽑아 감아 놓은 줄이에요.',ingot:'녹인 금속을 굳혀 만든 덩어리예요.',vase:'정성 들여 구운 그릇이에요.',slab:'날을 갈 때 사용하는 납작한 돌이에요.',gear:'기계가 돌아가도록 도와주는 부품이에요.',pillar:'탑의 무게를 받쳐 주는 튼튼한 기둥이에요.',jar:'필요할 때 쓸 수 있도록 유리병에 담아 둔 재료예요.',lens:'빛을 한곳에 모아 주는 렌즈예요.',cut:'세심하게 깎아 내 안쪽 빛이 드러난 보석이에요.',powder:'재료를 곱게 갈아 만든 가루예요.',glass:'빛이 잘 통과하는 투명한 판이에요.',drillbit:'단단한 바위를 뚫을 때 쓰는 드릴 날이에요.',charge:'한 번에 바위를 깨뜨릴 수 있는 폭약이에요.',engine:'작은 부품들이 정교하게 맞물려 돌아가는 장치예요.',lantern:'깊은 어둠 속에서도 오래 빛나는 등불이에요.',orb:'안쪽에서 빛이 은은하게 일렁이는 구슬이에요.',crown:'왕실에 바쳐도 손색없을 만큼 화려한 보석 장식이에요.'};
 // 광석 발견 후광: 도트로 찍은 빛 2장(40×40칸, 화면에선 3배). 계단식 둥근 빛 + 빛살 8갈래(십자 · 대각선 길이가 번갈아) + 작은 별
 let HALO_URL='';
 function haloUrl(){if(HALO_URL)return HALO_URL;const N=40,[c,x]=cvs(N*2,N),C=19.5;
@@ -257,12 +262,12 @@ function haloUrl(){if(HALO_URL)return HALO_URL;const N=40,[c,x]=cvs(N*2,N),C=19.
   return HALO_URL=c.toDataURL()}
 // 처음 캔 원석: 도감 카드가 도트 후광과 함께 → "광석을 발견했다!"
 function discover(id){const it=ITEMS[id],L=it.L;sfx('sparkle');
-  story([{gold:1,k:'광석을 발견했다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} B${L} ${LAYERS[L-1].n}에서 처음 캐냈어요.`,extra:`<div class="halo"><span class="hr" style="background-image:url(${haloUrl()})"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 원석</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${S.seen.filter(x=>ITEMS[x].L).length} / ${RAW.length}</span></div>`}])}
+  story([{gold:1,k:'새 광석 발견!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} B${L} ${LAYERS[L-1].n}에서 처음 발견했어요.`,extra:`<div class="halo"><span class="hr" style="background-image:url(${haloUrl()})"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 원석</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${S.seen.filter(x=>ITEMS[x].L).length} / ${RAW.length}</span></div>`}])}
 // 처음 만든 제련품(v29): 원석 발견과 같은 카드 — "새 제련품을 만들었다!" (hooks.js의 smeltOnce 감싸기에서, 처음 만든 순간 한 번)
 function discoverMade(id,a,b){const it=ITEMS[id];sfx('sparkle');const tot=ORDER.filter(x=>ITEMS[x].cr).length,have=S.seen.filter(x=>ITEMS[x].cr).length;
-  story([{gold:1,k:'새 제련품을 만들었다!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${ITEMS[a].n} + ${ITEMS[b].n}로 처음 만들었어요.`,extra:`<div class="halo"><span class="hr" style="background-image:url(${haloUrl()})"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 제련품</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${have} / ${tot}</span></div>`}])}
-function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 찾지 못한 광물이에요. 더 깊이 파 내려가거나 새로운 조합을 시도해 보세요.'}]);return}
-  const it=ITEMS[id],L=itemLayer(id),src=it.cr?(()=>{const i=RMAP[key(INS[id][0],INS[id][1])];return S.found.includes(i)?`${ITEMS[INS[id][0]].n} + ${ITEMS[INS[id][1]].n}로 만들어요.`:'만드는 법은 아직 몰라요.'})():id==='slag'?'':`B${L} ${LAYERS[L-1].n}에서 캘 수 있어요.`;
+  story([{gold:1,k:'새 제련품 제작 성공!',t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${ITEMS[a].n} + ${ITEMS[b].n} 조합으로 처음 만들었어요.`,extra:`<div class="halo"><span class="hr" style="background-image:url(${haloUrl()})"></span>${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${SECT[it.s].n} · 제련품</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>도감</span><span>${have} / ${tot}</span></div>`}])}
+function itemInfo(id){if(!S.seen.includes(id)){story([{k:'도감',t:'???',b:'아직 발견하지 못한 광물이에요. 더 깊이 내려가거나 새로운 재료 조합을 시도해 보세요.'}]);return}
+  const it=ITEMS[id],L=itemLayer(id),src=it.cr?(()=>{const i=RMAP[key(INS[id][0],INS[id][1])];return S.found.includes(i)?`${ITEMS[INS[id][0]].n} + ${ITEMS[INS[id][1]].n}로 만들어요.`:'제작법을 아직 발견하지 못했어요.'})():id==='slag'?'':`B${L} ${LAYERS[L-1].n}에서 채굴할 수 있어요.`;
   const uses=OUTS[id].filter(o=>S.found.some(i=>RECIPES[i].out===o)).map(o=>ITEMS[o].n);
   story([{k:`도감 · ${SECT[it.s].n}`,t:it.n,b:`${SHAPE_TXT[it.sh]||''} ${src}`,extra:`<div style="display:flex;justify-content:center;margin-bottom:8px">${ico(id,'xl')}</div><div class="rcard"><span>분류</span><span>${it.cr?'제련품':id==='slag'?'찌꺼기':'원석'}</span><span>평소 가격</span><span>${pf(it.p)}G</span><span>지금 팔면</span><span>${pf(bid(id))}G</span>${uses.length?`<span>쓰이는 곳</span><span>${uses.join(', ')}</span>`:''}</div>`}])}
 $('dex').addEventListener('click',e=>{const b=e.target.closest('[data-dx]');if(b)itemInfo(b.dataset.dx)});

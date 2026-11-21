@@ -23,7 +23,7 @@ if(dev==='Galaxy S9+'){
   await p.click('[data-tab="mine"]');await p.evaluate(()=>{const c=document.querySelector('[data-chiplock]');c&&c.click()});await p.waitForTimeout(100);ok(await p.evaluate(()=>!$('sheet').hidden&&S.sub==='shaft'),'지층 목록의 [개척하기] → 갱도 개척 창');await p.click('#sheetX');
   // 개척 단추: 다음 지층 · 준비 정도
   const dg=await p.evaluate(()=>{const t1=$('nextL').textContent;const L=LAYERS[S.unlocked];S.gold=L.req.g;Object.entries(L.req.items).forEach(([id,n])=>S.inv[id]=n);renderMineHud();return{t1,t2:$('nextL').textContent,ready:$('nextL').classList.contains('ready')}});
-  ok(/B5 개척/.test(dg.t1)&&/%/.test(dg.t1)&&/준비 완료/.test(dg.t2)&&dg.ready,`개척 단추: "${dg.t1}" → "${dg.t2}"`);
+  ok(/B5 개척/.test(dg.t1)&&/%/.test(dg.t1)&&/개척할 준비가 됐어요/.test(dg.t2)&&dg.ready,`개척 단추: "${dg.t1}" → "${dg.t2}"`);
   await p.click('#nextL');await p.waitForTimeout(100);const lb=await p.evaluate(()=>{const b=document.querySelector('#layers [data-open],#layers button:not([disabled])');return!!b});ok(lb,'갱도 개척 창에서 개척할 수 있음');await p.click('#sheetX');
   // 로봇 채굴 보관함 vs 창고
   const bx=await p.evaluate(()=>{const a=$('boxBtn').getBoundingClientRect(),w=$('whBtn').getBoundingClientRect();return{tag:$('boxBtn').textContent.trim(),wt:$('whBtn').textContent.trim(),right:a.left>w.left,img:$('boxBtn').querySelector('img').src!==$('whBtn').querySelector('img').src}});

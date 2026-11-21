@@ -28,7 +28,7 @@ const gtime=()=>Date.now()+CLK.off;
 function clockRebase(){CLK.w=Date.now();CLK.m=performance.now()}
 function clockWatch(){const w=Date.now(),m=performance.now(),d=(w-CLK.w)-(m-CLK.m);CLK.w=w;CLK.m=m;if(Math.abs(d)>15000)CLK.off-=d;const g=gtime();if(S&&!CLK.hold&&g>(S.maxClock||0))S.maxClock=g}
 function clockCheck(){clockRebase();const g=gtime(),mx=S.maxClock||0,back=g<mx-60000;
-  if(back){CLK.off+=mx-g;if(!CLK.warned){CLK.warned=true;setTimeout(()=>toast('기기 시계가 예전보다 이르게 맞춰져 있어요. 그 시각이 지날 때까지 자리 비운 보상은 쌓이지 않아요.'),800)}}
+  if(back){CLK.off+=mx-g;if(!CLK.warned){CLK.warned=true;setTimeout(()=>toast('기기 시계가 이전 기록보다 과거로 설정되어 있어요. 기록된 시각이 될 때까지는 오프라인 보상이 쌓이지 않아요.'),800)}}
   S.maxClock=Math.max(mx,gtime());return back}
 async function syncTime(ms){try{if(!/^https?:$/.test(location.protocol)||/^(localhost|127\.|\[::1\])/.test(location.hostname))return false;
   const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms||1500),t0=Date.now();
@@ -72,18 +72,20 @@ function load(){try{['deepforge-v1','deepforge-v2','deepforge-v3'].forEach(k=>lo
 // v30: 저장이 실패하면(저장 공간 부족 · 막힘) 게임은 멈추지 않고 1분에 한 번만 알림. 다시 저장되면 알려 줌
 let SAVE_FAIL=0,SAVE_WARN_T=-1e9;
 function save(){if(!CLK.hold){S.lastSeen=gtime();S.maxClock=Math.max(S.maxClock||0,S.lastSeen)}
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));if(SAVE_FAIL){SAVE_FAIL=0;if(typeof toast==='function')toast('저장이 다시 잘 되고 있어요.')}}
-  catch(e){SAVE_FAIL++;try{console.warn('save failed',e&&e.name)}catch(_){}const now=performance.now();if(now-SAVE_WARN_T>60000&&typeof toast==='function'){SAVE_WARN_T=now;toast('진행 상황을 저장하지 못했어요. 기기 저장 공간을 확인해 주세요.')}}}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));if(SAVE_FAIL){SAVE_FAIL=0;if(typeof toast==='function')toast('다시 정상적으로 저장되고 있어요.')}}
+  catch(e){SAVE_FAIL++;try{console.warn('save failed',e&&e.name)}catch(_){}const now=performance.now();if(now-SAVE_WARN_T>60000&&typeof toast==='function'){SAVE_WARN_T=now;toast('진행 상황을 저장하지 못했어요. 기기의 저장 공간을 확인해 주세요.')}}}
 // 화면 갱신: 같은 내용이면 건드리지 않고, 긴 목록은 바뀐 줄만 바꾼다 (매초 다시 그려도 끊기지 않게)
 const HC=new WeakMap();
 function setHTML(el,h){if(!el||HC.get(el)===h)return;HC.set(el,h);el.innerHTML=h}
+// 값이 바뀔 때만 쓰기: 같은 값을 다시 써도 DOM 변경 · 번역 감시 · 스타일 재계산이 일어나므로(채굴 화면은 초당 5번 그림)
+const setTxt=(el,t)=>{if(el&&HC.get(el)!==t){HC.set(el,t);el.textContent=t}},setHid=(el,h)=>{if(el&&el.hidden!==h)el.hidden=h},setAttr=(el,k,v)=>{if(el&&el.getAttribute(k)!==v)el.setAttribute(k,v)};
 // 같은 줄 목록이면 바뀐 칸만 고친다. slot[j] = j번째 칸이 줄의 몇 번째 자식인지
 function patchList(el,keys,parts,row,empty,slot){if(!el)return;const key=keys.join(','),prev=HC.get(el);
   if(!keys.length){if(prev!=='')el.innerHTML=empty||'';HC.set(el,'');return}
   if(prev&&prev.key===key&&el.children.length===keys.length)parts.forEach((P,i)=>{const r=el.children[i];P.forEach((h,j)=>{if(prev.parts[i][j]!==h)r.children[slot[j]].innerHTML=h})});
   else el.innerHTML=keys.map((k,i)=>row(k,parts[i])).join('');HC.set(el,{key,parts})}
 const cnt=id=>S.inv[id]||0;
-function add(id,n){S.inv[id]=cnt(id)+n;if(S.inv[id]<=0)delete S.inv[id];if(n>0&&!S.seen.includes(id)){S.seen.push(id);if(S.seen.length>1)log(`새 광물 발견: ${ITEMS[id].n}`,true)}}
+function add(id,n){S.inv[id]=cnt(id)+n;if(S.inv[id]<=0)delete S.inv[id];if(n>0&&!S.seen.includes(id)){S.seen.push(id);if(S.seen.length>1)log(`처음 발견한 광물: ${ITEMS[id].n}`,true)}}
 function log(msg,toastIt){S.log.unshift(msg);S.log=S.log.slice(0,60);if(toastIt)toast(msg);if(typeof renderLog==='function')renderLog()}
 function toast(msg){const box=$('toasts');if(!box)return;const t=document.createElement('div');t.className='toast';t.textContent=msg;box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),450)},2600)}
 
@@ -96,7 +98,8 @@ function bonus(){const done=SECTIONS.filter(s=>S.floors>=s.to).length,has=i=>don
 function refreshBonus(){BON=bonus()}
 
 /* 장비 */
-const pickPower=l=>Math.round(l*(1+l/20)*10)/10;
+// v33: 곡괭이 힘 = 단계 × (1 + 단계/20) + 높은 단계 몫 Q0 × (g^(단계−1) − 1) (BAL.pickX=[Q0, g]). 예전엔 몇 조를 써도 50단계쯤 B13 바위 하나에 40번 넘게 쳐야 했음
+const pickPower=l=>{const b=l*(1+l/20)+(BAL.pickX?BAL.pickX[0]*(Math.pow(BAL.pickX[1],l-1)-1):0);return b<1000?Math.round(b*10)/10:Math.round(b)};
 const boostOn=()=>gtime()<S.ads.boostUntil;
 const boostMul=()=>boostOn()?2:1;
 const tapPower=()=>pickPower(S.pick)*BON.tap*boostMul();

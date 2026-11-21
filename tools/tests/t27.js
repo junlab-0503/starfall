@@ -8,7 +8,7 @@ const closeStory=async()=>{for(let i=0;i<30&&await p.isVisible('#storyNext');i++
 await p.goto('file://'+process.cwd()+'/dbg27.html');await p.waitForTimeout(800);
 // 이야기 · 문구
 const T=await p.evaluate(()=>({letter:PROLOGUE[0].b,journal:PROLOGUE.find(c=>c.t==='할아버지의 일지')?.b||'',machine:PROLOGUE.some(c=>c.t==='느리게 도는 기계'),art:PROLOGUE.some(c=>c.art),end:ENDING.some(c=>c.t==='이장 할머니'),last:TUT[TUT.length-1].t,bau:typeof TENANT_INTRO!=='undefined',intro:''}));
-ok(/철거 예정/.test(T.letter)&&/아직 죽지 않았다/.test(T.journal)&&/숨 쉬고/.test(T.journal)&&/하늘로 가는 길/.test(T.journal)&&T.machine&&!T.art,'프롤로그: 편지 · 일지 문구, 느리게 도는 기계 그대로, 이장 할머니 그림 없음');
+ok(/철거/.test(T.letter)&&/아직 죽지 않았다/.test(T.journal)&&/숨을 쉬고/.test(T.journal)&&/하늘까지 길/.test(T.journal)&&T.machine&&!T.art,'프롤로그: 편지 · 일지 문구, 느리게 도는 기계 그대로, 이장 할머니 그림 없음');
 ok(!T.end,'에필로그에 이장 할머니 카드 없음');
 ok(!/99층|별을 하늘로/.test(T.last)&&/마을/.test(T.last),'튜토리얼 마지막 말: '+T.last.slice(0,40));
 ok(!T.bau,'(v30) 입주 카드 뒤 "새로 열렸어요" 카드 없음 — 설명은 그 사람의 말풍선 안내로만');
@@ -39,7 +39,7 @@ await p.click('[data-boxget="all"]');await p.waitForTimeout(100);ok(await p.eval
 // 황금 광맥: 30초, 다른 탭에서도 다음 광맥까지 시간이 흐르고 알림 띠가 뜸
 await p.click('[data-tab="tower"]');await p.evaluate(()=>{__d().S.veinT=2});await p.waitForTimeout(3200);await closeStory();
 const v1=await p.evaluate(()=>({vein:!!__d().S.vein,left:__d().S.vein&&__d().S.vein.left,pop:!$('veinPop').hidden,txt:$('veinPop').innerText.replace(/\n/g,' '),sec:VEIN_SEC,on:veinOn()}));
-ok(v1.sec===30&&v1.vein&&v1.pop&&/황금 광맥이 발견됐어요/.test(v1.txt)&&!v1.on,`다른 탭(탑)에서 광맥 등장 + 알림 띠: "${v1.txt}" (남은 ${v1.left}초)`);
+ok(v1.sec===30&&v1.vein&&v1.pop&&/황금 광맥 발견/.test(v1.txt)&&!v1.on,`다른 탭(탑)에서 광맥 등장 + 알림 띠: "${v1.txt}" (남은 ${v1.left}초)`);
 const g1=await p.evaluate(()=>__d().S.gold);await p.click('#veinPop');await p.waitForTimeout(300);
 const v2=await p.evaluate(()=>({tab:__d().S.tab,pop:!$('veinPop').hidden,on:veinOn(),bn:!$('veinBn').hidden}));
 await p.evaluate(()=>{for(let i=0;i<10;i++)doTap()});const v3=await p.evaluate(()=>({g:__d().S.gold,got:__d().S.vein.got}));

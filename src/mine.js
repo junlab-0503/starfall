@@ -47,7 +47,7 @@ function swing(){A.sw=0}
 function full(){return space()<=0}
 // 셈(탑 6층)이 돌아오기 전에 창고가 처음 가득 찼을 때 한 번만 알려 줌(S.whHint에 기록, 다시 켜도 안 나옴)
 function whHintCheck(){if(S.whHint||!S.tutDone||tenantIn('셈')||!full()||!$('story').hidden||!$('titleScr').hidden||!$('entry').hidden)return;S.whHint=1;save();
-  story([{k:'창고',t:'창고가 가득 찼어요!',b:'창고가 가득 찼어요! 탑 6층을 완공하면 창고지기 셈이 돌아와 창고를 확장할 수 있어요.',portrait:SECTIONS[1].t,hide:true,extra:'<div class="row-btns" style="justify-content:center;margin:2px 0 4px"><button class="px-btn lamp" id="whGo" type="button">탑으로 가기</button></div>'}])}
+  story([{k:'창고',t:'창고가 가득 찼어요!',b:'창고가 꽉 찼어요. 탑을 6층까지 지으면 창고지기 셈이 돌아와 창고를 넓혀 줄 거예요.',portrait:SECTIONS[1].t,hide:true,extra:'<div class="row-btns" style="justify-content:center;margin:2px 0 4px"><button class="px-btn lamp" id="whGo" type="button">탑으로 가기</button></div>'}])}
 const HERO={img:null};if(typeof ART!=='undefined'&&ART.hero&&typeof HERO_META!=='undefined'){const im=new Image();im.onload=()=>{HERO.img=im};im.src=ART.hero}
 // 곡괭이질 7장: 들어 올림 → 머리 위 → 내려찍기 → 부딪힘 → 따라가기 → 거두기. 쉬기 · 걷기 · 기쁨 · 하품 · 창고 가득(누워 쉬기)
 function heroFrameKey(sit,t){if(sit)return'sleep';if(A.sw>=0){const s=A.sw;return s<.2?'sw0':s<.4?'sw1':s<.5?'sw2':s<.62?'sw3':s<.8?'sw4':'sw5'}
@@ -58,13 +58,13 @@ function tapAllowed(now){   // hooks.js의 doTap 감싸개(효과음)보다 앞�
   while(TAPQ.length&&now-TAPQ[0]>=1000)TAPQ.shift();if(TAPQ.length>=TAP_MAX)return false;TAPQ.push(now);return true}
 function doTap(){
   if(!veinOn()&&full()&&!(ul('autosell')&&autoSellRoom())){A.head=.5;floatText('창고가 가득 찼어요!','#ff8a7a');return}   // v30: 황금 광맥 동안엔 광석 대신 골드만 나오니 창고가 차도 캔다(예전엔 여기서 막혀 골드 0)
-  swing();let d=tapPower();if(Math.random()<critP()){d*=3;A.shake=3;const w=charW();for(let i=0;i<10;i++)PARTS.push({x:w.x-10,y:w.y-14,vx:-30+Math.random()*60,vy:-60-Math.random()*50,life:.6,c:'#fff2b0',sz:1,star:Math.random()<.4});floatText('크게!','#ffd36a')}
+  swing();let d=tapPower();if(Math.random()<critP()){d*=3;A.shake=3;const w=charW();for(let i=0;i<10;i++)PARTS.push({x:w.x-10,y:w.y-14,vx:-30+Math.random()*60,vy:-60-Math.random()*50,life:.6,c:'#fff2b0',sz:1,star:Math.random()<.4});floatText('강타!','#ffd36a')}
   applyDmg(d,false);veinGold(VEIN_K.tap,true);
 }
 // 알뜰 정리(셈): 창고가 가득 차면 가장 싼 원석을 팔아 자리를 만든다
 let autoSellT=0;
 function autoSellRoom(){const ids=ORDER.filter(id=>cnt(id)>0&&ITEMS[id].L).sort((a,b)=>bid(a)-bid(b));if(!ids.length)return false;const id=ids[0],k=Math.min(cnt(id),Math.max(1,Math.ceil(cap()*.05)));
-  const t=sell(id,k);if(!t)return false;if(performance.now()-autoSellT>4000){autoSellT=performance.now();log(`셈이 ${ITEMS[id].n} ${k}개를 팔아 자리를 만들었어요: +${big(t)}G`)}invDirty=true;return space()>0}
+  const t=sell(id,k);if(!t)return false;if(performance.now()-autoSellT>4000){autoSellT=performance.now();log(`셈이 ${ITEMS[id].n} ${k}개를 판매해 창고 공간을 만들었어요: +${big(t)}G`)}invDirty=true;return space()>0}
 function applyDmg(d,auto){
   S.hp-=d;const w=charW(),wx=faceWX()+1,wy=w.y-14;
   const T=PICK_TIERS[pickTier()][3];
@@ -99,9 +99,9 @@ let MR_ACC=0;
 function mrTick(){S.mr=(S.mr||0)+(MR_ACC-(S.mr||0))/600;MR_ACC=0}
 // v29: 창고가 가득 차서 직접 캔 광석을 놓칠 때 — 작은 알림(2.5초에 한 번만, 겹치지 않게) + 창고 단추가 붉게 한 번 깜빡. 채굴 · 창고 계산은 그대로
 let FULLW=0;
-function fullWarn(){const now=performance.now();if(now-FULLW<2500)return;FULLW=now;floatText('창고가 가득 차 광석을 놓쳤어요','#ff9a7a');const b=$('whBtn');if(b){b.classList.remove('warn');void b.offsetWidth;b.classList.add('warn')}}
+function fullWarn(){const now=performance.now();if(now-FULLW<2500)return;FULLW=now;floatText('창고가 가득 차 광석을 얻지 못했어요.','#ff9a7a');const b=$('whBtn');if(b){b.classList.remove('warn');void b.offsetWidth;b.classList.add('warn')}}
 function gain(id,n,auto){S.mined+=n;MR_ACC+=bid(id)*n;if(!S.seen.includes(id))A.joy=.9;if(!auto&&space()<n&&ul('autosell'))autoSellRoom();let ok=Math.min(n,space());
-  if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 판매 +${big(g)}G`,'#ffd36a')}}else{S.lost=(S.lost||0)+rest;fullWarn()}}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
+  if(ok<n){let rest=n-ok;if(auto){const b=Math.min(rest,Math.max(0,boxCap()-boxUsed()));if(b>0){boxAdd(id,b);rest-=b}const g=sellOverflow(id,rest);if(g&&performance.now()-ofFxT>1500){ofFxT=performance.now();floatText(`넘친 광석 자동 판매: +${big(g)}G`,'#ffd36a')}}else{S.lost=(S.lost||0)+rest;fullWarn()}}if(ok>0){add(id,ok);invDirty=true;const w=charW();FLY.push({id,x0:w.x-12,y0:w.y-18,t:0});floatText(`+${ok} ${ITEMS[id].n}`,'#fff',id)}}
 let FLOATS=[];
 function floatText(t,c,id){const wrap=$('sceneWrap');const ex=id&&FLOATS.find(f=>f.id===id&&f.life>.3);
   const gid=id==='$g'||id==='$d';if(ex){ex.n+=gid?ex.add:1;ex.el.querySelector('b').textContent=gid?`${id==='$d'?'드릴 ':''}+${big(ex.n)}G`:`+${ex.n} ${ITEMS[id].n}`;ex.life=1.3;ex.pop=.2;FLOATS.splice(FLOATS.indexOf(ex),1);FLOATS.unshift(ex);return}
@@ -235,13 +235,13 @@ const minePlaying=()=>S.tab==='mine'&&veinClock();
 const veinOn=()=>!!S.vein&&S.vein.left>0&&minePlaying();
 function veinTick(){if(!veinClock())return;if(S.vein){if((S.vein.left-=1)<=0)endVein();else veinPop();return}if(!S.tutDone)return;if((S.veinT-=1)<=0)startVein()}
 function startVein(){const pot=Math.max(100,Math.round(playIncome()*240));S.vein={left:veinSec(),pot,got:0,len:veinSec()};S.veinT=(480+Math.random()*360)*(BON.veinFast||1);
-  A.joy=.9;sfx('rare');if(S.tab==='mine'){toast(`황금 광맥이 드러났어요! ${veinSec()}초 동안 캐면 골드가 쏟아져요.`);for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5})}
+  A.joy=.9;sfx('rare');if(S.tab==='mine'){toast(`황금 광맥 발견! ${veinSec()}초 동안 채굴하면 골드를 얻을 수 있어요.`);for(let i=0;i<30;i++)PARTS.push({x:camX+Math.random()*IW,y:camY+Math.random()*IH,vx:0,vy:-10,life:1.2,c:'#ffd23f',sz:1,star:Math.random()<.5})}
   veinPop();renderMineHud()}
 // 알림 띠: 황금 광맥이 떠 있는데 다른 탭을 보고 있을 때만
 function veinPop(){const el=$('veinPop'),on=!!S.vein&&S.tab!=='mine';if(el.hidden===on){el.hidden=!on}if(on)$('veinPopT').textContent=`${Math.max(0,Math.ceil(S.vein.left))}초`}
-function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;veinPop();if(g>0)log(`황금 광맥이 다시 잠들었어요. 이번에 캔 골드 +${big(g)}G`,true);renderMineHud()}
+function endVein(){const g=S.vein?S.vein.got:0;S.vein=null;veinPop();if(g>0)log(`황금 광맥이 사라졌어요. 이번에 얻은 골드: +${big(g)}G`,true);renderMineHud()}
 function veinGold(k,tap){if(!veinOn())return;const v=S.vein,amt=Math.max(1,Math.round(v.pot*k));   // 상한 없음: 캐는 만큼 골드(예전엔 한 번에 pot×1.5까지라 그 뒤엔 탭 · 드릴 모두 0)
   v.got+=amt;S.gold+=amt;S.earned+=amt;MR_ACC+=amt;
-  if(!tap){A.vAuto=(A.vAuto||0)+amt;if(gtime()-(A.vAutoT||0)>1000){A.vAutoT=gtime();const ex=FLOATS.find(f=>f.id==='$d'&&f.life>.3);if(ex)ex.add=A.vAuto;floatText(`드릴 +${big(A.vAuto)}G`,'#ffd23f','$d');const f0=FLOATS[0];if(f0&&f0.id==='$d'&&!ex)f0.n=A.vAuto;A.vAuto=0}}   // 드릴 몫은 한 줄에 쌓여 보임(탭 표시에 밀려 사라지지 않게)
+  if(!tap){A.vAuto=(A.vAuto||0)+amt;if(gtime()-(A.vAutoT||0)>1000){A.vAutoT=gtime();const ex=FLOATS.find(f=>f.id==='$d'&&f.life>.3);if(ex)ex.add=A.vAuto;floatText(`드릴 채굴 보상 +${big(A.vAuto)}G`,'#ffd23f','$d');const f0=FLOATS[0];if(f0&&f0.id==='$d'&&!ex)f0.n=A.vAuto;A.vAuto=0}}   // 드릴 몫은 한 줄에 쌓여 보임(탭 표시에 밀려 사라지지 않게)
   if(tap){const ex=FLOATS.find(f=>f.id==='$g'&&f.life>.3);if(ex)ex.add=amt;floatText(`+${big(amt)}G`,'#ffd23f','$g');const f0=FLOATS[0];if(f0&&f0.id==='$g'&&!ex)f0.n=amt;sfx('coin');const w=charW();for(let i=0;i<5;i++)PARTS.push({x:w.x-12,y:w.y-16,vx:-20+Math.random()*40,vy:-50-Math.random()*30,life:.6,c:'#ffd23f',sz:1,star:Math.random()<.5})}}
 

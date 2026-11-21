@@ -23,7 +23,7 @@ ok(Math.abs(ofs.g-ofs.bid)<1e-6,`자동 판매 장치 10단계: 넘친 구리 �
 const ds=await p.evaluate(async()=>{S.inv={};renderMineHud();const on=$('autoSub').textContent;const r=autoRate();
   S.inv={stone:cap()};S.box={};renderMineHud();const full1=$('autoSub').textContent;S.box={stone:boxCap()};renderMineHud();const full2=$('autoSub').textContent;S.inv={};S.box={};renderMineHud();
   S.shop=2;setTab('equip');await new Promise(r=>setTimeout(r,150));const d=[...document.querySelectorAll('[data-up="auto"]')].map(e=>e.closest('.urow,.irow,li,div').innerText).join(' ');setTab('mine');return{on,r,full1,full2,d}});
-ok(/^초당 [\d.,]+개씩 캐요$/.test(ds.on)&&ds.r>0,`드릴 스위치: "${ds.on}" (계산 ${ds.r.toFixed(1)}개/초)`);
+ok(/^초당 약 [\d.,]+개 채굴 중$/.test(ds.on)&&ds.r>0,`드릴 스위치: "${ds.on}" (계산 ${ds.r.toFixed(1)}개/초)`);
 ok(/창고 가득/.test(ds.full1)&&/보관함도 가득/.test(ds.full2),`창고만 가득: "${ds.full1}" · 보관함도 가득: "${ds.full2}"`);
 ok(/드릴 파워 [\d.,]+[만억조경]? → [\d.,]+[만억조경]? \(\+\d+%\)/.test(ds.d),'(v32) 장비 탭 드릴 설명: '+(ds.d.match(/드릴 파워[^\n]*?%\)/)||[''])[0]);
 
@@ -58,7 +58,7 @@ ok(cs.rv==='done'&&cs.n===57&&cs.bad===null,`저장 정리: review "${cs.rv}" �
 // 8) 저장 실패: 멈추지 않고 1분에 한 번만 알림, 다시 되면 알림
 const sf=await p.evaluate(async()=>{const ls=Storage.prototype.setItem,msgs=[];const ot=window.toast;window.toast=m=>msgs.push(m);
   Storage.prototype.setItem=function(){throw new Error('QuotaExceededError')};save();save();save();Storage.prototype.setItem=ls;save();window.toast=ot;return msgs});
-ok(sf.length===2&&/저장하지 못했어요/.test(sf[0])&&/다시 잘 되고/.test(sf[1]),'저장 실패 알림 1번 + 다시 저장되면 알림: '+sf.join(' / '));
+ok(sf.length===2&&/저장하지 못했어요/.test(sf[0])&&/다시 정상적으로 저장되고/.test(sf[1]),'저장 실패 알림 1번 + 다시 저장되면 알림: '+sf.join(' / '));
 
 // 9) 알림 점이 단추 넓이를 늘리지 않음(QA P3) · 설명 속성 번역
 const nd=await p.evaluate(async()=>{S.shop=0;S.gold=1e12;setTab('equip');await new Promise(r=>setTimeout(r,150));const bs=[...document.querySelectorAll('main .px-btn.ndot')].filter(e=>e.offsetParent);return{n:bs.length,over:bs.filter(e=>e.scrollWidth>e.clientWidth+1).length}});
@@ -91,7 +91,7 @@ const us=await p.evaluate(()=>{const keep={p:S.pick,a:S.auto,L:S.layer,u:S.unloc
   const o={};for(const g of [1e12,9.999e15]){S.auto=lv(g);o[g]={lv:S.auto,r:autoRate()};renderMineHud();o[g].sub=$('autoSub').textContent}Object.assign(S,{pick:keep.p,auto:keep.a,layer:keep.L,unlocked:keep.u,floors:keep.f});refreshBonus();renderMineHud();return o});
 ok(us[1e12].r>=5&&us[9.999e15].r>=100&&/초당/.test(us[1e12].sub),`곡괭이 1단계 · B13: 드릴에 1조 → Lv${us[1e12].lv} 초당 ${us[1e12].r.toFixed(1)}개 · 9,999조 → Lv${us[9.999e15].lv} 초당 ${Math.round(us[9.999e15].r)}개 ("${us[1e12].sub}")`);
 const sl=await p.evaluate(()=>{const keep={a:S.auto,L:S.layer};S.auto=1;S.layer=12;renderMineHud();const t=$('autoSub').textContent;S.auto=keep.a;S.layer=keep.L;renderMineHud();return t});
-ok(/^\d+초에 1개씩 캐요$/.test(sl),'느린 드릴은 "초당 0개" 대신: '+sl);
+ok(/^약 \d+초에 1개 채굴 중$/.test(sl),'느린 드릴은 "초당 0개" 대신: '+sl);
 
 // 14) (v32) 세공: 옥 종류를 누르면 이름 · 몇 강 · 단계 이름 · 설명 팝업, 린 무대 크기는 종류를 바꿔도 그대로
 const cj=await p.evaluate(async()=>{const w=()=>new Promise(r=>setTimeout(r,200));S.unlocked=Math.max(S.unlocked,4);CR().met=1;CR().a=null;S.inv.silverbar=30;S.inv.goldbar=30;craftRec('gold').best=5;openSheet('craft');await w();

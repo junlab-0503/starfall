@@ -4,7 +4,7 @@ const {chromium,devices}=require('playwright');const fs=require('fs');
 fs.writeFileSync('dbg33.html','<!doctype html><html><head><meta charset=utf8><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+h+'</body></html>');
 const ok=(c,m)=>console.log((c?'OK  ':'FAIL')+' '+m);
 // v30: 숯 선물 안내는 없어진 '관리' 탭 대신 설정 위치
-const HINT={ko:/광고 제거 패키지.*톱니바퀴 → 설정/,en:/Ad-Free Pack.*gear on the mining screen → Settings/,zh:/去廣告禮包.*齒輪 → 設定/},DR={ko:/^드릴 \+[\d,.]+[KMBT만억]?G$/,en:/^Drill \+/,zh:/鑽|鉆|钻/};
+const HINT={ko:/광고 제거 패키지.*톱니바퀴 → 설정/,en:/Ad-Free Pack.*[Gg]ear on the mining screen → Settings/,zh:/去廣告禮包.*齒輪 → 設定/},DR={ko:/^드릴 채굴 보상 \+[\d,.]+[KMBT만억]?G$/,en:/^Drill mining reward \+/,zh:/鑽|鉆|钻/};
 for(const L of ['ko','en','zh']){const ctx=await b.newContext({...devices['iPhone 13'],locale:'ko-KR'});await ctx.addInitScript(l=>{if(!localStorage.getItem('starfall.lang'))localStorage.setItem('starfall.lang',l)},L);
   const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));const close=async()=>{for(let i=0;i<30&&await p.isVisible('#storyNext');i++)await p.click('#storyNext')};
   await p.goto('file://'+process.cwd()+'/dbg33.html');await p.waitForTimeout(800);if(await p.isVisible('#titleScr'))await p.click('#titleScr');await p.waitForTimeout(200);await close();if(await p.isVisible('#entry')){await p.waitForTimeout(500);await p.click('#entry');await p.waitForTimeout(700)}
