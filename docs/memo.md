@@ -549,11 +549,16 @@ GitHub 백업 대상: junlab-0503/starfall (사용자가 claude.ai/connect-githu
   - 낡은 문구를 보던 테스트 13곳 새 문장에 맞춤
 - 확인: 회귀 테스트 25개 + t45 통과, UI 점검(3해상도 × 3언어 × 24화면) 7종 0, 번역 빠짐 0, 밸런스 봇 18.0h / 27.0h
 
-## 완료 (v34) 이장 할머니 액자 빼기 (원본 백업: 브랜치 backup-v33)
+## 완료 (v34) 이장 할머니 액자 빼기 · 게임 아이콘 (원본 백업: 브랜치 backup-v33)
 - 튜토리얼 말풍선의 이장 할머니 초상화 액자가 튜토리얼 그림 속 할머니와 너무 달라 뺌 → 이름 · 말만(말풍선 글이 넓어짐). 주민(셈 · 핀 · 루카 · 미르 · 린) 안내는 초상화 그대로
   - art/portraits/granny.png 삭제(빌드 −11KB), tools/portrait_art.py도 granny는 저장 안 함
 - 한국어 긴 글(튜토리얼 · 이야기 · 말풍선 · 알림)이 낱말 중간에서 줄이 바뀌던 것("화 / 면을") → 낱말 단위로(keep-all, 칸보다 긴 낱말만 나눔)
-- 게임(앱) 아이콘: 사용자가 준 그림(광부 아이 · 별 조각 · 숯 · 탑)으로 정함 — 파일로 받으면 스토어 512 · 안드로이드 크기별 · 웹 아이콘으로 만들 것
+- 게임(앱) 아이콘: 사용자가 준 그림(광부 아이 · 별 조각 · 숯 · 탑, art/icon/source.webp 1254px) → `python3 tools/make_icons.py` 로 exports/icon/ (+ exports/별빛광맥_앱아이콘.zip)
+  - 원본은 둥근 네모 바깥 모서리가 검정(가장자리 따라 약 265px) → 스토어가 씌우는 20% 둥근 모서리보다 커서 그대로 올리면 모서리에 검은 테 → 모서리를 주변 색으로 채운 꽉 찬 정사각형(play_store_512.png · capacitor_assets/icon-only.png)
+  - 옛 런처 ic_launcher.png = 원래 둥근 네모 모양(모서리 투명), ic_launcher_round.png = 동그라미, 적응형 = 그림을 108dp 중 84dp로(보이는 72dp에 얼굴 · 별 조각 · 숯이 다 들어옴) + 뒷층 색 #773e6e
+  - 적용: android_res/* 를 android/app/src/main/res/ 에 덮어쓰기, 또는 capacitor_assets → assets 로 바꿔 `npx @capacitor/assets generate --android`. 미리보기 exports/icon/preview.png
+  - 게임 HTML 브라우저 탭 아이콘(web_icon.webp 180px · 15KB)을 build.py 가 dist 두 파일에 넣음
+  - Pillow 12 주의: Image.fromarray 로 만든 그림은 읽기 전용이라 floodfill 등 그리기 전에 .copy()
 
 ## 출시 전 남은 일
 - 황금 광맥 비율 확정(지금 50%: 판매 74 : 광맥 26)
@@ -561,7 +566,7 @@ GitHub 백업 대상: junlab-0503/starfall (사용자가 claude.ai/connect-githu
 - 저장 백업(코드 또는 클라우드), 앱에 @capacitor/app · @capacitor/haptics 설치 · 오디오 포커스 연결(v26 · v28.2 메모), 실제 사람 플레이 테스트, 실제 기기 테스트
 - 게임 안 버그 제보(폼 서비스/서버)
 - 앱에 window.starfallNative 연결(보상형 광고 · 결제 · 복원 · 인앱 리뷰, v30 메모) 후 실기기 시험
-- 앱 포장(Capacitor), AdMob, 구글 플레이 결제, 개인정보처리방침, 스토어 자료 — 앱에는 dist/starfall.html(출시용)을 넣을 것
+- 앱 포장(Capacitor), AdMob, 구글 플레이 결제, 개인정보처리방침, 스토어 자료(그래픽 이미지 1024×500 · 스크린샷) — 앱에는 dist/starfall.html(출시용), 아이콘은 exports/icon
 
 ## 확정된 사항 (바꾸지 않기)
 - 밸런스 동결(v23): 외부 테스터 피드백 전까지 BAL 값을 바꾸지 않기 (v24에서 요청으로 황금 광맥 절반 · 창고 +150칸, v30에서 요청으로 드릴 곡선 · 넘침 판매 상한 · 힘껏 내려치기 값 · B4 바위 + 엔딩 시간 유지용 후반 비용 보정)

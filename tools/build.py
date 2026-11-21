@@ -55,7 +55,9 @@ kc=set(c for c in allc if not isTC(c));tc=set(c for c in allc if not isKO(c))
 FONTS=[('Galmuri14','Galmuri14.woff2',(107,13)),('Galmuri11','Galmuri11.woff2',(104.5,12.5)),('Galmuri11B','Galmuri11-Bold.woff2',(104.5,12.5)),('Galmuri9','Galmuri9.woff2',(100,10))]
 fonts='\n'.join(f'@font-face{{font-family:"{n}";src:url(data:font/woff2;base64,{sub(f,n+".woff2",kc)}) format("woff2");font-display:swap;ascent-override:{a}%;descent-override:{d}%;line-gap-override:0%}}' for n,f,(a,d) in FONTS)
 fonts+=f'\n@font-face{{font-family:"StarTC";src:url(data:font/woff2;base64,{sub("Cubic_11.ttf","StarTC.woff2",tc,"Starfall TC Pixel")}) format("woff2");font-display:swap;ascent-override:87.5%;descent-override:28.5%;line-gap-override:0%}}'
-html=f'<meta charset="utf-8">\n<title>별빛광맥</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<style>\n/* 글꼴: Galmuri (갈무리) — SIL Open Font License 1.1 / 번체: 俐方體 Cubic 11 (ACh-K, M+ BITMAP FONTS 기반)을 줄여 이름을 바꾼 것 — SIL Open Font License 1.1 (fonts/OFL.txt · fonts/Cubic_11-OFL.txt) */\n{fonts}\n{css}</style>\n{body}\n<script>\n{js}</script>\n'
+WI=os.path.join(R,'exports','icon','web_icon.webp')   # 게임 아이콘(tools/make_icons.py)
+icon=f'<link rel="icon" type="image/webp" sizes="180x180" href="data:image/webp;base64,{base64.b64encode(open(WI,"rb").read()).decode()}">\n' if os.path.exists(WI) else ''
+html=f'<meta charset="utf-8">\n<title>별빛광맥</title>\n{icon}<meta name="claude:viewport-fit-sides" content="cover">\n<style>\n/* 글꼴: Galmuri (갈무리) — SIL Open Font License 1.1 / 번체: 俐方體 Cubic 11 (ACh-K, M+ BITMAP FONTS 기반)을 줄여 이름을 바꾼 것 — SIL Open Font License 1.1 (fonts/OFL.txt · fonts/Cubic_11-OFL.txt) */\n{fonts}\n{css}</style>\n{body}\n<script>\n{js}</script>\n'
 import re
 def variant(t,dev):
     if dev:return re.sub(r'/\*REL\{.*?\}REL\*/','',t,flags=re.S)
